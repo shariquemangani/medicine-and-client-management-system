@@ -1,0 +1,17 @@
+export const DEFAULT_DISEASES = [
+  'Acidity',
+  'Allergic rhinitis',
+  'Anxiety',
+  'Arthritis',
+  'Asthma',
+  'Chronic migraine',
+  'Constipation',
+  'Depression',
+  'Diabetes',
+  'Eczema',
+  'Hypertension',
+  'Insomnia',
+  'PCOS',
+  'Sinusitis',
+  'Thyroid disorder',
+] as const

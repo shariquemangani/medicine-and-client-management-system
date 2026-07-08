@@ -1,0 +1,94 @@
+================================================================================
+Post - Register a new user - API
+================================================================================
+URL: /api/v1/auth/register
+
+Method: POST
+Usage: Register a new user
+
+Path Params: No parameters
+
+Request: 
+{
+  "fullName": "string",
+  "email": "string",
+  "password": "string"
+}
+
+Response:
+{
+  "timestamp": "2026-06-26T20:53:58.265221756Z",
+  "status": 201,
+  "message": "Created successfully",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzaGFyaXF1ZWN",
+    "refreshToken": "eyJhbGciOiJIUzM4NCJ9.,
+    "email": "shariquecode@gmail.com",
+    "fullName": "Sharique Mangani",
+    "tokenType": "Bearer"
+  },
+  "success": true
+}
+
+================================================================================
+Post - Login user - API
+================================================================================
+URL: /api/v1/auth/login
+Method: POST
+Usage: login user
+
+Path Params: No parameters
+
+Request: 
+{
+  "email": "string",
+  "password": "string"
+}
+
+Response:
+{
+  "timestamp": "2026-06-26T21:05:52.466190729Z",
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ",
+    "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzaGFyaXF1ZWNvZ",
+    "email": "shariquecode@gmail.com",
+    "fullName": "Sharique Mangani",
+    "tokenType": "Bearer"
+  },
+  "success": true
+}
+
+================================================================================
+Post - Refresh access token - API
+================================================================================
+URL: /api/v1/auth/refresh
+
+
+Method: POST
+Usage: Register a new user
+
+Path Params: No parameters
+
+Request: 
+{
+  "fullName": "string",
+  "email": "string",
+  "password": "string"
+}
+
+Response:
+{
+  "timestamp": "2026-06-26T20:53:58.265221756Z",
+  "status": 201,
+  "message": "Created successfully",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzaGFyaXF1ZWN",
+    "refreshToken": "eyJhbGciOiJIUzM4NCJ9.,
+    "email": "shariquecode@gmail.com",
+    "fullName": "Sharique Mangani",
+    "tokenType": "Bearer"
+  },
+  "success": true
+}
