@@ -2,7 +2,7 @@
 
 import { ROUTES } from '@/lib/routes'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   MedicinesHero,
@@ -13,16 +13,16 @@ import {
 import { useMedicinesDirectory } from '@/hooks/use-medicines-directory'
 import { deleteMedicine } from '@/services/pharmacy-api'
 import type { Medicine } from '@/types'
+import { t } from '@/lib/labels'
 import { toast } from 'sonner'
 import { BentoGrid, BentoCard } from '@/components/shared'
-
-type ClassWithCount = Medicine & { patientCount?: number }
 
 export default function MedicinesListPage() {
   const router = useRouter()
   const {
     initialLoading,
     refreshing,
+    error,
     filters,
     updateFilter,
     clearFilters,
@@ -31,7 +31,7 @@ export default function MedicinesListPage() {
     sortDirection,
     toggleSort,
     stats,
-    paginatedClasses,
+    paginatedMedicines,
     page,
     setPage,
     totalPages,
@@ -40,12 +40,16 @@ export default function MedicinesListPage() {
     reload,
   } = useMedicinesDirectory()
 
-  const [deleteTarget, setDeleteTarget] = useState<ClassWithCount | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Medicine | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [viewMode, setViewMode] = useState<'table' | 'compact'>('table')
 
-  const openView = (cls: ClassWithCount) => {
-    router.push(ROUTES.vaultMedicineDetail(cls.id))
+  useEffect(() => {
+    if (error) toast.error(error)
+  }, [error])
+
+  const openView = (medicine: Medicine) => {
+    router.push(ROUTES.vaultMedicineDetail(medicine.id))
   }
 
   const handleConfirmDelete = async () => {
@@ -53,22 +57,33 @@ export default function MedicinesListPage() {
     setDeleting(true)
     try {
       await deleteMedicine(deleteTarget.id)
-      toast.success('Medicine deleted')
+      toast.success(t('medicines.deleted'))
       setDeleteTarget(null)
-      reload()
+      await reload()
     } catch {
-      toast.error('Failed to delete medicine')
+      toast.error(t('medicines.deleteFailed'))
       throw new Error('delete failed')
     } finally {
       setDeleting(false)
     }
   }
 
+  if (initialLoading) {
+    return (
+      <div className="medicine-vault-page dashboard-shell space-y-4" aria-busy="true">
+        <div className="dashboard-skeleton h-28 rounded-2xl" />
+        <div className="dashboard-skeleton h-96 rounded-2xl" />
+      </div>
+    )
+  }
+
   return (
-    <div className="classes-page dashboard-shell space-y-4">
+    <div className="medicine-vault-page dashboard-shell space-y-4">
       <BentoGrid>
         <BentoCard colSpan={12} delay={0} className="!p-0">
           <MedicinesHero
+            total={stats.total}
+            active={stats.active}
             onRefresh={reload}
             refreshing={refreshing}
             onAdd={() => router.push(ROUTES.vaultMedicineNew)}
@@ -88,7 +103,7 @@ export default function MedicinesListPage() {
           />
           <div className="mt-4">
             <MedicinesDataTable
-              classes={paginatedClasses}
+              medicines={paginatedMedicines}
               loading={initialLoading}
               refreshing={refreshing}
               sortField={sortField}

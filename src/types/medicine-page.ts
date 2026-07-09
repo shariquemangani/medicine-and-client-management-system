@@ -1,7 +1,15 @@
-export type ClassSortField = 'name' | 'grade' | 'section' | 'patientCount' | 'homeroomStaffName'
-export type ClassSortDirection = 'asc' | 'desc'
+export type MedicineSortField = 'name' | 'formType' | 'status' | 'createdAt'
+export type MedicineSortDirection = 'asc' | 'desc'
 
-export interface ClassDirectoryFilters {
+export interface MedicineDirectoryFilters {
   search: string
-  grade: string
+  status: string
+  formType: string
 }
+
+/** @deprecated Use MedicineSortField */
+export type ClassSortField = MedicineSortField
+/** @deprecated Use MedicineSortDirection */
+export type ClassSortDirection = MedicineSortDirection
+/** @deprecated Use MedicineDirectoryFilters */
+export type ClassDirectoryFilters = MedicineDirectoryFilters

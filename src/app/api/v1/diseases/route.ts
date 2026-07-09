@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createDisease, fetchDiseases } from '@/lib/diseases/disease-server'
 import { ApiAuthError, requireApiIdToken } from '@/lib/api/require-api-id-token'
 import type { ApiResponse } from '@/types'
-import type { Disease } from '@/types/disease'
+import type { Disease, DiseaseCreateInput } from '@/types/disease'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,11 +22,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { idToken, businessId } = await requireApiIdToken(request)
-    const { name } = (await request.json()) as { name?: string }
-    if (!name?.trim()) {
+    const body = (await request.json()) as DiseaseCreateInput
+    if (!body.name?.trim()) {
       return NextResponse.json({ error: 'Disease name is required' }, { status: 400 })
     }
-    const disease = await createDisease(idToken, businessId, name)
+    const disease = await createDisease(idToken, businessId, {
+      name: body.name.trim(),
+      symptoms: body.symptoms,
+      cure: body.cure,
+      diet: body.diet,
+      precautions: body.precautions,
+    })
     const response: ApiResponse<Disease> = { data: disease }
     return NextResponse.json(response, { status: 201 })
   } catch (error) {

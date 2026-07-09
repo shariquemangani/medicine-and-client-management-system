@@ -18,6 +18,8 @@ export const ROUTES = {
   vaultMedicineNew: '/vault/medicine/new',
   vaultMedicineDetail: (id: string) => `/vault/medicine/${id}` as const,
   vaultDiseases: '/vault/diseases',
+  vaultDiseaseNew: '/vault/diseases/new',
+  vaultDiseaseDetail: (id: string) => `/vault/diseases/${id}` as const,
   vaultFlags: '/vault/flag-configurations',
 
   inventory: '/inventory',
@@ -26,14 +28,14 @@ export const ROUTES = {
   settings: '/settings',
 } as const
 
-/** Legacy path still redirected to the vault hub. */
+/** Legacy path still redirected to the medicine vault. */
 export const LEGACY_VAULT_PATH = '/medicines'
 
 /** Top-level sidebar / protected section paths (in display order). */
 export const SIDEBAR_SECTION_PATHS = [
   ROUTES.dashboard,
   ROUTES.patients,
-  ROUTES.vault,
+  ROUTES.vaultMedicine,
   ROUTES.inventory,
   ROUTES.prescriptions,
   ROUTES.billing,
@@ -43,14 +45,18 @@ export const SIDEBAR_SECTION_PATHS = [
 export type SidebarSectionPath = (typeof SIDEBAR_SECTION_PATHS)[number]
 
 /** Protected paths checked by middleware (includes legacy vault alias). */
-export const PROTECTED_PATHS = [...SIDEBAR_SECTION_PATHS, LEGACY_VAULT_PATH] as const
+export const PROTECTED_PATHS = [
+  ...SIDEBAR_SECTION_PATHS,
+  ROUTES.vault,
+  LEGACY_VAULT_PATH,
+] as const
 
 /** Map URL first segment → canonical section href for breadcrumbs. */
 export const SECTION_HREF_BY_SLUG: Record<string, string> = {
   dashboard: ROUTES.dashboard,
   patients: ROUTES.patients,
-  vault: ROUTES.vault,
-  medicines: ROUTES.vault,
+  vault: ROUTES.vaultMedicine,
+  medicines: ROUTES.vaultMedicine,
   inventory: ROUTES.inventory,
   prescriptions: ROUTES.prescriptions,
   billing: ROUTES.billing,

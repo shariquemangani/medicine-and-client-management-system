@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAppDispatch, useAppSelector } from '@/redux'
@@ -10,7 +9,6 @@ import {
   GraduationCap,
   Users,
   BookOpen,
-  ClipboardCheck,
   FileText,
   Wallet,
   Settings,
@@ -18,7 +16,10 @@ import {
   ChevronRight,
   LogOut,
   Sparkles,
+  Package,
 } from 'lucide-react'
+import { AdminSidebarVaultNav } from '@/components/layout/admin-sidebar-vault-nav'
+import { AdminSidebarNavLink } from '@/components/layout/admin-sidebar-nav-link'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ interface NavItem {
   labelKey: string
   icon: LucideIcon
   accent: NavAccent
+  vault?: boolean
 }
 
 interface NavGroup {
@@ -84,15 +86,16 @@ const navGroupsConfig: NavGroup[] = [
     titleKey: 'nav.operations',
     items: [
       {
-        href: ROUTES.vault,
+        href: ROUTES.vaultMedicine,
         labelKey: 'nav.medicines',
         icon: BookOpen,
         accent: '--metric-classes',
+        vault: true,
       },
       {
         href: ROUTES.inventory,
         labelKey: 'nav.inventory',
-        icon: ClipboardCheck,
+        icon: Package,
         accent: '--metric-attendance',
       },
       {
@@ -187,7 +190,7 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        'admin-sidebar relative flex h-full flex-col overflow-hidden transition-[width] duration-300 ease-out',
+        'admin-sidebar relative flex h-full flex-col overflow-hidden transition-[width] duration-200 ease-out',
         collapsed ? 'w-[76px]' : 'w-[252px]'
       )}
     >
@@ -238,29 +241,32 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
             )}
             <ul className="space-y-0.5">
               {group.items.map((item) => {
+                if (item.vault) {
+                  return (
+                    <li key="vault-nav">
+                      <AdminSidebarVaultNav
+                        pathname={pathname}
+                        collapsed={collapsed}
+                        role={user?.role}
+                        onNavClick={handleNavClick}
+                      />
+                    </li>
+                  )
+                }
+
                 const isActive =
                   pathname === item.href || pathname.startsWith(`${item.href}/`)
-                const Icon = item.icon
                 return (
                   <li key={item.href}>
-                    <Link
+                    <AdminSidebarNavLink
                       href={item.href}
+                      label={item.label}
+                      icon={item.icon}
+                      accent={item.accent}
+                      isActive={isActive}
+                      collapsed={collapsed}
                       onClick={handleNavClick}
-                      title={collapsed ? item.label : undefined}
-                      className={cn(
-                        'admin-sidebar-nav-item group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-all duration-200',
-                        collapsed && 'justify-center px-2',
-                        isActive && 'admin-sidebar-nav-item-active'
-                      )}
-                      style={{ '--nav-accent': `var(${item.accent})` } as React.CSSProperties}
-                      data-active={isActive}
-                    >
-                      <span className="admin-sidebar-nav-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                        <Icon className="h-[18px] w-[18px]" />
-                      </span>
-                      {!collapsed && <span className="truncate">{item.label}</span>}
-                      {isActive && <span className="admin-sidebar-active-dot" aria-hidden />}
-                    </Link>
+                    />
                   </li>
                 )
               })}

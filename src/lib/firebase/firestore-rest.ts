@@ -1,4 +1,4 @@
-import type { Patient } from '@/types'
+import type { Medicine, Patient } from '@/types'
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
 
@@ -205,6 +205,24 @@ export async function fetchFirestoreDocument<T extends { id: string }>(
 
 export async function fetchPatientRecords(idToken: string, businessId: string): Promise<Patient[]> {
   return fetchFirestoreCollection<Patient>(`businesses/${businessId}/patients`, idToken)
+}
+
+export async function fetchMedicineRecords(
+  idToken: string,
+  businessId: string
+): Promise<Medicine[]> {
+  return fetchFirestoreCollection<Medicine>(`businesses/${businessId}/medicines`, idToken)
+}
+
+export async function fetchMedicineRecord(
+  idToken: string,
+  businessId: string,
+  medicineId: string
+): Promise<Medicine | null> {
+  return fetchFirestoreDocument<Medicine>(
+    `businesses/${businessId}/medicines/${medicineId}`,
+    idToken
+  )
 }
 
 export async function fetchPatientRecord(

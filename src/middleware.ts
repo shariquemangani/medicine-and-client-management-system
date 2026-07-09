@@ -33,6 +33,7 @@ export const config = {
     '/register',
     '/dashboard/:path*',
     '/patients/:path*',
+    '/vault',
     '/vault/:path*',
     '/medicines/:path*',
     '/inventory/:path*',

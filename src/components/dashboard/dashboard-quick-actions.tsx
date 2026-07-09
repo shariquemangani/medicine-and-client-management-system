@@ -19,7 +19,7 @@ const links = [
     accent: '--metric-inventory',
   },
   {
-    href: ROUTES.vault,
+    href: ROUTES.vaultMedicine,
     labelKey: 'nav.medicines',
     icon: BookOpen,
     accent: '--metric-medicines',

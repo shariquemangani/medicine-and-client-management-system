@@ -97,7 +97,7 @@ export function PatientRegistrationFormSections({
 
   const handleCreateDisease = async (name: string) => {
     try {
-      const created = await createDisease(name)
+      const created = await createDisease({ name })
       const option = { value: created.id, label: created.name }
       setDiseaseOptions((prev) => {
         if (prev.some((o) => o.value === option.value)) return prev

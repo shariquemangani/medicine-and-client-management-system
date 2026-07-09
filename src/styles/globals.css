@@ -1610,6 +1610,74 @@
     background: hsl(var(--metric-classes) / 0.9);
   }
 
+  .diseases-hero {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--metric-exams) / 0.08) 0%,
+      hsl(var(--glass) / 0.4) 45%,
+      hsl(var(--metric-patients) / 0.06) 100%
+    );
+  }
+
+  .dark .diseases-hero {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--metric-exams) / 0.14) 0%,
+      hsl(0 0% 11%) 50%,
+      hsl(var(--metric-exams) / 0.08) 100%
+    );
+  }
+
+  .diseases-hero-mesh {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-exams) / 0.2), transparent 55%),
+      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-patients) / 0.12), transparent 50%);
+    pointer-events: none;
+  }
+
+  .diseases-hero-badge {
+    border: 1px solid hsl(var(--metric-exams) / 0.25);
+    background: hsl(var(--metric-exams) / 0.1);
+    color: hsl(var(--metric-exams));
+  }
+
+  .diseases-hero-btn {
+    border-color: hsl(var(--glass-border));
+    background: hsl(var(--glass) / 0.5);
+    backdrop-filter: blur(8px);
+  }
+
+  .diseases-hero-btn:hover {
+    border-color: hsl(var(--metric-exams) / 0.35);
+    background: hsl(var(--metric-exams) / 0.08);
+  }
+
+  .diseases-hero-primary {
+    background: hsl(var(--metric-exams));
+    color: hsl(0 0% 100%);
+  }
+
+  .diseases-hero-primary:hover {
+    background: hsl(var(--metric-exams) / 0.9);
+  }
+
+  .diseases-avatar {
+    background: linear-gradient(135deg, hsl(var(--metric-exams) / 0.2), hsl(var(--metric-patients) / 0.15));
+    color: hsl(var(--metric-exams));
+    border: 1px solid hsl(var(--metric-exams) / 0.2);
+  }
+
+  .dark .diseases-avatar {
+    color: hsl(var(--foreground));
+  }
+
+  .diseases-page-btn-active {
+    background: hsl(var(--metric-exams));
+    color: hsl(0 0% 100%);
+  }
+
   .classes-avatar {
     background: linear-gradient(135deg, hsl(var(--metric-classes) / 0.2), hsl(var(--metric-teachers) / 0.15));
     color: hsl(var(--metric-classes));
@@ -3722,17 +3790,14 @@
     animation: dashboard-fade-up 0.4s ease-out both;
   }
 
-  /* Admin sidebar — premium glass */
+  /* Admin sidebar — lightweight unified nav */
   .admin-sidebar {
     background: hsl(var(--sidebar-surface));
     border-right: 1px solid hsl(var(--sidebar-border));
-    backdrop-filter: blur(20px) saturate(1.1);
   }
 
   .dark .admin-sidebar {
-    background: hsl(var(--sidebar-surface));
     border-right-color: hsl(var(--sidebar-border));
-    box-shadow: inset -1px 0 0 hsl(var(--sidebar-border) / 0.6);
   }
 
   .admin-sidebar-corner-glow {
@@ -3740,13 +3805,12 @@
     top: 0;
     right: 0;
     z-index: 0;
-    width: 10rem;
-    height: 10rem;
+    width: 8rem;
+    height: 8rem;
     background: radial-gradient(
       circle at 100% 0%,
-      hsl(var(--metric-patients) / 0.22) 0%,
-      hsl(var(--metric-teachers) / 0.12) 38%,
-      transparent 68%
+      hsl(var(--metric-patients) / 0.12) 0%,
+      transparent 70%
     );
     pointer-events: none;
   }
@@ -3754,9 +3818,8 @@
   .dark .admin-sidebar-corner-glow {
     background: radial-gradient(
       circle at 100% 0%,
-      hsl(var(--metric-patients) / 0.28) 0%,
-      hsl(var(--metric-teachers) / 0.14) 40%,
-      transparent 70%
+      hsl(var(--metric-patients) / 0.16) 0%,
+      transparent 72%
     );
   }
 
@@ -3769,7 +3832,6 @@
     inset: 0;
     border-radius: 0.75rem;
     border: 1px solid hsl(var(--glass-border));
-    animation: login-spin 22s linear infinite;
   }
 
   .admin-sidebar-logo-core {
@@ -3780,13 +3842,13 @@
     justify-content: center;
     border-radius: 0.6rem;
     background: linear-gradient(135deg, hsl(var(--metric-patients)), hsl(var(--metric-teachers)));
-    box-shadow: 0 4px 12px hsl(var(--metric-patients) / 0.35);
   }
 
   .admin-sidebar-collapse {
     color: hsl(var(--muted-foreground));
     background: hsl(var(--muted) / 0.35);
     border: 1px solid hsl(var(--glass-border));
+    transition: color 0.15s ease, background-color 0.15s ease;
   }
 
   .admin-sidebar-collapse:hover {
@@ -3801,6 +3863,7 @@
   .admin-sidebar-nav-item {
     position: relative;
     color: hsl(var(--muted-foreground));
+    transition: color 0.15s ease, background-color 0.15s ease;
   }
 
   .admin-sidebar-nav-item:hover {
@@ -3815,13 +3878,12 @@
   .admin-sidebar-nav-icon {
     background: hsl(var(--muted) / 0.35);
     color: hsl(var(--muted-foreground));
-    transition: all 0.2s ease;
+    transition: color 0.15s ease, background-color 0.15s ease;
   }
 
   .admin-sidebar-nav-item:hover .admin-sidebar-nav-icon {
     background: hsl(var(--nav-accent) / 0.12);
     color: hsl(var(--nav-accent));
-    transform: scale(1.05);
   }
 
   .admin-sidebar-nav-item-active {
@@ -3833,20 +3895,10 @@
   .admin-sidebar-nav-item-active .admin-sidebar-nav-icon {
     background: hsl(var(--nav-accent) / 0.18);
     color: hsl(var(--nav-accent));
-    box-shadow: 0 0 16px hsl(var(--nav-accent) / 0.25);
   }
 
-  .admin-sidebar-active-dot {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    height: 6px;
-    width: 6px;
-    border-radius: 9999px;
-    transform: translateY(-50%);
-    background: hsl(var(--nav-accent));
-    box-shadow: 0 0 8px hsl(var(--nav-accent) / 0.7);
-    animation: glow-pulse 2s ease-in-out infinite;
+  .admin-sidebar-nav-child.admin-sidebar-nav-item-active {
+    box-shadow: none;
   }
 
   .admin-sidebar-user {
@@ -3860,12 +3912,11 @@
     shrink: 0;
     border-radius: 9999px;
     background: hsl(142 76% 45%);
-    box-shadow: 0 0 8px hsl(142 76% 45% / 0.6);
-    animation: glow-pulse 2.5s ease-in-out infinite;
   }
 
   .admin-sidebar-logout {
     color: hsl(var(--muted-foreground));
+    transition: color 0.15s ease, background-color 0.15s ease;
   }
 
   .admin-sidebar-logout:hover {
@@ -3877,12 +3928,43 @@
     background: hsl(var(--destructive) / 0.12);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .admin-sidebar-logo-ring,
-    .admin-sidebar-active-dot,
-    .admin-sidebar-online-dot {
-      animation: none !important;
-    }
+  /* Vault dropdown — same nav tokens, minimal extras */
+  .admin-sidebar-vault-group {
+    position: relative;
+  }
+
+  .admin-sidebar-vault-panel {
+    position: relative;
+  }
+
+  .admin-sidebar-vault-rail-line {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      hsl(var(--metric-classes) / 0.35) 25%,
+      hsl(var(--metric-teachers) / 0.28) 55%,
+      hsl(var(--metric-exams) / 0.32) 80%,
+      transparent
+    );
+  }
+
+  .admin-sidebar-vault-popover {
+    background: hsl(var(--sidebar-surface));
+    border: 1px solid hsl(var(--glass-border)) !important;
+    box-shadow: 0 8px 24px hsl(var(--foreground) / 0.1);
+  }
+
+  .dark .admin-sidebar-vault-popover {
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  .admin-sidebar-vault-popover-label {
+    color: hsl(var(--muted-foreground) / 0.85);
   }
 
   /* Immersive login — video + 3D glass */
@@ -6204,6 +6286,100 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* ── Disease vault create / detail ──────────────────────────────────── */
+
+  .disease-create-hero {
+    background:
+      linear-gradient(
+        135deg,
+        hsl(var(--metric-exams) / 0.1) 0%,
+        hsl(var(--card) / 0.9) 42%,
+        hsl(var(--metric-exams) / 0.06) 100%
+      );
+  }
+
+  .dark .disease-create-hero {
+    background:
+      linear-gradient(
+        135deg,
+        hsl(var(--metric-exams) / 0.16) 0%,
+        hsl(var(--card) / 0.75) 45%,
+        hsl(var(--metric-exams) / 0.1) 100%
+      );
+  }
+
+  .disease-create-hero-mesh {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 65% 55% at 100% -10%, hsl(var(--metric-exams) / 0.32), transparent 55%),
+      radial-gradient(ellipse 45% 40% at 0% 110%, hsl(var(--metric-exams) / 0.14), transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px, 28px 28px;
+    opacity: 0.9;
+  }
+
+  .dark .disease-create-hero-mesh {
+    background:
+      radial-gradient(ellipse 65% 55% at 100% -10%, hsl(var(--metric-exams) / 0.28), transparent 55%),
+      radial-gradient(ellipse 45% 40% at 0% 110%, hsl(var(--metric-exams) / 0.12), transparent 50%),
+      linear-gradient(hsl(var(--metric-exams) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--metric-exams) / 0.06) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px, 28px 28px;
+  }
+
+  .disease-create-hero-scan {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      hsl(var(--metric-exams) / 0.07) 50%,
+      transparent 100%
+    );
+    background-size: 100% 220%;
+    animation: vault-scan 8s ease-in-out infinite;
+    opacity: 0.7;
+  }
+
+  .disease-vault-section {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--glass-border));
+    background:
+      linear-gradient(
+        160deg,
+        hsl(var(--card) / 0.92) 0%,
+        hsl(var(--metric-exams) / 0.04) 100%
+      );
+    box-shadow: 0 18px 40px -32px hsl(var(--metric-exams) / 0.45);
+    animation: medicine-vault-arrive 0.55s ease-out both;
+  }
+
+  .dark .disease-vault-section {
+    background:
+      linear-gradient(
+        160deg,
+        hsl(var(--card) / 0.7) 0%,
+        hsl(var(--metric-exams) / 0.08) 100%
+      );
+    box-shadow: 0 22px 48px -30px hsl(var(--metric-exams) / 0.55);
+  }
+
+  .disease-vault-section-glow {
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 55%;
+    height: 70%;
+    border-radius: 50%;
+    background: radial-gradient(circle, hsl(var(--metric-exams) / 0.18), transparent 70%);
+    pointer-events: none;
   }
 
   @keyframes medicine-orbit-pulse {
