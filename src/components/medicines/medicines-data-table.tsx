@@ -12,23 +12,22 @@ import {
   Pill,
 } from 'lucide-react'
 import type { Medicine } from '@/types'
-import type { ClassSortDirection, ClassSortField } from '@/types/medicine-page'
+import type { MedicineSortDirection, MedicineSortField } from '@/types/medicine-page'
 import { MedicinesCompactSkeleton, MedicinesTableSkeleton } from '@/components/medicines/medicines-skeleton'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { getTranslatedClassName } from '@/lib/patient-display'
-
-type ClassWithCount = Medicine & { patientCount?: number }
+import { getMedicineInformation } from '@/lib/medicines/medicine-form'
+import { t } from '@/lib/labels'
 
 interface MedicinesDataTableProps {
-  classes: ClassWithCount[]
+  medicines: Medicine[]
   loading?: boolean
   refreshing?: boolean
-  sortField: ClassSortField
-  sortDirection: ClassSortDirection
-  onSort: (field: ClassSortField) => void
-  onView: (cls: ClassWithCount) => void
-  onDelete: (cls: ClassWithCount) => void
+  sortField: MedicineSortField
+  sortDirection: MedicineSortDirection
+  onSort: (field: MedicineSortField) => void
+  onView: (medicine: Medicine) => void
+  onDelete: (medicine: Medicine) => void
   page: number
   totalPages: number
   totalFiltered: number
@@ -44,21 +43,22 @@ function handleRowKeyDown(event: React.KeyboardEvent, onActivate: () => void) {
   }
 }
 
-function getMedicineInformation(cls: ClassWithCount) {
-  const parts = [cls.grade, cls.section, cls.scheduleSummary]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-  return parts.length > 0 ? parts.join(' · ') : 'No information'
+function getMedicineListSubtitle(medicine: Medicine) {
+  const info = getMedicineInformation(medicine)
+  const parts = [medicine.commonName, info].map((part) => part?.trim()).filter(Boolean)
+
+  if (parts.length > 0) return parts.join(' · ')
+  return t('medicines.detail.emptyField')
 }
 
-function ClassRowActions({
-  cls,
+function MedicineRowActions({
+  medicine,
   onView,
   onDelete,
 }: {
-  cls: ClassWithCount
-  onView: (cls: ClassWithCount) => void
-  onDelete: (cls: ClassWithCount) => void
+  medicine: Medicine
+  onView: (medicine: Medicine) => void
+  onDelete: (medicine: Medicine) => void
 }) {
   return (
     <div
@@ -70,8 +70,8 @@ function ClassRowActions({
         variant="ghost"
         size="icon"
         className="clinic-table-action h-8 w-8"
-        aria-label={`View ${cls.name}`}
-        onClick={() => onView(cls)}
+        aria-label={`View ${medicine.name}`}
+        onClick={() => onView(medicine)}
       >
         <Eye className="h-4 w-4" />
       </Button>
@@ -79,8 +79,8 @@ function ClassRowActions({
         variant="ghost"
         size="icon"
         className="clinic-table-action clinic-table-action-delete h-8 w-8"
-        aria-label={`Delete ${cls.name}`}
-        onClick={() => onDelete(cls)}
+        aria-label={`Delete ${medicine.name}`}
+        onClick={() => onDelete(medicine)}
       >
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -93,9 +93,9 @@ function SortIcon({
   sortField,
   sortDirection,
 }: {
-  field: ClassSortField
-  sortField: ClassSortField
-  sortDirection: ClassSortDirection
+  field: MedicineSortField
+  sortField: MedicineSortField
+  sortDirection: MedicineSortDirection
 }) {
   if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />
   return sortDirection === 'asc' ? (
@@ -106,7 +106,7 @@ function SortIcon({
 }
 
 export function MedicinesDataTable({
-  classes,
+  medicines,
   loading,
   refreshing,
   sortField,
@@ -123,7 +123,7 @@ export function MedicinesDataTable({
 }: MedicinesDataTableProps) {
   const start = totalFiltered === 0 ? 0 : (page - 1) * pageSize + 1
   const end = Math.min(page * pageSize, totalFiltered)
-  const showSkeleton = loading && classes.length === 0
+  const showSkeleton = loading && medicines.length === 0
 
   if (viewMode === 'compact') {
     return (
@@ -137,18 +137,20 @@ export function MedicinesDataTable({
             <div className="col-span-full">
               <MedicinesCompactSkeleton rows={pageSize} />
             </div>
-          ) : classes.length === 0 ? (
-            <div className="clinic-table-empty col-span-full">{'No medicines match your filters'}</div>
+          ) : medicines.length === 0 ? (
+            <div className="clinic-table-empty col-span-full">
+              {t('medicines.listEmpty')}
+            </div>
           ) : (
-            classes.map((cls, index) => (
+            medicines.map((medicine, index) => (
               <div
-                key={cls.id}
+                key={medicine.id}
                 role="button"
                 tabIndex={0}
                 className="clinic-compact-card clinic-compact-card-clickable clinic-list-item-enter group cursor-pointer"
                 style={{ animationDelay: `${index * 55}ms` }}
-                onClick={() => onView(cls)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(cls))}
+                onClick={() => onView(medicine)}
+                onKeyDown={(e) => handleRowKeyDown(e, () => onView(medicine))}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -156,17 +158,15 @@ export function MedicinesDataTable({
                       <Pill className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-foreground">
-                        {getTranslatedClassName(cls.name)}
-                      </p>
+                      <p className="font-semibold text-foreground">{medicine.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {getMedicineInformation(cls)}
+                        {getMedicineListSubtitle(medicine)}
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="mt-3 flex justify-end">
-                  <ClassRowActions cls={cls} onView={onView} onDelete={onDelete} />
+                  <MedicineRowActions medicine={medicine} onView={onView} onDelete={onDelete} />
                 </div>
               </div>
             ))
@@ -204,50 +204,55 @@ export function MedicinesDataTable({
                 onClick={() => onSort('name')}
                 disabled={loading}
               >
-                {'Medicine Name'}
+                {t('medicines.medicineName')}
                 <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
               </button>
             </th>
-            <th>{'Information'}</th>
-            <th className="w-[4.5rem] text-right">{'Actions'}</th>
+            <th>{t('medicines.information')}</th>
+            <th className="w-[4.5rem] text-right">{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody key={page}>
           {showSkeleton ? (
             <MedicinesTableSkeleton rows={pageSize} />
-          ) : classes.length === 0 ? (
+          ) : medicines.length === 0 ? (
             <tr>
               <td colSpan={3} className="clinic-table-empty">
-                {'No medicines match your filters'}
+                {t('medicines.listEmpty')}
               </td>
             </tr>
           ) : (
-            classes.map((cls, index) => (
+            medicines.map((medicine, index) => (
               <tr
-                key={cls.id}
+                key={medicine.id}
                 tabIndex={0}
                 className="clinic-table-row clinic-table-row-clickable clinic-list-item-enter group cursor-pointer"
                 style={{ animationDelay: `${index * 55}ms` }}
-                onClick={() => onView(cls)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(cls))}
+                onClick={() => onView(medicine)}
+                onKeyDown={(e) => handleRowKeyDown(e, () => onView(medicine))}
               >
                 <td>
                   <div className="flex items-center gap-3">
                     <div className="classes-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
                       <BookOpen className="h-4 w-4" />
                     </div>
-                    <p className="truncate font-medium text-foreground">
-                      {getTranslatedClassName(cls.name)}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{medicine.name}</p>
+                      {medicine.commonName ? (
+                        <p className="truncate text-xs italic text-muted-foreground">
+                          {medicine.commonName}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 </td>
                 <td>
-                  <span className="truncate text-sm text-muted-foreground">
-                    {getMedicineInformation(cls)}
+                  <span className="line-clamp-2 text-sm text-muted-foreground">
+                    {getMedicineInformation(medicine) || '—'}
                   </span>
                 </td>
                 <td>
-                  <ClassRowActions cls={cls} onView={onView} onDelete={onDelete} />
+                  <MedicineRowActions medicine={medicine} onView={onView} onDelete={onDelete} />
                 </td>
               </tr>
             ))
@@ -285,8 +290,8 @@ function MedicinesPagination({
     <div className="clinic-pagination flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
         {totalFiltered === 0
-          ? 'No results'
-          : `Showing ${start}–${end} of ${totalFiltered}`}
+          ? t('medicines.noResults')
+          : t('medicines.listPagination', { start, end, total: totalFiltered })}
       </p>
       <div className="flex items-center gap-1">
         <Button

@@ -22,8 +22,13 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/vault',
+        destination: '/vault/medicine',
+        permanent: false,
+      },
+      {
         source: '/medicines',
-        destination: '/vault',
+        destination: '/vault/medicine',
         permanent: true,
       },
       {

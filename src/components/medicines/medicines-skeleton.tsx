@@ -25,7 +25,10 @@ export function MedicinesTableSkeleton({ rows = 8 }: { rows?: number }) {
           <td>
             <div className="flex items-center gap-3">
               <div className="dashboard-skeleton h-9 w-9 shrink-0 rounded-lg" />
-              <div className="dashboard-skeleton h-3 w-36 rounded" />
+              <div className="space-y-1.5">
+                <div className="dashboard-skeleton h-3 w-36 rounded" />
+                <div className="dashboard-skeleton h-2.5 w-24 rounded" />
+              </div>
             </div>
           </td>
           <td>

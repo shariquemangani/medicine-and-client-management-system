@@ -1,116 +1,108 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useAppSelector } from '@/redux'
 import type { Medicine } from '@/types'
-import type { ClassDirectoryFilters, ClassSortDirection, ClassSortField } from '@/types/medicine-page'
-import { computeClassPageStats } from '@/lib/medicine-stats'
-import { fetchMedicines } from '@/services/pharmacy-api'
+import type {
+  MedicineDirectoryFilters,
+  MedicineSortDirection,
+  MedicineSortField,
+} from '@/types/medicine-page'
+import { computeMedicinePageStats } from '@/lib/medicine-stats'
+import { fetchMedicinesList } from '@/services/medicine-api'
 
 const PAGE_SIZE = 8
 
-const defaultFilters: ClassDirectoryFilters = {
+const defaultFilters: MedicineDirectoryFilters = {
   search: '',
-  grade: 'all',
+  status: 'all',
+  formType: 'all',
 }
 
-type ClassWithCount = Medicine & { patientCount?: number }
-
-function compareClasses(
-  a: ClassWithCount,
-  b: ClassWithCount,
-  field: ClassSortField,
-  direction: ClassSortDirection
+function compareMedicines(
+  a: Medicine,
+  b: Medicine,
+  field: MedicineSortField,
+  direction: MedicineSortDirection
 ) {
   let result = 0
   switch (field) {
     case 'name':
       result = a.name.localeCompare(b.name)
       break
-    case 'grade':
-      result = (a.grade ?? '').localeCompare(b.grade ?? '', undefined, { numeric: true })
+    case 'formType':
+      result = (a.formType ?? '').localeCompare(b.formType ?? '')
       break
-    case 'section':
-      result = (a.section ?? '').localeCompare(b.section ?? '')
+    case 'status':
+      result = (a.status ?? '').localeCompare(b.status ?? '')
       break
-    case 'patientCount':
-      result =
-        (a.patientCount ?? a.patientIds?.length ?? 0) -
-        (b.patientCount ?? b.patientIds?.length ?? 0)
-      break
-    case 'homeroomStaffName':
-      result = (a.homeroomStaffName ?? '').localeCompare(b.homeroomStaffName ?? '')
+    case 'createdAt':
+      result = (a.createdAt ?? '').localeCompare(b.createdAt ?? '')
       break
   }
   return direction === 'asc' ? result : -result
 }
 
 export function useMedicinesDirectory() {
-  const [allClasses, setAllClasses] = useState<ClassWithCount[]>([])
+  const { isAuthenticated, isLoading: authLoading } = useAppSelector((s) => s.auth)
+  const [medicines, setMedicines] = useState<Medicine[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState<ClassDirectoryFilters>(defaultFilters)
-  const [sortField, setSortField] = useState<ClassSortField>('name')
-  const [sortDirection, setSortDirection] = useState<ClassSortDirection>('asc')
+  const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<MedicineDirectoryFilters>(defaultFilters)
+  const [sortField, setSortField] = useState<MedicineSortField>('name')
+  const [sortDirection, setSortDirection] = useState<MedicineSortDirection>('asc')
   const [page, setPage] = useState(1)
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
-      const result = await fetchMedicines({ limit: 100 })
-      setAllClasses(result.data)
+      const res = await fetchMedicinesList({
+        page: 1,
+        limit: 200,
+        search: filters.search.trim() || undefined,
+        status: filters.status !== 'all' ? filters.status : undefined,
+        formType: filters.formType !== 'all' ? filters.formType : undefined,
+      })
+      setMedicines(res.data)
+    } catch (err) {
+      setMedicines([])
+      setError(err instanceof Error ? err.message : 'Failed to load medicines')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [filters])
 
   useEffect(() => {
-    load()
-  }, [load])
+    if (authLoading || !isAuthenticated) return
+    void load()
+  }, [load, authLoading, isAuthenticated])
 
-  const stats = useMemo(() => computeClassPageStats(allClasses), [allClasses])
+  const stats = useMemo(() => computeMedicinePageStats(medicines), [medicines])
 
-  const filteredClasses = useMemo(() => {
-    const search = filters.search.trim().toLowerCase()
-    return allClasses
-      .filter((cls) => {
-        if (filters.grade !== 'all' && cls.grade !== filters.grade) return false
-        if (!search) return true
-        const haystack = [
-          cls.name,
-          cls.commonName,
-          cls.abbreviation,
-          cls.information,
-          cls.scheduleSummary,
-          cls.categoryName,
-          cls.keynotes,
-          cls.grade,
-          cls.section,
-          cls.homeroomStaffName,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-        return haystack.includes(search)
-      })
-      .sort((a, b) => compareClasses(a, b, sortField, sortDirection))
-  }, [allClasses, filters, sortField, sortDirection])
+  const filteredMedicines = useMemo(
+    () => [...medicines].sort((a, b) => compareMedicines(a, b, sortField, sortDirection)),
+    [medicines, sortField, sortDirection]
+  )
 
-  const totalPages = Math.max(1, Math.ceil(filteredClasses.length / PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(filteredMedicines.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
 
-  const paginatedClasses = useMemo(() => {
+  const paginatedMedicines = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE
-    return filteredClasses.slice(start, start + PAGE_SIZE)
-  }, [filteredClasses, safePage])
+    return filteredMedicines.slice(start, start + PAGE_SIZE)
+  }, [filteredMedicines, safePage])
 
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (filters.search) count++
-    if (filters.grade !== 'all') count++
+    if (filters.status !== 'all') count++
+    if (filters.formType !== 'all') count++
     return count
   }, [filters])
 
   const updateFilter = useCallback(
-    <K extends keyof ClassDirectoryFilters>(key: K, value: ClassDirectoryFilters[K]) => {
+    <K extends keyof MedicineDirectoryFilters>(key: K, value: MedicineDirectoryFilters[K]) => {
       setFilters((prev) => ({ ...prev, [key]: value }))
       setPage(1)
     },
@@ -122,36 +114,25 @@ export function useMedicinesDirectory() {
     setPage(1)
   }, [])
 
-  const toggleSort = useCallback((field: ClassSortField) => {
+  const toggleSort = useCallback((field: MedicineSortField) => {
     setSortField((current) => {
       if (current === field) {
         setSortDirection((dir) => (dir === 'asc' ? 'desc' : 'asc'))
         return current
       }
-      setSortDirection('asc')
+      setSortDirection(field === 'createdAt' ? 'desc' : 'asc')
       return field
     })
     setPage(1)
   }, [])
 
-  const availableGrades = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          allClasses
-            .map((cls) => cls.categoryName || cls.grade)
-            .filter((value): value is string => Boolean(value))
-        )
-      ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
-    [allClasses]
-  )
-
-  const initialLoading = loading && allClasses.length === 0
-  const refreshing = loading && allClasses.length > 0
+  const initialLoading = (authLoading || loading) && medicines.length === 0 && !error
+  const refreshing = loading && medicines.length > 0
 
   return {
-    allClasses,
+    medicines,
     loading,
+    error,
     initialLoading,
     refreshing,
     filters,
@@ -162,14 +143,17 @@ export function useMedicinesDirectory() {
     sortDirection,
     toggleSort,
     stats,
-    filteredClasses,
-    paginatedClasses,
+    filteredMedicines,
+    paginatedMedicines,
     page: safePage,
     setPage,
     totalPages,
     pageSize: PAGE_SIZE,
-    totalFiltered: filteredClasses.length,
-    availableGrades,
+    totalFiltered: filteredMedicines.length,
     reload: load,
+    /** @deprecated Use paginatedMedicines */
+    paginatedClasses: paginatedMedicines,
+    /** @deprecated Use medicines */
+    allClasses: medicines,
   }
 }

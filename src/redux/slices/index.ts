@@ -8,6 +8,13 @@ export {
   clearPatientError,
 } from './patientSlice'
 export {
+  loadStockData,
+  receiveStockItem,
+  adjustStockItem,
+  updateReorderLevels,
+  clearStockError,
+} from './stockSlice'
+export {
   toggleSidebar,
   setSidebarCollapsed,
   setMobileSidebarOpen,

@@ -1,17 +1,18 @@
 import type { Medicine } from '@/types'
 
-type ClassWithCount = Medicine & { patientCount?: number }
-
-export function computeClassPageStats(classes: ClassWithCount[]) {
-  const totalPatients = classes.reduce(
-    (sum, cls) => sum + (cls.patientCount ?? cls.patientIds?.length ?? 0),
-    0
-  )
+export function computeMedicinePageStats(medicines: Medicine[]) {
+  const active = medicines.filter((medicine) => {
+    const status = (medicine.status ?? '').toLowerCase()
+    return status !== 'archived' && status !== 'inactive'
+  }).length
 
   return {
-    total: classes.length,
-    totalPatients,
-    avgSize: classes.length ? Math.round(totalPatients / classes.length) : 0,
-    withHomeroom: classes.filter((cls) => cls.homeroomStaffId).length,
+    total: medicines.length,
+    active,
+    withPotencies: medicines.filter((m) => (m.potencies ?? []).length > 0).length,
+    withSymptoms: medicines.filter((m) => (m.symptoms ?? []).length > 0).length,
   }
 }
+
+/** @deprecated Use computeMedicinePageStats */
+export const computeClassPageStats = computeMedicinePageStats

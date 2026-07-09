@@ -72,17 +72,24 @@ export function getAdminBreadcrumbSegments(pathname: string): AdminBreadcrumbSeg
         return [sectionCrumb, medicineCrumb, { labelKey: 'medicines.addMedicine' }]
       }
       if (parts[2]) {
-        return [sectionCrumb, medicineCrumb, { labelKey: 'common.medicineDetails' }]
+        return [sectionCrumb, medicineCrumb, { labelKey: 'medicines.detail.title' }]
       }
       return [sectionCrumb, { labelKey: 'medicines.vaultCardMedicine' }]
     }
     if (child === 'diseases') {
+      const diseasesCrumb = { labelKey: 'medicines.vaultCardDiseases', href: ROUTES.vaultDiseases }
+      if (parts[2] === 'new') {
+        return [sectionCrumb, diseasesCrumb, { labelKey: 'diseases.addDisease' }]
+      }
+      if (parts[2]) {
+        return [sectionCrumb, diseasesCrumb, { labelKey: 'diseases.detail.title' }]
+      }
       return [sectionCrumb, { labelKey: 'medicines.vaultCardDiseases' }]
     }
     if (child === 'flag-configurations') {
       return [sectionCrumb, { labelKey: 'medicines.vaultCardFlags' }]
     }
-    return [sectionCrumb, { labelKey: 'common.medicineDetails' }]
+    return [sectionCrumb, { labelKey: 'common.details' }]
   }
 
   return [{ labelKey: sectionCrumb.labelKey }]

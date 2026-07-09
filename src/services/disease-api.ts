@@ -1,6 +1,6 @@
 import { auth } from '@/lib/firebase/app'
 import type { ApiResponse } from '@/types'
-import type { Disease } from '@/types/disease'
+import type { Disease, DiseaseCreateInput } from '@/types/disease'
 
 const DISEASES_API = '/api/v1/diseases'
 
@@ -32,10 +32,29 @@ export async function fetchDiseases(): Promise<Disease[]> {
   return res.data
 }
 
-export async function createDisease(name: string): Promise<Disease> {
+export async function fetchDiseaseById(id: string): Promise<Disease> {
+  const res = await diseaseApiFetch<ApiResponse<Disease>>(`${DISEASES_API}/${id}`)
+  return res.data
+}
+
+export async function createDisease(input: DiseaseCreateInput): Promise<Disease> {
   const res = await diseaseApiFetch<ApiResponse<Disease>>(DISEASES_API, {
     method: 'POST',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(input),
   })
   return res.data
+}
+
+export async function updateDisease(id: string, input: DiseaseCreateInput): Promise<Disease> {
+  const res = await diseaseApiFetch<ApiResponse<Disease>>(`${DISEASES_API}/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  })
+  return res.data
+}
+
+export async function deleteDisease(id: string): Promise<void> {
+  await diseaseApiFetch<{ success: boolean }>(`${DISEASES_API}/${id}`, {
+    method: 'DELETE',
+  })
 }
