@@ -123,7 +123,7 @@ export function PrescriptionsDataTable({
               <PrescriptionsCompactSkeleton rows={pageSize} />
             </div>
           ) : exams.length === 0 ? (
-            <div className="clinic-table-empty col-span-full">{'No exams match your filters'}</div>
+            <div className="clinic-table-empty col-span-full">{'No prescriptions found. Create one or adjust your filters.'}</div>
           ) : (
             exams.map((exam, index) => (
               <div
@@ -171,8 +171,9 @@ export function PrescriptionsDataTable({
             ))
           )}
         </div>
-        <div className="clinic-table-shell overflow-hidden rounded-xl border">
+        <div className="clinic-table-shell overflow-hidden rounded-[20px] border">
           <PrescriptionsPagination
+            loading={showSkeleton}
             page={page}
             totalPages={totalPages}
             start={start}
@@ -188,7 +189,7 @@ export function PrescriptionsDataTable({
   return (
     <div
       className={cn(
-        'clinic-table-shell overflow-hidden rounded-xl border',
+        'clinic-table-shell overflow-hidden rounded-[20px] border',
         refreshing && 'pointer-events-none opacity-60'
       )}
       aria-busy={loading || undefined}
@@ -220,7 +221,7 @@ export function PrescriptionsDataTable({
           ) : exams.length === 0 ? (
             <tr>
               <td colSpan={7} className="clinic-table-empty">
-                {'No exams match your filters'}
+                {'No prescriptions found. Create one or adjust your filters.'}
               </td>
             </tr>
           ) : (
@@ -272,6 +273,7 @@ export function PrescriptionsDataTable({
         </tbody>
       </table>
       <PrescriptionsPagination
+        loading={showSkeleton}
         page={page}
         totalPages={totalPages}
         start={start}
@@ -290,7 +292,9 @@ function PrescriptionsPagination({
   end,
   totalFiltered,
   onPageChange,
+  loading,
 }: {
+  loading?: boolean
   page: number
   totalPages: number
   start: number
@@ -302,9 +306,13 @@ function PrescriptionsPagination({
   return (
     <div className="clinic-pagination flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
-        {totalFiltered === 0
-          ? 'No results yet'
-          : `Showing ${start}–${end} of ${totalFiltered}`}
+        {loading ? (
+          <span className="animate-pulse inline-block h-3 w-28 rounded-md bg-muted" aria-busy="true" />
+        ) : totalFiltered === 0 ? (
+          'No results yet'
+        ) : (
+          `Showing ${start}–${end} of ${totalFiltered}`
+        )}
       </p>
       <div className="flex items-center gap-1">
         <Button
@@ -312,6 +320,7 @@ function PrescriptionsPagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page <= 1}
+          aria-label="Previous page"
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -335,6 +344,7 @@ function PrescriptionsPagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page >= totalPages}
+          aria-label="Next page"
           onClick={() => onPageChange(page + 1)}
         >
           <ChevronRight className="h-4 w-4" />

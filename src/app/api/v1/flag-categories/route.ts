@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { idToken } = await requireAuthenticatedIdToken(request)
+    const { idToken } = await requireAuthenticatedIdToken(request, { resource: 'medicines', action: 'create' })
     const { name } = (await request.json()) as { name?: string }
     if (!name?.trim()) {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 })
@@ -34,6 +34,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
     console.error('[POST /api/v1/flag-categories]', error)
+    if (error instanceof Error && /already exists/i.test(error.message)) {
+      return NextResponse.json({ error: error.message }, { status: 409 })
+    }
     return NextResponse.json({ error: 'Failed to create category' }, { status: 400 })
   }
 }

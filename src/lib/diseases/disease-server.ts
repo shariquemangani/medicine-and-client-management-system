@@ -49,10 +49,11 @@ export async function createDisease(
   if (!trimmed) {
     throw new Error('Disease name is required')
   }
+  if (trimmed.length > 120) throw new Error('Disease name must be 120 characters or fewer')
 
   const existing = await fetchDiseases(idToken, businessId)
   const found = existing.find((d) => d.name.toLowerCase() === trimmed.toLowerCase())
-  if (found) return found
+  if (found) throw new Error('A disease with this name already exists')
 
   const id = generateId(slugify(trimmed) || 'disease')
   const now = new Date().toISOString()

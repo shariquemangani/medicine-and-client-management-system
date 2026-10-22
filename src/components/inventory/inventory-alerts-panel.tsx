@@ -2,7 +2,9 @@
 
 import { AlertCircle, AlertTriangle, PackageX, Timer } from 'lucide-react'
 import type { StockAlert, StockItem } from '@/types/stock'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { FilterToolbar, FilterChip, SectionCard } from '@/components/shared'
 import { cn } from '@/lib/utils'
 import { t } from '@/lib/labels'
 
@@ -34,33 +36,67 @@ const iconStyles = {
 } as const
 
 export function InventoryAlertsPanel({
-  alerts,
+  alerts: allAlerts,
   loading,
   onReceive,
   onView,
 }: InventoryAlertsPanelProps) {
+  const [severity, setSeverity] = useState<string>('all')
+  const alerts = severity === 'all' ? allAlerts : allAlerts.filter((a) => a.severity === severity)
+
+  const toolbar = (
+    <FilterToolbar
+      count={
+        loading ? (
+          <span aria-busy="true" className="animate-pulse inline-block h-3 w-16 rounded-md bg-muted align-middle" />
+        ) : (
+          `${alerts.length} ${alerts.length === 1 ? 'alert' : 'alerts'}`
+        )
+      }
+    >
+      <FilterChip
+        label="Severity"
+        options={[
+          { value: 'critical', label: 'Critical' },
+          { value: 'warning', label: 'Warning' },
+          { value: 'info', label: 'Info' },
+        ]}
+        selected={severity === 'all' ? [] : [severity]}
+        onChange={(next) => setSeverity(next.find((v) => v !== severity) ?? 'all')}
+      />
+    </FilterToolbar>
+  )
+
   if (loading) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="dashboard-skeleton h-28 rounded-2xl" />
-        ))}
+      <div className="space-y-4">
+        {toolbar}
+        <SectionCard className="grid gap-3 p-4 sm:grid-cols-2" aria-busy="true">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="dashboard-skeleton h-28 rounded-2xl" />
+          ))}
+        </SectionCard>
       </div>
     )
   }
 
-  if (alerts.length === 0) {
+  if (allAlerts.length === 0) {
     return (
-      <div className="attendance-record-empty rounded-2xl border p-10 text-center">
+      <SectionCard className="p-10 text-center">
         <AlertCircle className="mx-auto h-10 w-10 text-emerald-500/70" />
         <p className="mt-3 text-sm font-medium text-foreground">{t('inventory.noAlerts')}</p>
         <p className="mt-1 text-xs text-muted-foreground">{t('inventory.noAlertsHint')}</p>
-      </div>
+      </SectionCard>
     )
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-4">
+      {toolbar}
+      <SectionCard className="grid gap-3 p-4 sm:grid-cols-2">
+      {alerts.length === 0 ? (
+        <p className="col-span-full py-6 text-center text-sm text-muted-foreground">No alerts for this severity.</p>
+      ) : null}
       {alerts.map((alert, index) => {
         const Icon = alertIcons[alert.alertType]
         const canReceive =
@@ -121,6 +157,7 @@ export function InventoryAlertsPanel({
           </article>
         )
       })}
+      </SectionCard>
     </div>
   )
 }

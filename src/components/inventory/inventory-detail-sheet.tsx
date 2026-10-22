@@ -1,7 +1,7 @@
 'use client'
 
 import { format } from 'date-fns'
-import { Boxes, MapPin, Package } from 'lucide-react'
+import { Boxes, MapPin, Package, Pencil, Trash2 } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/button'
 import type { StockItem, StockMovement } from '@/types/stock'
 import {
   daysUntilExpiry,
-  getAvailableQuantity,
+  getExpiredQuantity,
+  getSellableQuantity,
   getStockItemValue,
   getStockLevelStatus,
   isExpiringSoon,
@@ -22,6 +23,7 @@ import {
 } from '@/lib/stock-utils'
 import { cn } from '@/lib/utils'
 import { t } from '@/lib/labels'
+import { usePermission } from '@/hooks/use-permission'
 
 interface InventoryDetailSheetProps {
   item: StockItem | null
@@ -30,6 +32,8 @@ interface InventoryDetailSheetProps {
   onOpenChange: (open: boolean) => void
   onReceive: (item: StockItem) => void
   onAdjust: (item: StockItem) => void
+  onEdit: (item: StockItem) => void
+  onDelete: (item: StockItem) => void
 }
 
 export function InventoryDetailSheet({
@@ -39,7 +43,10 @@ export function InventoryDetailSheet({
   onOpenChange,
   onReceive,
   onAdjust,
+  onEdit,
+  onDelete,
 }: InventoryDetailSheetProps) {
+  const { hasPermission } = usePermission()
   if (!item) return null
 
   const status = getStockLevelStatus(item)
@@ -63,8 +70,8 @@ export function InventoryDetailSheet({
                 <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   {t('inventory.colOnHand')}
                 </p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">
-                  {getAvailableQuantity(item)}{' '}
+                <p className="mt-1 text-2xl font-bold tabular-nums text-foreground" title={t('inventory.sellableHint')}>
+                  {getSellableQuantity(item)}{' '}
                   <span className="text-sm font-medium text-muted-foreground">/ {item.totalQuantity} {item.unit}</span>
                 </p>
               </div>
@@ -82,6 +89,11 @@ export function InventoryDetailSheet({
                 <p className="mt-1 font-bold tabular-nums">{item.reorderLevel} {item.unit}</p>
               </div>
             </div>
+            {getExpiredQuantity(item) > 0 ? (
+              <p className="mt-3 rounded-xl border border-red-500/30 bg-red-500/[0.06] px-3 py-2 text-[11px] text-red-700 dark:text-red-400">
+                {getExpiredQuantity(item)} {item.unit} {t('inventory.expiredNotSellable').toLowerCase()}
+              </p>
+            ) : null}
             <div className="mt-4 flex gap-2">
               <Button size="sm" className="attendance-hero-primary flex-1" onClick={() => onReceive(item)}>
                 <Package className="mr-1.5 h-3.5 w-3.5" />
@@ -97,6 +109,33 @@ export function InventoryDetailSheet({
                 {t('inventory.adjustStock')}
               </Button>
             </div>
+            <div className="mt-2 flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="attendance-hero-btn flex-1"
+                onClick={() => onEdit(item)}
+              >
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {t('inventory.editItem')}
+              </Button>
+              {hasPermission('inventory', 'delete') && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="attendance-hero-btn flex-1 text-red-600 hover:text-red-600 dark:text-red-400"
+                onClick={() => onDelete(item)}
+                disabled={item.totalQuantity > 0}
+                title={item.totalQuantity > 0 ? t('inventory.deleteBlocked') : undefined}
+              >
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                {t('inventory.deleteItem')}
+              </Button>
+              )}
+            </div>
+            {item.totalQuantity > 0 && hasPermission('inventory', 'delete') ? (
+              <p className="mt-2 text-[11px] text-muted-foreground">{t('inventory.deleteBlocked')}</p>
+            ) : null}
           </div>
 
           <section>
@@ -173,6 +212,7 @@ export function InventoryDetailSheet({
                     </div>
                     <p className="mt-0.5 text-muted-foreground">
                       {format(new Date(m.createdAt), 'MMM d, yyyy')}
+                      {m.performedBy ? ` · ${m.performedBy}` : ''}
                     </p>
                   </div>
                 ))}

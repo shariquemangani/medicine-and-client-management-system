@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { idToken, businessId } = await requireApiIdToken(request)
+    const { idToken, businessId } = await requireApiIdToken(request, { resource: 'medicines', action: 'create' })
     const body = (await request.json()) as DiseaseCreateInput
     if (!body.name?.trim()) {
       return NextResponse.json({ error: 'Disease name is required' }, { status: 400 })
@@ -38,6 +38,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof ApiAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+    if (error instanceof Error && /already exists/i.test(error.message)) {
+      return NextResponse.json({ error: error.message }, { status: 409 })
     }
     console.error('[POST /api/v1/diseases]', error)
     return NextResponse.json({ error: 'Failed to create disease' }, { status: 400 })

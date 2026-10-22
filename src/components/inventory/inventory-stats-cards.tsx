@@ -2,11 +2,11 @@
 
 import { AlertTriangle, Boxes, IndianRupee, PackageX, Timer } from 'lucide-react'
 import { BentoCard, AnimatedStat } from '@/components/shared'
-import type { StockStats } from '@/types/stock'
+import type { InventoryStats } from '@/lib/stock-stats'
 import { t } from '@/lib/labels'
 
 interface InventoryStatsCardsProps {
-  stats: StockStats
+  stats: InventoryStats
 }
 
 export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
@@ -15,6 +15,7 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       <BentoCard colSpan={3} accent="inventory" delay={60}>
         <AnimatedStat
           title={t('inventory.statSkus')}
+          badge="Items"
           value={stats.totalSkus}
           icon={Boxes}
           accent="inventory"
@@ -24,6 +25,7 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       <BentoCard colSpan={3} accent="medicines" delay={120}>
         <AnimatedStat
           title={t('inventory.statValue')}
+          badge="Value"
           value={stats.totalValue}
           icon={IndianRupee}
           accent="medicines"
@@ -34,6 +36,7 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       <BentoCard colSpan={3} accent="fees" delay={180}>
         <AnimatedStat
           title={t('inventory.statLowStock')}
+          badge="Alerts"
           value={stats.lowCount + stats.criticalCount + stats.outOfStockCount}
           icon={AlertTriangle}
           accent="fees"
@@ -43,7 +46,8 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       <BentoCard colSpan={3} accent="prescriptions" delay={240}>
         <AnimatedStat
           title={t('inventory.statExpiring')}
-          value={stats.expiringSoonCount}
+          badge="Expiry"
+          value={stats.expiringSoonCount + stats.expiredCount}
           icon={Timer}
           accent="prescriptions"
           compact
@@ -59,6 +63,7 @@ export function InventoryStatsRow({ stats }: InventoryStatsCardsProps) {
       <BentoCard colSpan={2} accent="inventory" delay={280} className="hidden xl:block">
         <AnimatedStat
           title={t('inventory.statOutOfStock')}
+          badge="Stock"
           value={stats.outOfStockCount}
           icon={PackageX}
           accent="inventory"
@@ -68,6 +73,7 @@ export function InventoryStatsRow({ stats }: InventoryStatsCardsProps) {
       <BentoCard colSpan={2} accent="patients" delay={300} className="hidden xl:block">
         <AnimatedStat
           title={t('inventory.statMovements')}
+          badge="Activity"
           value={stats.movementCount30d}
           icon={Boxes}
           accent="patients"

@@ -65,6 +65,9 @@ export function PatientRegistrationFormSections({
     DEFAULT_DISEASES.map((name) => ({ value: name.toLowerCase().replace(/\s+/g, '-'), label: name }))
   )
 
+  const [medicinesLoading, setMedicinesLoading] = useState(true)
+  const [diseasesLoading, setDiseasesLoading] = useState(true)
+
   useEffect(() => {
     onDiseaseOptionsChange?.(diseaseOptions)
   }, [diseaseOptions, onDiseaseOptionsChange])
@@ -77,6 +80,9 @@ export function PatientRegistrationFormSections({
         setMedicineOptions(res.data.map((item) => ({ id: item.id, name: item.name })))
       })
       .catch(() => {})
+      .finally(() => {
+        if (active) setMedicinesLoading(false)
+      })
     return () => {
       active = false
     }
@@ -90,6 +96,9 @@ export function PatientRegistrationFormSections({
         setDiseaseOptions(rows.map((d) => ({ value: d.id, label: d.name })))
       })
       .catch(() => {})
+      .finally(() => {
+        if (active) setDiseasesLoading(false)
+      })
     return () => {
       active = false
     }
@@ -219,7 +228,8 @@ export function PatientRegistrationFormSections({
                     selected={field.value}
                     onChange={field.onChange}
                     onCreateOption={handleCreateDisease}
-                    placeholder="Select or add diseases"
+                    disabled={diseasesLoading}
+                    placeholder={diseasesLoading ? 'Loading diseases...' : 'Select or add diseases'}
                     searchPlaceholder="Search or type new disease..."
                     emptyMessage="No diseases found."
                     createLabel={(term) => `Add disease "${term}"`}
@@ -278,6 +288,7 @@ export function PatientRegistrationFormSections({
               form={form}
               index={index}
               medicineOptions={medicineOptions}
+              optionsLoading={medicinesLoading}
               showLabels={index === 0}
               canRemove={medicineFields.fields.length > 1}
               onRemove={() => medicineFields.remove(index)}

@@ -1,52 +1,36 @@
-# MediFlow — Pharmacy & Patient Management Portal
+# MediFlow — Clinic Stock & Pharmacy Management
 
-Production-ready pharmacy and patient management web application built with Next.js (App Router), TypeScript, Tailwind CSS, Redux Toolkit, and shadcn/ui.
+Multi-tenant stock, medicine vault and patient management for homeopathy clinics. Built with Next.js 15 (App Router), TypeScript, Tailwind + shadcn/ui, Redux Toolkit, Firebase Auth and Cloud Firestore, deployed on Vercel.
 
 ## Features
 
-- **Authentication** — Admin login with email/password, remember me, route protection via middleware
-- **Dashboard** — Bento grid layout with animated stats, enrollment trends, recent activity
-- **Patients** — Search, filter, paginate, CRUD with guardian and clinical details
-- **Staff** — Team management with archive support
-- **Medicine Vault** — Medicine categories, patient assignments, schedules
-- **Stock & Inventory** — Daily recording and historical summaries
-- **Purchase History** — Prescription tracking and printable summaries
-- **Billing** — Balance tracking, overdue highlights, payment recording
-- **Settings** — Business profile, academic year, user management
+- **Stock & Inventory** (Firestore, transactional): stock items linked to the medicine vault, batch-level stock with expiry dates, receive / dispense / return / expire / count-correction movements, FEFO (first-expired-first-out) deduction, immutable movement ledger with the acting user, low-stock and expiry alerts, CSV export.
+- **Medicine Vault** — medicines, potencies, diseases and shared flag catalogues.
+- **Patients** — registration, visits, prescribed medicines, search and CSV export.
+- **Billing** — fee balances, payments, CSV export.
+- **Dashboard** — live patient growth, stock health, activity feed.
+- **Settings** — clinic profile, staff users, roles (`super_admin`, `staff`).
+- **Security** — Firestore rules enforcing tenant isolation and roles (tested with the emulator), API routes with role checks, security headers, session cookies verified server-side.
 
-## Tech Stack
-
-- Next.js 15 · React 19 · TypeScript
-- Tailwind CSS · shadcn/ui · Recharts
-- Redux Toolkit · react-hook-form · Zod
-- Firebase Firestore · Next.js API routes
-
-## Getting Started
+## Quick start
 
 ```bash
-npm install
-npm run dev
+cp .env.example .env.local          # fill in a Firebase TEST project
+npm ci --legacy-peer-deps
+npm run dev                         # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+## Quality gates
 
-### Demo Credentials
+| Command | What it does |
+|---|---|
+| `npm run typecheck` | TypeScript, 0 errors required |
+| `npm run lint` | ESLint (errors fail the build) |
+| `npm run test:rules` | 100+ Firestore security-rule assertions in the emulator (needs Java) |
+| `npm run build` | Production build (no secrets required) |
+| `npm run verify` | All of the above |
+| `npx playwright test` | End-to-end tests (see `docs/DEPLOYMENT.md`) |
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@pharmacy.com | admin123 | Super Admin |
-| staff@pharmacy.com | staff123 | Staff |
+## Deploying
 
-## Verification
-
-```bash
-npm run build
-```
-
-## Architecture
-
-```
-Pages → services/pharmacy-api.ts / patient-api.ts → app/api/* → Firebase Firestore
-```
-
-Patient records are stored under `businesses/{businessId}/patients` in Firestore.
+Follow [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) (Firebase rules + Vercel, step by step). The audit history and roadmap are in [`docs/IMPROVEMENT-PLAN.md`](docs/IMPROVEMENT-PLAN.md); project conventions are in [`CLAUDE.md`](CLAUDE.md).

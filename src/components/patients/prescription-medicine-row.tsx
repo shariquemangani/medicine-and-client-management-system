@@ -41,6 +41,7 @@ interface PrescriptionMedicineRowProps {
   form: UseFormReturn<PatientRegistrationFormValues>
   index: number
   medicineOptions: MedicineOption[]
+  optionsLoading?: boolean
   showLabels: boolean
   canRemove: boolean
   onRemove: () => void
@@ -50,6 +51,7 @@ export function PrescriptionMedicineRow({
   form,
   index,
   medicineOptions,
+  optionsLoading = false,
   showLabels,
   canRemove,
   onRemove,
@@ -85,7 +87,8 @@ export function PrescriptionMedicineRow({
                     )
                     form.setValue(`medicines.${index}.medicineNames`, names)
                   }}
-                  placeholder="Select medicines"
+                  disabled={optionsLoading}
+                  placeholder={optionsLoading ? 'Loading medicines...' : 'Select medicines'}
                   searchPlaceholder="Search medicines..."
                   emptyMessage="No medicines found."
                   className="min-h-10"

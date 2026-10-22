@@ -1,16 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Send, SlidersHorizontal, X } from 'lucide-react'
+import { Search, Send, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { FilterToolbar, FilterChip } from '@/components/shared'
 import type { StockDirectoryFilters } from '@/types/stock-page'
 import type { StockLevelStatus } from '@/types/stock'
 import { STOCK_STATUS_LABELS } from '@/lib/stock-utils'
@@ -28,6 +22,7 @@ interface InventoryFiltersProps {
   total: number
   formTypes: string[]
   locations: string[]
+  loading?: boolean
 }
 
 const statusOptions: (StockLevelStatus | 'all')[] = [
@@ -48,6 +43,7 @@ export function InventoryFilters({
   total,
   formTypes,
   locations,
+  loading,
 }: InventoryFiltersProps) {
   const [searchDraft, setSearchDraft] = useState(filters.search)
 
@@ -57,107 +53,66 @@ export function InventoryFilters({
 
   const submitSearch = () => onFilterChange('search', searchDraft.trim())
 
+  const single = (current: string) => (current === 'all' ? [] : [current])
+  const pick = (current: string) => (next: string[]) => next.find((v) => v !== current) ?? 'all'
+
+  const count = loading ? (
+    <span aria-busy="true" className="animate-pulse inline-block h-3 w-24 rounded-md bg-muted align-middle" />
+  ) : (
+    t('inventory.resultsCount', { filtered: totalFiltered, total })
+  )
+
   return (
-    <div className="attendance-record-toolbar space-y-3 rounded-2xl border p-4 sm:p-5">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <div className="classes-search relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
-            <Input
-              placeholder={t('inventory.searchPlaceholder')}
-              className="classes-search-input h-11 rounded-xl pl-10 pr-12"
-              value={searchDraft}
-              onChange={(e) => setSearchDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  submitSearch()
-                }
-              }}
-            />
-            <button
-              type="button"
-              className="classes-search-send"
-              onClick={submitSearch}
-              aria-label={t('inventory.searchAction')}
-            >
-              <Send className="h-3.5 w-3.5" strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {activeFilterCount > 0 && (
-            <Button variant="outline" size="sm" className="classes-filter-clear" onClick={onClear}>
-              <X className="mr-1 h-3.5 w-3.5" />
-              {t('common.clearFilters')}
-            </Button>
-          )}
-        </div>
+    <FilterToolbar count={count}>
+      <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70" />
+        <Input
+          placeholder={t('inventory.searchPlaceholder')}
+          className="h-8 rounded-xl pl-8 pr-9 text-xs shadow-sm"
+          value={searchDraft}
+          onChange={(e) => setSearchDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              submitSearch()
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+          onClick={submitSearch}
+          aria-label={t('inventory.searchAction')}
+        >
+          <Send className="h-3.5 w-3.5" strokeWidth={2} />
+        </button>
       </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            {t('inventory.filterStatus')}
-          </label>
-          <Select
-            value={filters.status}
-            onValueChange={(v) => onFilterChange('status', v as StockDirectoryFilters['status'])}
-          >
-            <SelectTrigger className="attendance-input">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status === 'all' ? t('common.all') : STOCK_STATUS_LABELS[status]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            {t('inventory.filterFormType')}
-          </label>
-          <Select value={filters.formType} onValueChange={(v) => onFilterChange('formType', v)}>
-            <SelectTrigger className="attendance-input">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('common.all')}</SelectItem>
-              {formTypes.map((form) => (
-                <SelectItem key={form} value={form}>
-                  {form}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            {t('inventory.filterLocation')}
-          </label>
-          <Select value={filters.location} onValueChange={(v) => onFilterChange('location', v)}>
-            <SelectTrigger className="attendance-input">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('common.all')}</SelectItem>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>
-                  {loc}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <p className="text-xs text-muted-foreground">
-        {t('inventory.resultsCount', { filtered: totalFiltered, total })}
-      </p>
-    </div>
+      <FilterChip
+        label={t('inventory.filterStatus')}
+        options={statusOptions
+          .filter((s) => s !== 'all')
+          .map((s) => ({ value: s, label: STOCK_STATUS_LABELS[s as StockLevelStatus] }))}
+        selected={single(filters.status)}
+        onChange={(next) => onFilterChange('status', pick(filters.status)(next) as StockDirectoryFilters['status'])}
+      />
+      <FilterChip
+        label={t('inventory.filterFormType')}
+        options={formTypes.map((f) => ({ value: f, label: f }))}
+        selected={single(filters.formType)}
+        onChange={(next) => onFilterChange('formType', pick(filters.formType)(next))}
+      />
+      <FilterChip
+        label={t('inventory.filterLocation')}
+        options={locations.map((l) => ({ value: l, label: l }))}
+        selected={single(filters.location)}
+        onChange={(next) => onFilterChange('location', pick(filters.location)(next))}
+      />
+      {activeFilterCount > 0 && (
+        <Button variant="ghost" size="sm" className="h-8 rounded-xl px-2 text-xs" onClick={onClear}>
+          <X className="mr-1 h-3.5 w-3.5" />
+          {t('common.clearFilters')}
+        </Button>
+      )}
+    </FilterToolbar>
   )
 }

@@ -7,17 +7,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Loader2,
   Trash2,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Patient } from '@/types'
 import type { PatientSortDirection, PatientSortField } from '@/types/patient-page'
-import { getPatientDisplayName, getPatientDisplayInitials } from '@/lib/patient-display'
+import { getPatientDisplayName } from '@/lib/patient-display'
 import { formatPatientAmount } from '@/lib/patient-stats'
 import { PatientDiseaseCell } from '@/components/patients/patient-disease-cell'
 import { PatientsCompactSkeleton, PatientsTableSkeleton } from '@/components/patients/patients-skeleton'
 import { Button } from '@/components/ui/button'
+import { MemberCell } from '@/components/shared'
+import { usePermission } from '@/hooks/use-permission'
 import { cn } from '@/lib/utils'
 
 interface PatientsDataTableProps {
@@ -96,6 +97,8 @@ function PatientRowActions({
   onDelete: (patient: Patient) => void
 }) {
   const fullName = getPatientDisplayName(patient)
+  const { hasPermission } = usePermission()
+  const canDelete = hasPermission('patients', 'delete')
 
   return (
     <div
@@ -112,15 +115,17 @@ function PatientRowActions({
       >
         <Eye className="h-3.5 w-3.5" />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="clinic-table-action clinic-table-action-delete h-7 w-7"
-        aria-label={`Delete ${fullName}`}
-        onClick={() => onDelete(patient)}
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </Button>
+      {canDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="clinic-table-action clinic-table-action-delete h-7 w-7"
+          aria-label={`Delete ${fullName}`}
+          onClick={() => onDelete(patient)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      )}
     </div>
   )
 }
@@ -192,15 +197,7 @@ export function PatientsDataTable({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="clinic-avatar flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold">
-                      {getPatientDisplayInitials(patient)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {getPatientDisplayName(patient)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{patient.rollNumber}</p>
-                    </div>
+                    <MemberCell name={getPatientDisplayName(patient)} secondary={patient.rollNumber} />
                   </div>
                   <span className="text-xs font-medium text-foreground">
                     {formatPatientAmount(patient.fees)}
@@ -219,7 +216,7 @@ export function PatientsDataTable({
             ))
           )}
         </div>
-        <div className="clinic-table-shell relative overflow-hidden rounded-xl border">
+        <div className="clinic-table-shell relative overflow-hidden rounded-[20px] border">
           {tableBusy ? <PatientsTableBusyOverlay /> : null}
           <PatientsPagination
             page={page}
@@ -237,7 +234,7 @@ export function PatientsDataTable({
   return (
     <div
       className={cn(
-        'clinic-table-shell clinic-table-shell-patients relative overflow-hidden rounded-xl border',
+        'clinic-table-shell clinic-table-shell-patients relative overflow-hidden rounded-[20px] border',
         tableBusy && 'pointer-events-none'
       )}
       aria-busy={tableBusy || loading || undefined}
@@ -282,16 +279,7 @@ export function PatientsDataTable({
                 onKeyDown={(e) => handleRowKeyDown(e, () => onView(patient))}
               >
                 <td>
-                  <div className="flex items-center gap-3">
-                    <div className="clinic-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold">
-                      {getPatientDisplayInitials(patient)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
-                        {getPatientDisplayName(patient)}
-                      </p>
-                    </div>
-                  </div>
+                  <MemberCell name={getPatientDisplayName(patient)} secondary={patient.rollNumber} />
                 </td>
                 <td>
                   <span className="clinic-roll-badge font-mono text-xs">{patient.rollNumber}</span>
@@ -346,7 +334,6 @@ function PatientsTableBusyOverlay() {
       aria-hidden
     >
       <div className="flex items-center gap-2 rounded-full border border-[hsl(var(--glass-border))] bg-background/90 px-4 py-2 shadow-sm">
-        <Loader2 className="h-4 w-4 animate-spin text-[hsl(var(--metric-patients))]" />
         <span className="text-xs font-medium text-foreground">Updating patients...</span>
       </div>
     </div>
@@ -368,6 +355,8 @@ function PatientsPagination({
   totalFiltered: number
   onPageChange: (page: number) => void
 }) {
+  const { hasPermission } = usePermission()
+  const canDelete = hasPermission('patients', 'delete')
   return (
     <div className="clinic-pagination flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
@@ -379,6 +368,7 @@ function PatientsPagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page <= 1}
+          aria-label="Previous page"
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -402,6 +392,7 @@ function PatientsPagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page >= totalPages}
+          aria-label="Next page"
           onClick={() => onPageChange(page + 1)}
         >
           <ChevronRight className="h-4 w-4" />

@@ -3,7 +3,8 @@ import { Metadata, Viewport } from 'next'
 import { Poppins } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ReduxProvider } from '@/redux/provider'
-import { ThemeProvider, OfflineOverlay } from '@/components'
+import { ThemeProvider } from '@/components/theme-provider'
+import { OfflineOverlay } from '@/components/offline-overlay'
 import { Toaster } from 'sonner'
 import { ToastProvider } from '@/context/ToastContext'
 
@@ -42,7 +43,7 @@ export default function RootLayout({
               <OfflineOverlay />
               {children}
               <Toaster position="top-center" />
-              <SpeedInsights />
+              {process.env.VERCEL ? <SpeedInsights /> : null}
             </ToastProvider>
           </ReduxProvider>
         </ThemeProvider>

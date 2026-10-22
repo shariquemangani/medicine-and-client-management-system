@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, BookOpen, GraduationCap, Users, Wallet } from 'lucide-react'
+import { ArrowRight, BookOpen, Package, UserPlus, Wallet } from 'lucide-react'
 import { t } from '@/lib/labels'
 import { ROUTES } from '@/lib/routes'
 
@@ -9,13 +9,13 @@ const links = [
   {
     href: ROUTES.patientsNew,
     labelKey: 'patients.addPatient',
-    icon: GraduationCap,
+    icon: UserPlus,
     accent: '--metric-patients',
   },
   {
     href: ROUTES.inventory,
     labelKey: 'nav.inventory',
-    icon: Users,
+    icon: Package,
     accent: '--metric-inventory',
   },
   {
@@ -35,7 +35,10 @@ const links = [
 export function DashboardQuickActions() {
   return (
     <div className="flex h-full flex-col">
-      <h3 className="mb-3 text-sm font-semibold text-foreground">{'Quick Actions'}</h3>
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Quick Actions'}</h3>
+        <p className="text-xs text-muted-foreground">{'Jump to common tasks'}</p>
+      </div>
       <div className="grid flex-1 grid-cols-2 gap-2">
         {links.map((link) => (
           <Link

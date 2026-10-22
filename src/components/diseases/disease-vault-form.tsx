@@ -1,5 +1,6 @@
 'use client'
 
+import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
 import { useMemo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ import { t } from '@/lib/labels'
 import type { DiseaseFormValues } from '@/types/disease'
 import type { MedicineFlagOption } from '@/data/medicine-flag-fields'
 import { FormRequiredMark } from '@/components/shared/form-field-layout'
+import { Skel } from '@/components/medicines/skeleton-bits'
 import { CreatableMultiSelect } from '@/components/shared/creatable-multi-select'
 import { createFlag } from '@/services/flag-api'
 import { resolveSymptomLabel } from '@/lib/diseases/disease-symptoms'
@@ -18,7 +20,6 @@ import {
   Apple,
   FileText,
   HeartPulse,
-  Loader2,
   ShieldAlert,
   Sparkles,
 } from 'lucide-react'
@@ -73,21 +74,14 @@ function SectionCard({
   delay?: number
 }) {
   return (
-    <section className="disease-vault-section" style={{ animationDelay: `${delay}ms` }}>
-      <div className="disease-vault-section-glow" aria-hidden />
-      <div className="relative z-10 space-y-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--metric-exams)/0.14)] text-[hsl(var(--metric-exams))]">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-          </div>
-        </div>
-        {children}
-      </div>
-    </section>
+    <KitSectionCard>
+      <SectionCardHeader
+        title={title}
+        description={subtitle}
+        icon={<Icon className="h-4 w-4" />}
+      />
+      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+    </KitSectionCard>
   )
 }
 
@@ -171,28 +165,32 @@ export function DiseaseVaultForm({
           label={t('diseases.form.symptoms')}
           hint={
             symptomOptionsLoading
-              ? t('diseases.form.loadingSymptoms')
-              : !symptomOptionsLoading && symptomOptions.length === 0
+              ? t('diseases.form.symptomsHint')
+              : symptomOptions.length === 0
                 ? t('diseases.form.flagOptionsEmpty', { field: t('diseases.form.symptoms') })
                 : t('diseases.form.symptomsHint')
           }
         >
+          {symptomOptionsLoading ? (
+            <div className="classes-form-input flex min-h-11 flex-wrap items-center gap-2 rounded-md border px-3 py-2" aria-busy="true">
+              <Skel className="h-6 w-16 rounded-full" />
+              <Skel className="h-6 w-20 rounded-full" />
+              <Skel className="h-6 w-14 rounded-full" />
+            </div>
+          ) : (
           <CreatableMultiSelect
             options={symptomSelectOptions}
             selected={values.symptoms}
             onChange={(symptoms) => set('symptoms', symptoms)}
             onCreateOption={symptomsCategoryId ? handleCreateSymptom : undefined}
-            disabled={disabled || symptomOptionsLoading}
-            placeholder={
-              symptomOptionsLoading
-                ? t('diseases.form.loadingSymptoms')
-                : t('diseases.form.symptomsPlaceholder')
-            }
+            disabled={disabled}
+            placeholder={t('diseases.form.symptomsPlaceholder')}
             searchPlaceholder={t('diseases.form.searchSymptoms')}
             emptyMessage={t('diseases.form.noSymptomsFound')}
             createLabel={(term) => t('diseases.form.createSymptom', { term })}
             className="classes-form-input min-h-11"
           />
+          )}
         </FieldShell>
       </SectionCard>
 
@@ -245,12 +243,6 @@ export function DiseaseVaultForm({
         </div>
       </SectionCard>
 
-      {symptomOptionsLoading ? (
-        <div className="flex items-center gap-2 whitespace-nowrap px-1 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-          <span>{t('diseases.form.loadingSymptoms')}</span>
-        </div>
-      ) : null}
     </div>
   )
 }

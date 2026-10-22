@@ -2,13 +2,16 @@
 
 import type { RecentActivity } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
-import { Activity, BookOpen, ClipboardCheck, GraduationCap, Users, Wallet } from 'lucide-react'
+import { Activity, BookOpen, ClipboardCheck, UserMinus, UserPen, UserPlus, Users, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Sk } from './skeleton-bits'
 
 type ActivityVisual = { icon: LucideIcon; accent: string }
 
 const activityConfig: Record<RecentActivity['type'], ActivityVisual> = {
-  patient_added: { icon: GraduationCap, accent: '--metric-patients' },
+  patient_added: { icon: UserPlus, accent: '--metric-patients' },
+  patient_updated: { icon: UserPen, accent: '--metric-patients' },
+  patient_removed: { icon: UserMinus, accent: '--metric-patients' },
   staff_added: { icon: Users, accent: '--metric-staff' },
   attendance_updated: { icon: ClipboardCheck, accent: '--metric-inventory' },
   exam_results: { icon: BookOpen, accent: '--metric-prescriptions' },
@@ -26,23 +29,42 @@ function getActivityVisual(type: string): ActivityVisual {
 
 interface DashboardActivityFeedProps {
   activities: RecentActivity[]
+  loading?: boolean
 }
 
-export function DashboardActivityFeed({ activities }: DashboardActivityFeedProps) {
+export function DashboardActivityFeed({ activities, loading = false }: DashboardActivityFeedProps) {
 
   return (
-    <div className="flex h-full min-h-[240px] flex-col">
+    <div className="flex h-full min-h-[240px] flex-col" aria-busy={loading || undefined}>
       <div className="mb-4 flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
           <Activity className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{'Recent Activity'}</h3>
-          <p className="text-xs text-muted-foreground">{'Latest school events'}</p>
+          <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Recent Activity'}</h3>
+          <p className="text-xs text-muted-foreground">{'Latest clinic events'}</p>
         </div>
       </div>
+      {loading && (
+        <div className="flex-1 space-y-2" aria-hidden>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex gap-3 p-2.5">
+              <Sk className="h-9 w-9 shrink-0 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Sk className="h-3.5 w-3/4" />
+                <Sk className="h-3 w-1/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {!loading && activities.length === 0 && (
+        <p className="flex flex-1 items-center justify-center text-center text-sm text-muted-foreground">
+          {'No activity yet. New patients and payments will show up here.'}
+        </p>
+      )}
       <ul className="flex-1 space-y-1 overflow-auto pr-1">
-        {activities.map((act, i) => {
+        {!loading && activities.map((act, i) => {
           const config = getActivityVisual(act.type)
           const Icon = config.icon
           return (

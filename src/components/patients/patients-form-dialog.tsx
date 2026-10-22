@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { GraduationCap } from 'lucide-react'
+import { Stethoscope } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -66,7 +66,7 @@ export function PatientsFormDialog({
       <DialogContent className="clinic-form-dialog max-w-2xl overflow-y-auto">
         <DialogHeader>
           <div className="dialog-icon-badge dialog-icon-badge-patients mb-2">
-            <GraduationCap className="h-5 w-5" />
+            <Stethoscope className="h-5 w-5" />
           </div>
           <DialogTitle>{editing ? 'Edit Patient' : 'Create Patient'}</DialogTitle>
           <DialogDescription>

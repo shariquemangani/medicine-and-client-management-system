@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { Prescription, Patient } from '@/types'
+import { t } from '@/lib/labels'
 import { getPatientDisplayInitials, getPatientDisplayName } from '@/lib/patient-display'
 
 interface PrescriptionItemsPanelProps {
@@ -52,11 +53,11 @@ export function PrescriptionItemsPanel({
           <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                {'Select exam'} <span className="text-destructive">*</span>
+                {t('prescriptions.selectPrescription')} <span className="text-destructive">*</span>
               </label>
               <Select value={selectedPrescription} onValueChange={onPrescriptionChange}>
                 <SelectTrigger className="exams-input">
-                  <SelectValue placeholder={'Select exam'} />
+                  <SelectValue placeholder={t('prescriptions.selectPrescription')} />
                 </SelectTrigger>
                 <SelectContent>
                   {exams.map((e) => (
@@ -97,7 +98,7 @@ export function PrescriptionItemsPanel({
       </div>
 
       {loading ? (
-        <div className="clinic-table-shell rounded-xl border p-8">
+        <div className="clinic-table-shell rounded-[20px] border p-8">
           <div className="dashboard-skeleton mx-auto h-4 w-48 rounded" />
         </div>
       ) : !exam || patients.length === 0 ? (
@@ -107,7 +108,7 @@ export function PrescriptionItemsPanel({
           <p className="mt-1 text-xs text-muted-foreground">{'Select an exam and class with enrolled patients.'}</p>
         </div>
       ) : (
-        <div className="clinic-table-shell overflow-x-auto rounded-xl border">
+        <div className="clinic-table-shell overflow-x-auto rounded-[20px] border">
           <table className="clinic-table w-full">
             <thead>
               <tr className="clinic-table-head">

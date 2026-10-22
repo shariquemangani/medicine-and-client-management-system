@@ -32,16 +32,28 @@ const RELATION_KEYS: Record<string, string> = {
 }
 
 export function getPatientDisplayName(patient: PatientNameSource) {
-  return `${patient.firstName} ${patient.lastName}`.trim()
+  // The registration form stores "-" when no surname is entered; do not show it.
+  const last = patient.lastName?.trim() === '-' ? '' : patient.lastName
+  return `${patient.firstName} ${last ?? ''}`.trim()
 }
 
 export function getPatientDisplayInitials(patient: PatientNameSource) {
   return getPatientInitials(patient.firstName, patient.lastName)
 }
 
+const LABEL_KEY_PATTERN = /^[a-z][A-Za-z]*(\.[A-Za-z0-9]+)+$/
+
+/** Turns a leftover label key such as `patients.categories.general` into "General". */
+function humanizeLabelKey(value: string) {
+  const last = value.split('.').pop() ?? value
+  const spaced = last.replace(/([a-z])([A-Z])/g, '$1 $2')
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+
 export function getTranslatedClassName(className: string) {
-  const key = CLASS_NAME_KEYS[className]
-  return key ? t(key) : className
+  const key = CLASS_NAME_KEYS[className] ?? (LABEL_KEY_PATTERN.test(className) ? className : undefined)
+  const label = key ? t(key) : className
+  return LABEL_KEY_PATTERN.test(label) ? humanizeLabelKey(label) : label
 }
 
 export function getTranslatedGuardianName(name: string, patient?: PatientNameSource) {

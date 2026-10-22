@@ -6,10 +6,12 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  limit,
+  orderBy,
   query,
   where,
   type DocumentData,
-} from 'firebase/firestore'
+} from 'firebase/firestore/lite'
 import { db } from '@/lib/firebase/app'
 import { requireBusinessId } from '@/lib/firebase/business-context'
 import { filterBySearch, generateId, paginate } from '@/lib/list-utils'
@@ -68,13 +70,21 @@ async function listCollection<T>(businessId: string, name: string): Promise<T[]>
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as T)
 }
 
+/**
+ * Best-effort audit/feed entry. The primary write has already succeeded, so a failure here must
+ * not surface as "failed" (a retry would duplicate the payment/patient/medicine).
+ */
 async function addActivity(businessId: string, type: string, message: string) {
-  const id = generateId('act')
-  await setDoc(doc(db, schoolPath(businessId, 'activities', id)), {
-    type,
-    message,
-    timestamp: new Date().toISOString(),
-  })
+  try {
+    const id = generateId('act')
+    await setDoc(doc(db, schoolPath(businessId, 'activities', id)), {
+      type,
+      message,
+      timestamp: new Date().toISOString(),
+    })
+  } catch (error) {
+    console.warn('[activity] could not record feed entry', error)
+  }
 }
 
 // ── Patients ────────────────────────────────────────────────────────────────
@@ -145,11 +155,9 @@ export async function fetchPatientProfile(id: string): Promise<PatientProfileDat
 
 export async function createPatient(data: PatientCreateInput): Promise<Patient> {
   const businessId = requireBusinessId()
-  const classes = await listCollection<Medicine>(businessId, 'medicines')
-  const cls = classes.find((c) => c.id === data.classId)
   const id = generateId('cli')
   const now = new Date().toISOString()
-  const className = cls?.name ?? getMedicineCategoryName(data.classId) ?? 'Unassigned'
+  const className = getMedicineCategoryName(data.classId) ?? 'Unassigned'
   const patient: Patient = {
     ...data,
     id,
@@ -159,13 +167,6 @@ export async function createPatient(data: PatientCreateInput): Promise<Patient> 
   }
 
   await setDoc(doc(db, schoolPath(businessId, 'patients', id)), patient)
-
-  if (cls) {
-    await updateDoc(doc(db, schoolPath(businessId, 'medicines', cls.id)), {
-      patientIds: [...(cls.patientIds ?? []), id],
-      updatedAt: now,
-    })
-  }
 
   await addActivity(
     businessId,
@@ -186,24 +187,7 @@ export async function updatePatient(id: string, data: PatientUpdateInput): Promi
   let className = current.className
 
   if (data.classId && data.classId !== current.classId) {
-    const classes = await listCollection<Medicine>(businessId, 'medicines')
-    const oldCls = classes.find((c) => c.id === current.classId)
-    const newCls = classes.find((c) => c.id === data.classId)
-    if (oldCls) {
-      await updateDoc(doc(db, schoolPath(businessId, 'medicines', oldCls.id)), {
-        patientIds: (oldCls.patientIds ?? []).filter((sid) => sid !== id),
-        updatedAt: now,
-      })
-    }
-    if (newCls) {
-      await updateDoc(doc(db, schoolPath(businessId, 'medicines', newCls.id)), {
-        patientIds: [...(newCls.patientIds ?? []), id],
-        updatedAt: now,
-      })
-      className = newCls.name
-    } else {
-      className = getMedicineCategoryName(data.classId) ?? className
-    }
+    className = getMedicineCategoryName(data.classId) ?? className
   }
 
   const updated: Patient = {
@@ -220,17 +204,6 @@ export async function deletePatient(id: string): Promise<{ success: boolean }> {
   const businessId = requireBusinessId()
   const patient = await getPatient(id).catch(() => null)
   if (!patient) throw new Error('Not found')
-
-  if (patient.classId) {
-    const clsSnap = await getDoc(doc(db, schoolPath(businessId, 'medicines', patient.classId)))
-    if (clsSnap.exists()) {
-      const cls = clsSnap.data() as Medicine
-      await updateDoc(clsSnap.ref, {
-        patientIds: (cls.patientIds ?? []).filter((sid) => sid !== id),
-        updatedAt: new Date().toISOString(),
-      })
-    }
-  }
 
   await deleteDoc(doc(db, schoolPath(businessId, 'patients', id)))
   return { success: true }
@@ -369,13 +342,20 @@ export async function getMedicine(id: string) {
 
 export async function createMedicine(data: MedicineCreateInput): Promise<Medicine> {
   const businessId = requireBusinessId()
+  const name = data.name?.trim() ?? ''
+  if (!name) throw new Error('Medicine name is required')
+  if (name.length > 120) throw new Error('Medicine name must be 120 characters or fewer')
+  const existing = await listCollection<Medicine>(businessId, 'medicines')
+  if (existing.some((m) => m.name?.trim().toLowerCase() === name.toLowerCase())) {
+    throw new Error('A medicine with this name already exists')
+  }
   const id = generateId('med')
   const now = new Date().toISOString()
 
   // Persist fields in Add Medicine section order (identity → potencies → symptoms → safety).
   const medicine: Medicine = {
     id,
-    name: data.name,
+    name,
     commonName: data.commonName,
     formType: data.formType,
     status: data.status,
@@ -642,24 +622,52 @@ export async function recordPayment(data: Omit<Payment, 'id' | 'createdAt'>): Pr
 
 // ── Dashboard ───────────────────────────────────────────────────────────────
 
+/**
+ * Active team members of this clinic. Only a super admin may list `users` (see firestore.rules),
+ * so for staff accounts this returns null and the dashboard hides the tile.
+ */
+async function countTeamMembers(businessId: string): Promise<number | null> {
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), where('businessId', '==', businessId)))
+    return snap.docs.filter((d) => d.data().isActive !== false).length
+  } catch {
+    return null
+  }
+}
+
+/** Cumulative active-patient count at the end of each of the last 6 months. */
+function buildPatientTrend(patients: Patient[]): DashboardData['enrollmentTrend'] {
+  const now = new Date()
+  const joinedAt = patients
+    .map((p) => new Date(p.createdAt ?? p.admissionDate ?? ''))
+    .filter((d) => !Number.isNaN(d.getTime()))
+  return Array.from({ length: 6 }, (_, i) => {
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 1)
+    return {
+      month: new Date(monthEnd.getFullYear(), monthEnd.getMonth() - 1, 1).toLocaleString('en', { month: 'short' }),
+      count: joinedAt.filter((d) => d < monthEnd).length,
+    }
+  }).map((m, i, arr) => (i === arr.length - 1 ? { ...m, count: patients.length } : m))
+}
+
 export async function getDashboardStats(): Promise<DashboardData> {
   const businessId = requireBusinessId()
   const [patients, teachers, classes, payments, attendance, activities] = await Promise.all([
     listCollection<Patient>(businessId, 'patients'),
-    listCollection<Staff>(businessId, 'staff'),
+    countTeamMembers(businessId),
     listCollection<Medicine>(businessId, 'medicines'),
     listCollection<Payment>(businessId, 'payments'),
     listCollection<InventoryRecord>(businessId, 'inventory'),
-    listCollection<{ id: string; type: string; message: string; timestamp: string }>(
-      businessId,
-      'activities'
+    getDocs(query(colRef(businessId, 'activities'), orderBy('timestamp', 'desc'), limit(8))).then((snap) =>
+      snap.docs.map((d) => ({ id: d.id, ...d.data() }) as { id: string; type: string; message: string; timestamp: string })
     ),
   ])
 
   const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  // Compare the YYYY-MM prefix: payment dates are date-only strings (no timezone surprises).
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const feesThisMonth = payments
-    .filter((p) => new Date(p.date) >= monthStart)
+    .filter((p) => typeof p.date === 'string' && p.date.slice(0, 7) === monthKey)
     .reduce((sum, p) => sum + p.amount, 0)
 
   const today = now.toISOString().split('T')[0]
@@ -676,19 +684,12 @@ export async function getDashboardStats(): Promise<DashboardData> {
   return {
     stats: {
       totalPatients: activePatients.length,
-      totalStaffs: teachers.filter((t) => t.status === 'active').length,
+      totalStaffs: teachers,
       totalClasses: classes.length,
       feesCollectedThisMonth: feesThisMonth,
       attendanceRateToday,
     },
-    enrollmentTrend: [
-      { month: 'Jan', count: Math.max(0, activePatients.length - 5) },
-      { month: 'Feb', count: Math.max(0, activePatients.length - 4) },
-      { month: 'Mar', count: Math.max(0, activePatients.length - 3) },
-      { month: 'Apr', count: Math.max(0, activePatients.length - 2) },
-      { month: 'May', count: Math.max(0, activePatients.length - 1) },
-      { month: 'Jun', count: activePatients.length },
-    ],
+    enrollmentTrend: buildPatientTrend(activePatients),
     recentActivities: activities
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
       .slice(0, 8)
@@ -765,13 +766,19 @@ export async function createAdminUser(data: AdminUserCreateInput): Promise<Admin
 }
 
 export async function updateAdminUser(id: string, data: AdminUserUpdateInput): Promise<AdminUser> {
-  const businessId = requireBusinessId()
-  const ref = doc(db, 'users', id)
-  const snap = await getDoc(ref)
-  if (!snap.exists()) throw new Error('Not found')
-  const current = snap.data() as AdminUser
-  if (current.businessId !== businessId) throw new Error('Forbidden')
-  const updated = { ...current, ...data, id }
-  await updateDoc(ref, asFirestoreUpdate(updated))
-  return updated
+  // Goes through the Admin API so disabling also disables the Firebase Auth account and
+  // revokes sessions; role/email changes are not supported here.
+  const body: { name?: string; isActive?: boolean } = {}
+  if (data.name !== undefined) body.name = data.name
+  if (data.isActive !== undefined) body.isActive = data.isActive
+
+  const res = await fetch(`/api/admin/users/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(json.message ?? 'Failed to update user')
+  return json.data as AdminUser
 }

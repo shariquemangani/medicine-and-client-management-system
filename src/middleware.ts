@@ -7,6 +7,11 @@ const authPaths = [ROUTES.home, ROUTES.register]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Set NEXT_PUBLIC_ALLOW_REGISTRATION=false once the owner account exists.
+  if (pathname === ROUTES.register && process.env.NEXT_PUBLIC_ALLOW_REGISTRATION === 'false') {
+    return NextResponse.redirect(new URL(ROUTES.home, request.url))
+  }
   const isProtected = PROTECTED_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   )

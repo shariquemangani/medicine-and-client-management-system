@@ -1,6 +1,6 @@
 'use client'
 
-import { GraduationCap, ShieldCheck } from 'lucide-react'
+import { Stethoscope, ShieldCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { mainCardShadow } from '@/utils/theme'
 import { cn } from '@/lib/utils'
@@ -24,7 +24,7 @@ export function LoginCard({ children }: LoginCardProps) {
               <div className="login-card-icon-wrap shrink-0">
                 <div className="login-card-icon-ring" aria-hidden />
                 <div className="login-card-icon-core">
-                  <GraduationCap className="h-6 w-6" strokeWidth={1.75} />
+                  <Stethoscope className="h-6 w-6" strokeWidth={1.75} />
                 </div>
               </div>
               <div className="min-w-0 pt-0.5">

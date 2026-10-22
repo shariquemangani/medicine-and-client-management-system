@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/redux'
 import { toggleSidebar, setMobileSidebarOpen, setSidebarCollapsed, logout } from '@/redux/slices'
 import {
   LayoutDashboard,
-  GraduationCap,
+  Stethoscope,
   Users,
   BookOpen,
   FileText,
@@ -29,12 +29,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useState, useEffect, useMemo } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { canAccessPath } from '@/lib/permissions'
 import { t } from '@/lib/labels'
+import { readStoredAuthSession } from '@/lib/auth-session'
+import { ProfileMenu } from '@/components/layout/profile-menu'
 import { ROUTES } from '@/lib/routes'
 
 type NavAccent =
@@ -141,6 +142,12 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
   const { user, isLoggingOut } = useAppSelector((s) => s.auth)
   const collapsed = mobile ? false : sidebarCollapsed
   const [logoutOpen, setLogoutOpen] = useState(false)
+  // Cached role keeps the right menu items on the first paint, before the session is verified.
+  const [cachedRole, setCachedRole] = useState<string | null>(null)
+  useEffect(() => {
+    setCachedRole(readStoredAuthSession()?.user.role ?? null)
+  }, [])
+  const effectiveRole = user?.role ?? cachedRole
 
   const navGroups = useMemo(
     () =>
@@ -148,18 +155,16 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
         .map((group) => ({
           title: t(group.titleKey),
           items: group.items
-            .filter((item) => canAccessPath(user?.role, item.href, 'view'))
+            .filter((item) => canAccessPath(effectiveRole, item.href, 'view'))
             .map((item) => ({
               ...item,
               label: t(item.labelKey),
             })),
         }))
         .filter((group) => group.items.length > 0),
-    [user?.isActive, user?.role]
+    [user?.isActive, effectiveRole]
   )
 
-  const initial = user?.name?.charAt(0).toUpperCase() ?? 'A'
-  const roleKey = user?.role ? `roles.${user.role}` : 'roles.admin'
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
@@ -206,7 +211,7 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
           <div className="admin-sidebar-logo relative flex h-10 w-10 shrink-0 items-center justify-center">
             <div className="admin-sidebar-logo-ring" aria-hidden />
             <div className="admin-sidebar-logo-core">
-              <GraduationCap className="h-5 w-5 text-white" strokeWidth={1.75} />
+              <Stethoscope className="h-5 w-5 text-white" strokeWidth={1.75} />
             </div>
           </div>
           {!collapsed && (
@@ -214,7 +219,7 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
               <p className="truncate text-sm font-bold tracking-tight text-foreground">{'MediFlow'}</p>
               <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 <Sparkles className="h-2.5 w-2.5 text-primary" />
-                {'Admin'}
+                {effectiveRole === 'staff' ? 'Staff' : 'Admin'}
               </p>
             </div>
           )}
@@ -275,37 +280,10 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
         ))}
       </nav>
 
-      <div className="relative z-10 shrink-0 space-y-2 border-t border-[hsl(var(--glass-border))] p-3">
-        {!collapsed && user && (
-          <div className="admin-sidebar-user flex items-center gap-2.5 rounded-xl px-2.5 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-              {initial}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{t(roleKey)}</p>
-            </div>
-            <span className="admin-sidebar-online-dot" title={'Online'} />
-          </div>
-        )}
+      <div className="relative z-10 shrink-0 border-t border-[hsl(var(--glass-border))] p-3">
+        <ProfileMenu collapsed={collapsed} onSignOut={() => setLogoutOpen(true)} onNavigate={handleNavClick} />
 
         <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-          <AlertDialogTrigger asChild>
-            <button
-              type="button"
-              disabled={isLoggingOut}
-              className={cn(
-                'admin-sidebar-logout flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-all duration-200',
-                collapsed && 'justify-center px-2',
-                isLoggingOut && 'pointer-events-none opacity-60'
-              )}
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                <LogOut className="h-[18px] w-[18px]" />
-              </span>
-              {!collapsed && <span>{'Logout'}</span>}
-            </button>
-          </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{'Confirm logout'}</AlertDialogTitle>

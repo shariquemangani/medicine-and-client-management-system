@@ -1,5 +1,6 @@
 'use client'
 
+import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
 import { ROUTES } from '@/lib/routes'
 
 import Link from 'next/link'
@@ -10,6 +11,7 @@ import type { MedicineFlagOption } from '@/data/medicine-flag-fields'
 import { t } from '@/lib/labels'
 import type { Disease } from '@/types/disease'
 import { cn } from '@/lib/utils'
+import { Skel, SkelChips } from '@/components/medicines/skeleton-bits'
 
 function DetailSection({
   title,
@@ -25,21 +27,14 @@ function DetailSection({
   delay?: number
 }) {
   return (
-    <section className="disease-vault-section" style={{ animationDelay: `${delay}ms` }}>
-      <div className="disease-vault-section-glow" aria-hidden />
-      <div className="relative z-10 space-y-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--metric-exams)/0.14)] text-[hsl(var(--metric-exams))]">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-          </div>
-        </div>
-        {children}
-      </div>
-    </section>
+    <KitSectionCard>
+      <SectionCardHeader
+        title={title}
+        description={subtitle}
+        icon={<Icon className="h-4 w-4" />}
+      />
+      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+    </KitSectionCard>
   )
 }
 
@@ -47,10 +42,14 @@ function DetailField({
   label,
   children,
   className,
+  loading,
+  skeleton,
 }: {
   label: string
-  children: React.ReactNode
+  children?: React.ReactNode
   className?: string
+  loading?: boolean
+  skeleton?: React.ReactNode
 }) {
   const empty =
     children === null ||
@@ -62,7 +61,9 @@ function DetailField({
       <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </p>
-      {empty ? (
+      {loading ? (
+        <div aria-busy="true">{skeleton ?? <Skel className="h-5 w-40" />}</div>
+      ) : empty ? (
         <p className="text-sm italic text-muted-foreground/70">{t('diseases.detail.emptyField')}</p>
       ) : (
         <div className="text-sm text-foreground">{children}</div>
@@ -72,18 +73,25 @@ function DetailField({
 }
 
 interface DiseaseDetailViewProps {
-  disease: Disease
+  disease?: Disease | null
+  loading?: boolean
+  optionsLoading?: boolean
   symptomOptions?: Pick<MedicineFlagOption, 'value' | 'label'>[]
   onEdit?: () => void
   onDelete?: () => void
 }
 
 export function DiseaseDetailView({
-  disease,
+  disease: diseaseProp,
+  loading,
+  optionsLoading,
   symptomOptions = [],
   onEdit,
   onDelete,
 }: DiseaseDetailViewProps) {
+  const disease = (diseaseProp ?? {}) as Disease
+  const dataLoading = !!loading || !diseaseProp
+  const symptomsPending = dataLoading || !!optionsLoading
   return (
     <div className="space-y-4">
       <div className="disease-create-hero relative overflow-hidden rounded-2xl border p-4 sm:p-5">
@@ -109,18 +117,25 @@ export function DiseaseDetailView({
                 {t('diseases.vaultBadge')}
               </div>
               <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                {disease.name}
+                {dataLoading ? (
+                  <>
+                    <span className="sr-only">{t('diseases.detail.title')}</span>
+                    <Skel className="h-7 w-56" />
+                  </>
+                ) : (
+                  disease.name
+                )}
               </h1>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {onEdit ? (
+            {onEdit && !dataLoading ? (
               <Button type="button" variant="outline" size="sm" className="diseases-hero-btn" onClick={onEdit}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" />
                 {t('common.edit')}
               </Button>
             ) : null}
-            {onDelete ? (
+            {onDelete && !dataLoading ? (
               <Button
                 type="button"
                 variant="outline"
@@ -141,7 +156,7 @@ export function DiseaseDetailView({
         icon={Activity}
         delay={40}
       >
-        <DetailField label={t('diseases.form.symptoms')}>
+        <DetailField label={t('diseases.form.symptoms')} loading={symptomsPending} skeleton={<SkelChips count={4} />}>
           <DiseaseSymptomBadges symptoms={disease.symptoms} symptomOptions={symptomOptions} />
         </DetailField>
       </DetailSection>
@@ -153,17 +168,17 @@ export function DiseaseDetailView({
         delay={90}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <DetailField label={t('diseases.form.cure')}>
+          <DetailField label={t('diseases.form.cure')} loading={dataLoading} skeleton={<div className="space-y-2"><Skel className="h-4 w-full" /><Skel className="h-4 w-2/3" /></div>}>
             {disease.cure?.trim() ? (
               <p className="whitespace-pre-wrap text-muted-foreground">{disease.cure}</p>
             ) : null}
           </DetailField>
-          <DetailField label={t('diseases.form.diet')}>
+          <DetailField label={t('diseases.form.diet')} loading={dataLoading} skeleton={<div className="space-y-2"><Skel className="h-4 w-full" /><Skel className="h-4 w-2/3" /></div>}>
             {disease.diet?.trim() ? (
               <p className="whitespace-pre-wrap text-muted-foreground">{disease.diet}</p>
             ) : null}
           </DetailField>
-          <DetailField label={t('diseases.form.precautions')}>
+          <DetailField label={t('diseases.form.precautions')} loading={dataLoading} skeleton={<div className="space-y-2"><Skel className="h-4 w-full" /><Skel className="h-4 w-2/3" /></div>}>
             {disease.precautions?.trim() ? (
               <p className="whitespace-pre-wrap text-muted-foreground">{disease.precautions}</p>
             ) : null}

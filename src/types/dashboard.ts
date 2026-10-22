@@ -1,6 +1,7 @@
 export interface DashboardStats {
   totalPatients: number
-  totalStaffs: number
+  /** Active team members; null when the viewer is not allowed to list users (staff role). */
+  totalStaffs: number | null
   totalClasses: number
   feesCollectedThisMonth: number
   attendanceRateToday: number
@@ -13,6 +14,8 @@ export interface EnrollmentTrend {
 
 export type ActivityType =
   | 'patient_added'
+  | 'patient_updated'
+  | 'patient_removed'
   | 'attendance_updated'
   | 'exam_results'
   | 'payment_received'

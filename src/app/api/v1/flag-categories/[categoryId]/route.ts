@@ -9,7 +9,7 @@ type RouteContext = { params: Promise<{ categoryId: string }> }
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const { categoryId } = await context.params
-    const { idToken } = await requireAuthenticatedIdToken(request)
+    const { idToken } = await requireAuthenticatedIdToken(request, { resource: 'medicines', action: 'edit' })
     const { name } = (await request.json()) as { name?: string }
     if (!name?.trim()) {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 })

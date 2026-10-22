@@ -1,13 +1,25 @@
 import type { StockItem, StockMovement, StockStats } from '@/types/stock'
-import { buildStockAlerts, getStockItemValue, getStockLevelStatus, isExpiringSoon } from './stock-utils'
+import {
+  buildStockAlerts,
+  getStockItemValue,
+  getStockLevelStatus,
+  isExpired,
+  isExpiringSoon,
+} from './stock-utils'
 
-export function computeStockStats(items: StockItem[], movements: StockMovement[]): StockStats {
+export interface InventoryStats extends StockStats {
+  /** Batches past their expiry date that still hold stock. */
+  expiredCount: number
+}
+
+export function computeStockStats(items: StockItem[], movements: StockMovement[]): InventoryStats {
   let healthyCount = 0
   let lowCount = 0
   let criticalCount = 0
   let outOfStockCount = 0
   let totalValue = 0
   let expiringSoonCount = 0
+  let expiredCount = 0
 
   for (const item of items) {
     totalValue += getStockItemValue(item)
@@ -18,7 +30,8 @@ export function computeStockStats(items: StockItem[], movements: StockMovement[]
     else if (status === 'out_of_stock') outOfStockCount++
 
     for (const batch of item.batches) {
-      if (isExpiringSoon(batch.expiryDate)) expiringSoonCount++
+      if (isExpired(batch.expiryDate)) expiredCount++
+      else if (isExpiringSoon(batch.expiryDate)) expiringSoonCount++
     }
   }
 
@@ -35,6 +48,7 @@ export function computeStockStats(items: StockItem[], movements: StockMovement[]
     criticalCount,
     outOfStockCount,
     expiringSoonCount,
+    expiredCount,
     movementCount30d,
   }
 }

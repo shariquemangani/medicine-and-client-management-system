@@ -73,7 +73,6 @@ export function BentoCard({
       className={cn(
         'bento-card-premium group relative rounded-2xl',
         'transition-all duration-300 ease-out',
-        'hover:-translate-y-1',
         'dashboard-bento-enter',
         colSpanMap[colSpan],
         rowSpanMap[rowSpan],

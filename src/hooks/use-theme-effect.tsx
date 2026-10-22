@@ -1,4 +1,4 @@
-import { useTheme } from '@/components';
+import { useTheme } from '@/components/theme-provider'
 import { useEffect, useState } from 'react';
 
 export function useThemeEffect() {

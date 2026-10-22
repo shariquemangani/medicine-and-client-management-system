@@ -14,6 +14,20 @@ export type SidebarNavAccent =
   | '--metric-fees'
   | '--primary'
 
+/**
+ * Background layer of a nav item. It is always rendered and cross-fades (opacity) between the
+ * idle, hover and active states, so switching the active item animates smoothly instead of
+ * snapping. Colours come from the item's accent variable, so the theme is unchanged.
+ */
+function NavPill({ isChild = false }: { isChild?: boolean }) {
+  return (
+    <>
+      <span aria-hidden className="admin-sidebar-nav-pill" />
+      {!isChild && <span aria-hidden className="admin-sidebar-nav-bar" />}
+    </>
+  )
+}
+
 interface AdminSidebarNavLinkProps {
   href: string
   label: string
@@ -43,7 +57,7 @@ export function AdminSidebarNavLink({
       onClick={onClick}
       title={collapsed && !isChild ? label : undefined}
       className={cn(
-        'admin-sidebar-nav-item group flex items-center font-medium',
+        'admin-sidebar-nav-item group isolate flex items-center font-medium',
         isChild
           ? 'admin-sidebar-nav-child gap-2 rounded-lg px-2 py-1.5 text-[13px]'
           : 'gap-2.5 rounded-xl px-2.5 py-2 text-sm',
@@ -52,7 +66,9 @@ export function AdminSidebarNavLink({
       )}
       style={{ '--nav-accent': `var(${accent})` } as React.CSSProperties}
       data-active={isActive}
+      aria-current={isActive ? 'page' : undefined}
     >
+      <NavPill isChild={isChild} />
       <span
         className={cn(
           'admin-sidebar-nav-icon flex shrink-0 items-center justify-center',
@@ -105,7 +121,7 @@ export const AdminSidebarNavTrigger = forwardRef<HTMLButtonElement, AdminSidebar
         type="button"
         title={collapsed ? label : undefined}
         className={cn(
-          'admin-sidebar-nav-item group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium',
+          'admin-sidebar-nav-item group isolate flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium',
           collapsed && 'justify-center px-2',
           isActive && 'admin-sidebar-nav-item-active',
           className
@@ -115,6 +131,7 @@ export const AdminSidebarNavTrigger = forwardRef<HTMLButtonElement, AdminSidebar
         aria-label={props['aria-label'] ?? label}
         {...props}
       >
+        <NavPill />
         <span className="admin-sidebar-nav-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
           <Icon className="h-[18px] w-[18px]" />
         </span>

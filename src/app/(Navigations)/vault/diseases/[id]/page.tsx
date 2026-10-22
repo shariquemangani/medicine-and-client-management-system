@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/routes'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Sparkles } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
@@ -112,8 +112,8 @@ export default function DiseaseDetailPage() {
       setFormValues(diseaseToFormValues(updated))
       setIsEditing(false)
       toast.success(t('diseases.updated'))
-    } catch {
-      toast.error(t('diseases.saveFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('diseases.saveFailed'))
     } finally {
       setSaving(false)
     }
@@ -126,24 +126,17 @@ export default function DiseaseDetailPage() {
       await deleteDisease(disease.id)
       toast.success(t('diseases.deleted'))
       router.push(ROUTES.vaultDiseases)
-    } catch {
-      toast.error(t('diseases.deleteFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('diseases.deleteFailed'))
       throw new Error('delete failed')
     } finally {
       setDeleting(false)
     }
   }
 
-  if (authLoading || loading) {
-    return (
-      <div className="disease-vault-page dashboard-shell space-y-4" aria-busy="true">
-        <div className="dashboard-skeleton h-28 rounded-2xl" />
-        <div className="dashboard-skeleton h-48 rounded-2xl" />
-      </div>
-    )
-  }
+  const dataLoading = authLoading || loading
 
-  if (notFound || !disease) {
+  if (!dataLoading && (notFound || !disease)) {
     return (
       <div className="disease-vault-page dashboard-shell space-y-4">
         <BentoCard colSpan={12} delay={0}>
@@ -162,7 +155,7 @@ export default function DiseaseDetailPage() {
     )
   }
 
-  const headerName = isEditing && formValues ? formValues.name.trim() || disease.name : disease.name
+  const headerName = isEditing && formValues ? formValues.name.trim() || disease?.name || '' : disease?.name ?? ''
 
   return (
     <div className="disease-vault-page dashboard-shell space-y-4">
@@ -190,11 +183,9 @@ export default function DiseaseDetailPage() {
                     disabled={saving}
                     onClick={() => void handleSave()}
                   >
-                    {saving ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
+                    {!saving && (
                       <Sparkles className="h-3.5 w-3.5" />
-                    )}
+)}
                     {saving ? t('common.saving') : t('common.save')}
                   </Button>
                 </div>
@@ -218,7 +209,9 @@ export default function DiseaseDetailPage() {
         <BentoGrid>
           <BentoCard colSpan={12} delay={0} className="!bg-transparent !border-0 !shadow-none !p-0">
             <DiseaseDetailView
-              disease={disease}
+              disease={dataLoading ? null : disease}
+              loading={dataLoading}
+              optionsLoading={symptomOptionsLoading}
               symptomOptions={symptomOptions}
               onEdit={handleEdit}
               onDelete={() => setDeleteOpen(true)}
@@ -228,7 +221,7 @@ export default function DiseaseDetailPage() {
       )}
 
       <DiseasesDeleteDialog
-        target={disease}
+        target={disease ?? null}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onConfirm={handleConfirmDelete}

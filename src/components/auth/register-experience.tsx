@@ -3,7 +3,6 @@
 import { RegisterForm } from '@/components/forms'
 import { RegisterCard } from './register-card'
 import { ModeToggle } from '@/components/mode-toggle'
-import { AuthDeferredShowcase } from './auth-deferred-showcase'
 import { LayoutGrid } from 'lucide-react'
 
 export function RegisterExperience() {
@@ -25,10 +24,9 @@ export function RegisterExperience() {
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-130px)] max-w-7xl items-center gap-8 px-4 pb-8 sm:px-8 lg:grid-cols-2">
-        <AuthDeferredShowcase />
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-130px)] max-w-7xl items-center justify-center px-4 pb-8 sm:px-8">
 
-        <div className="login-panel-arrive-right flex w-full justify-center">
+        <div className="flex w-full justify-center">
           <RegisterCard>
             <RegisterForm variant="immersive" />
           </RegisterCard>

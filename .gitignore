@@ -137,3 +137,16 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Playwright
+tests/.auth/
+test-results/
+playwright-report/
+.firebase/
+.vercel
+.next-*/
+
+# local tooling / test sessions
+undefined/
+.claude/
+*state.json

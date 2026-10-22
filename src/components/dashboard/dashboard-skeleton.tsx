@@ -4,14 +4,14 @@ import { bentoGridClass } from '@/utils/theme'
 
 const statCol = 'lg:col-span-3 rounded-2xl border border-border/40 p-4 sm:p-5'
 
-export function DashboardSkeleton() {
+export function DashboardSkeleton({ withoutHero = false }: { withoutHero?: boolean }) {
   return (
     <div
       className="dashboard-shell space-y-4"
       aria-busy="true"
       aria-label="Loading dashboard"
     >
-      <div className="dashboard-skeleton h-28 rounded-2xl" />
+      {!withoutHero && <div className="dashboard-skeleton h-28 rounded-2xl" />}
       <div className={bentoGridClass}>
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className={statCol}>

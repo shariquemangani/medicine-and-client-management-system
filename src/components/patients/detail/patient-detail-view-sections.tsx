@@ -21,10 +21,12 @@ import { formatPrescribedMedicineDisplay } from '@/lib/patients/patient-registra
 import { formatPatientAmount, getPatientDiseaseLabels } from '@/lib/patient-stats'
 import { formatPhoneForDisplay } from '@/lib/phone-utils'
 import type { Patient } from '@/types'
+import { Sk } from '@/components/patients/skeleton-bits'
 import { cn } from '@/lib/utils'
 
 interface PatientDetailViewSectionsProps {
-  patient: Patient
+  /** null while loading: titles and labels render, values show skeletons. */
+  patient: Patient | null
 }
 
 function formatVisitDate(value?: string): string {
@@ -38,25 +40,28 @@ function DetailField({
   label,
   value,
   className,
+  loading = false,
 }: {
   label: string
   value: ReactNode
   className?: string
+  loading?: boolean
 }) {
   return (
     <div className={cn('space-y-1', className)}>
       <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </p>
-      <div className="text-sm font-medium text-foreground">{value}</div>
+      <div className="text-sm font-medium text-foreground">{loading ? <Sk className="h-5 w-32" /> : value}</div>
     </div>
   )
 }
 
 export function PatientDetailViewSections({ patient }: PatientDetailViewSectionsProps) {
-  const diseaseLabels = getPatientDiseaseLabels(patient)
-  const medicines = patient.prescribedMedicines ?? []
-  const dietItems = patient.dietPlan ?? []
+  const loading = !patient
+  const diseaseLabels = patient ? getPatientDiseaseLabels(patient) : []
+  const medicines = patient?.prescribedMedicines ?? []
+  const dietItems = patient?.dietPlan ?? []
 
   return (
     <>
@@ -69,31 +74,35 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
           secondaryIcon={CalendarDays}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <DetailField label="Visit date" value={formatVisitDate(patient.admissionDate)} />
+          <DetailField loading={loading} label="Visit date" value={formatVisitDate(patient?.admissionDate)} />
           <DetailField
+            loading={loading}
             label="Patient name"
-            value={`${patient.firstName} ${patient.lastName}`.trim() || '—'}
+            value={`${patient?.firstName ?? ''} ${patient?.lastName ?? ''}`.trim() || '—'}
           />
           <DetailField
+            loading={loading}
             label="Contact"
             value={
               <span className="inline-flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-                {formatPhoneForDisplay(patient.phone) || patient.phone || '—'}
+                {formatPhoneForDisplay(patient?.phone ?? '') || patient?.phone || '—'}
               </span>
             }
           />
           <DetailField
+            loading={loading}
             label="Patient ID"
-            value={<span className="font-mono text-xs sm:text-sm">{patient.rollNumber}</span>}
+            value={<span className="font-mono text-xs sm:text-sm">{patient?.rollNumber}</span>}
           />
           <DetailField
+            loading={loading}
             label="Address"
             className="sm:col-span-2"
             value={
               <span className="inline-flex items-start gap-1.5">
                 <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                {patient.address?.trim() || '—'}
+                {patient?.address?.trim() || '—'}
               </span>
             }
           />
@@ -113,7 +122,9 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
               Diseases
             </p>
-            {diseaseLabels.length > 0 ? (
+            {loading ? (
+              <Sk className="h-6 w-40" />
+            ) : diseaseLabels.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {diseaseLabels.map((label) => (
                   <span
@@ -129,9 +140,10 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
             )}
           </div>
           <DetailField
+            loading={loading}
             label="Prescription"
             value={
-              patient.prescription?.trim() ? (
+              patient?.prescription?.trim() ? (
                 <p className="whitespace-pre-wrap font-normal leading-relaxed text-foreground/90">
                   {patient.prescription}
                 </p>
@@ -147,10 +159,12 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
         <PatientFormSectionHeader
           accent="medicines"
           title="Medicines"
-          subtitle={`${medicines.length} prescribed medicine${medicines.length === 1 ? '' : 's'}`}
+          subtitle={loading ? 'Prescribed medicines' : `${medicines.length} prescribed medicine${medicines.length === 1 ? '' : 's'}`}
           icon={Pill}
         />
-        {medicines.length === 0 ? (
+        {loading ? (
+          <Sk className="h-16 w-full rounded-xl" />
+        ) : medicines.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border/80 bg-muted/15 px-4 py-6 text-center text-sm text-muted-foreground">
             No medicines prescribed for this visit.
           </p>
@@ -185,7 +199,9 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
           subtitle="Dietary advice with amounts"
           icon={Leaf}
         />
-        {dietItems.length === 0 ? (
+        {loading ? (
+          <Sk className="h-12 w-full rounded-xl" />
+        ) : dietItems.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border/80 bg-muted/15 px-4 py-6 text-center text-sm text-muted-foreground">
             No diet recommendations recorded.
           </p>
@@ -211,9 +227,13 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
           subtitle="Remarks for this visit"
           icon={ClipboardList}
         />
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-          {patient.additionalNotes?.trim() || '—'}
-        </p>
+        {loading ? (
+          <Sk className="h-5 w-2/3" />
+        ) : (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+            {patient?.additionalNotes?.trim() || '—'}
+          </p>
+        )}
       </BentoCard>
 
       <BentoCard colSpan={12} accent="fees" delay={360}>
@@ -231,9 +251,13 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
               className="mb-1 h-6 w-6 shrink-0 text-[hsl(var(--metric-fees))]"
               aria-hidden
             />
-            <p className="text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-4xl">
-              {formatPatientAmount(patient.fees).replace('₹', '').trim()}
-            </p>
+            {loading ? (
+              <Sk className="h-10 w-28" />
+            ) : (
+              <p className="text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-4xl">
+                {formatPatientAmount(patient?.fees).replace('₹', '').trim()}
+              </p>
+            )}
           </div>
         </div>
       </BentoCard>

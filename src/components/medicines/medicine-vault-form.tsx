@@ -1,5 +1,8 @@
 'use client'
 
+import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
+import { ROUTES } from '@/lib/routes'
+import Link from 'next/link'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,6 +19,7 @@ import { t } from '@/lib/labels'
 import type { MedicineFormValues } from '@/types/medicine'
 import type { MedicineFlagFieldOptions } from '@/data/medicine-flag-fields'
 import { FormRequiredMark } from '@/components/shared/form-field-layout'
+import { Skel, SkelChips } from '@/components/medicines/skeleton-bits'
 import { CreatableMultiSelect } from '@/components/shared/creatable-multi-select'
 import { createFlag } from '@/services/flag-api'
 import { toast } from 'sonner'
@@ -24,7 +28,6 @@ import {
   Beaker,
   FileText,
   FlaskConical,
-  Loader2,
   ShieldAlert,
   Sparkles,
   X,
@@ -80,34 +83,19 @@ function SectionCard({
   delay?: number
 }) {
   return (
-    <section
-      className="medicine-vault-section"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="medicine-vault-section-glow" aria-hidden />
-      <div className="relative z-10 space-y-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--metric-classes)/0.14)] text-[hsl(var(--metric-classes))]">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-          </div>
-        </div>
-        {children}
-      </div>
-    </section>
+    <KitSectionCard>
+      <SectionCardHeader
+        title={title}
+        description={subtitle}
+        icon={<Icon className="h-4 w-4" />}
+      />
+      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+    </KitSectionCard>
   )
 }
 
-function SelectLoadingState({ text }: { text: string }) {
-  return (
-    <div className="flex min-w-0 flex-1 items-center gap-2 whitespace-nowrap text-sm text-muted-foreground">
-      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
-      <span className="truncate">{text}</span>
-    </div>
-  )
+function SelectLoadingState() {
+  return <Skel className="h-4 w-28" />
 }
 
 function FlagSelect({
@@ -115,7 +103,6 @@ function FlagSelect({
   options,
   disabled,
   loading,
-  loadingText,
   placeholder,
   onValueChange,
 }: {
@@ -123,7 +110,6 @@ function FlagSelect({
   options: { value: string; label: string }[]
   disabled?: boolean
   loading?: boolean
-  loadingText: string
   placeholder: string
   onValueChange: (value: string) => void
 }) {
@@ -136,18 +122,17 @@ function FlagSelect({
       disabled={disabled || loading || (!loading && options.length === 0)}
       onValueChange={onValueChange}
     >
-      <SelectTrigger className="classes-form-input h-11">
+      <SelectTrigger className="classes-form-input h-11" aria-label={placeholder}>
         {loading ? (
-          <SelectLoadingState text={loadingText} />
+          <SelectLoadingState />
         ) : (
           <SelectValue placeholder={placeholder} />
         )}
       </SelectTrigger>
       <SelectContent>
         {loading ? (
-          <div className="flex items-center gap-2 whitespace-nowrap px-2 py-3 text-sm text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
-            <span>{loadingText}</span>
+          <div className="px-2 py-3">
+            <Skel className="h-4 w-28" />
           </div>
         ) : options.length === 0 ? (
           <div className="px-2 py-3 text-sm text-muted-foreground">{placeholder}</div>
@@ -251,7 +236,6 @@ export function MedicineVaultForm({
               options={flagOptions.formType}
               disabled={disabled}
               loading={flagOptionsLoading}
-              loadingText={t('medicines.form.loadingFormType')}
               placeholder={t('medicines.form.selectFlagOption')}
               onValueChange={(v) => set('formType', v)}
             />
@@ -269,7 +253,6 @@ export function MedicineVaultForm({
               options={flagOptions.status}
               disabled={disabled}
               loading={flagOptionsLoading}
-              loadingText={t('medicines.form.loadingStatus')}
               placeholder={t('medicines.form.selectFlagOption')}
               onValueChange={(v) => set('status', v)}
             />
@@ -284,13 +267,13 @@ export function MedicineVaultForm({
         delay={90}
       >
         {flagOptionsLoading ? (
-          <div className="flex items-center gap-2 whitespace-nowrap py-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-            <span>{t('medicines.form.loadingPotencies')}</span>
-          </div>
+          <SkelChips count={6} />
         ) : flagOptions.potencies.length === 0 ? (
           <p className="text-xs text-muted-foreground">
-            {t('medicines.form.flagOptionsEmpty', { field: t('medicines.form.potencyTitle') })}
+            {t('medicines.form.flagOptionsEmpty', { field: t('medicines.form.potencyTitle') })}{' '}
+            <Link href={ROUTES.vaultFlags} className="font-medium text-primary underline underline-offset-2">
+              {'Open flag configurations'}
+            </Link>
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -342,28 +325,32 @@ export function MedicineVaultForm({
             label={t('medicines.form.symptoms')}
             hint={
               flagOptionsLoading
-                ? t('medicines.form.loadingSymptoms')
-                : !flagOptionsLoading && flagOptions.symptoms.length === 0
+                ? t('medicines.form.symptomsHint')
+                : flagOptions.symptoms.length === 0
                   ? t('medicines.form.flagOptionsEmpty', { field: t('medicines.form.symptoms') })
                   : t('medicines.form.symptomsHint')
             }
           >
+            {flagOptionsLoading ? (
+              <div className="classes-form-input flex min-h-11 flex-wrap items-center gap-2 rounded-md border px-3 py-2" aria-busy="true">
+                <Skel className="h-6 w-16 rounded-full" />
+                <Skel className="h-6 w-20 rounded-full" />
+                <Skel className="h-6 w-14 rounded-full" />
+              </div>
+            ) : (
             <CreatableMultiSelect
               options={symptomSelectOptions}
               selected={values.symptoms}
               onChange={(symptoms) => set('symptoms', symptoms)}
               onCreateOption={symptomsCategoryId ? handleCreateSymptom : undefined}
-              disabled={disabled || flagOptionsLoading}
-              placeholder={
-                flagOptionsLoading
-                  ? t('medicines.form.loadingSymptoms')
-                  : t('medicines.form.symptomsPlaceholder')
-              }
+              disabled={disabled}
+              placeholder={t('medicines.form.symptomsPlaceholder')}
               searchPlaceholder={t('medicines.form.searchSymptoms')}
               emptyMessage={t('medicines.form.noSymptomsFound')}
               createLabel={(term) => t('medicines.form.createSymptom', { term })}
               className="classes-form-input min-h-11"
             />
+            )}
           </FieldShell>
           <FieldShell
             label={t('medicines.information')}

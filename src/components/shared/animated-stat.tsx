@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+
 import { LucideIcon, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { metricAccents, type MetricAccentKey } from '@/utils/theme'
@@ -12,6 +12,8 @@ interface AnimatedStatProps {
   icon: LucideIcon
   accent: MetricAccentKey
   subtitle?: string
+  /** Overrides the accent's default tag text; pass an empty string to hide the tag. */
+  badge?: string
   prefix?: string
   suffix?: string
   /** When true, prefixes the value with ₹ (Indian Rupee). */
@@ -26,31 +28,17 @@ export function AnimatedStat({
   icon: Icon,
   accent,
   subtitle,
+  badge,
   prefix,
   suffix = '',
   currency = false,
   trend,
   compact = false,
 }: AnimatedStatProps) {
-  const [display, setDisplay] = useState(0)
+  const display = value
   const accentMeta = metricAccents[accent]
   const resolvedPrefix = prefix ?? (currency ? CLINIC_CURRENCY_SYMBOL : '')
 
-  useEffect(() => {
-    const duration = 900
-    const start = performance.now()
-    let frame: number
-
-    const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 4)
-      setDisplay(Math.round(value * eased))
-      if (progress < 1) frame = requestAnimationFrame(tick)
-    }
-
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [value])
 
   return (
     <div
@@ -61,9 +49,11 @@ export function AnimatedStat({
         <div className="metric-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
           <Icon className="h-5 w-5" />
         </div>
-        <span className="metric-stat-badge rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-          {accentMeta.label}
-        </span>
+        {(badge ?? accentMeta.label) !== '' && (
+          <span className="metric-stat-badge rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+            {badge ?? accentMeta.label}
+          </span>
+        )}
       </div>
 
       <div className="mt-auto">

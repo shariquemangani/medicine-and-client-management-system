@@ -12,6 +12,7 @@ export function useBillingPage() {
   const [categories, setCategories] = useState<BillingCategory[]>([])
   const [categoriesLoaded, setCategoriesLoaded] = useState(false)
   const [categoriesLoading, setCategoriesLoading] = useState(false)
+  const [categoriesTried, setCategoriesTried] = useState(false)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [overdueOnly, setOverdueOnly] = useState(false)
@@ -33,6 +34,7 @@ export function useBillingPage() {
       setCategoriesLoaded(true)
     } finally {
       setCategoriesLoading(false)
+      setCategoriesTried(true)
     }
   }, [categoriesLoaded])
 
@@ -101,10 +103,11 @@ export function useBillingPage() {
   const end = Math.min(safePage * PAGE_SIZE, totalFiltered)
 
   return {
+    filteredSummaries,
     stats,
     paginatedSummaries,
     categories,
-    categoriesLoading: categoriesLoading && !categoriesLoaded,
+    categoriesLoading: !categoriesLoaded && !categoriesTried || categoriesLoading && !categoriesLoaded,
     initialLoading,
     refreshing,
     search,

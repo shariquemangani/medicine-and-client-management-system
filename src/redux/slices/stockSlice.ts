@@ -1,15 +1,25 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import type { StockAdjustInput, StockItem, StockMovement, StockReceiveInput } from '@/types/stock'
+import type {
+  StockAdjustInput,
+  StockAlert,
+  StockItem,
+  StockItemInput,
+  StockItemUpdate,
+  StockMovement,
+  StockReceiveInput,
+} from '@/types/stock'
 import {
   adjustStock,
+  createStockItem,
+  deleteStockItem,
   fetchStockItems,
   fetchStockMovements,
   receiveStock,
+  updateStockItem,
   updateStockReorder,
 } from '@/services/stock-api'
 import { buildStockAlerts } from '@/lib/stock-utils'
 import { computeStockStats } from '@/lib/stock-stats'
-import type { StockAlert } from '@/types/stock'
 
 interface StockState {
   items: StockItem[]
@@ -18,6 +28,7 @@ interface StockState {
   stats: ReturnType<typeof computeStockStats> | null
   loading: boolean
   saving: boolean
+  /** Load failures only. Mutation errors are returned to the caller so they can toast the real message. */
   error: string | null
 }
 
@@ -31,59 +42,71 @@ const initialState: StockState = {
   error: null,
 }
 
+function messageOf(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
+async function loadAll() {
+  const [items, movements] = await Promise.all([fetchStockItems(), fetchStockMovements()])
+  return { items, movements }
+}
+
 export const loadStockData = createAsyncThunk('stock/load', async (_, { rejectWithValue }) => {
   try {
-    const [items, movements] = await Promise.all([fetchStockItems(), fetchStockMovements()])
-    return { items, movements }
+    return await loadAll()
   } catch (error) {
-    return rejectWithValue(error instanceof Error ? error.message : 'Failed to load stock')
+    return rejectWithValue(messageOf(error, 'Failed to load stock'))
   }
 })
 
-export const receiveStockItem = createAsyncThunk(
+/** Builds a thunk that runs a mutation, then reloads items and movements. */
+function mutationThunk<Arg>(type: string, fallback: string, run: (arg: Arg) => Promise<unknown>) {
+  return createAsyncThunk(type, async (arg: Arg, { rejectWithValue }) => {
+    try {
+      await run(arg)
+      return await loadAll()
+    } catch (error) {
+      return rejectWithValue(messageOf(error, fallback))
+    }
+  })
+}
+
+export const createStockItemThunk = mutationThunk<StockItemInput>(
+  'stock/createItem',
+  'Failed to create stock item',
+  (input) => createStockItem(input)
+)
+
+export const updateStockItemThunk = mutationThunk<{ id: string; patch: StockItemUpdate }>(
+  'stock/updateItem',
+  'Failed to update stock item',
+  ({ id, patch }) => updateStockItem(id, patch)
+)
+
+export const deleteStockItemThunk = mutationThunk<string>(
+  'stock/deleteItem',
+  'Failed to delete stock item',
+  (id) => deleteStockItem(id)
+)
+
+export const receiveStockItem = mutationThunk<StockReceiveInput>(
   'stock/receive',
-  async (input: StockReceiveInput, { rejectWithValue }) => {
-    try {
-      await receiveStock(input)
-      const [items, movements] = await Promise.all([fetchStockItems(), fetchStockMovements()])
-      return { items, movements }
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to receive stock')
-    }
-  }
+  'Failed to receive stock',
+  (input) => receiveStock(input)
 )
 
-export const adjustStockItem = createAsyncThunk(
+export const adjustStockItem = mutationThunk<StockAdjustInput>(
   'stock/adjust',
-  async (input: StockAdjustInput, { rejectWithValue }) => {
-    try {
-      await adjustStock(input)
-      const [items, movements] = await Promise.all([fetchStockItems(), fetchStockMovements()])
-      return { items, movements }
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to adjust stock')
-    }
-  }
+  'Failed to adjust stock',
+  (input) => adjustStock(input)
 )
 
-export const updateReorderLevels = createAsyncThunk(
-  'stock/updateReorder',
-  async (
-    { stockItemId, reorderLevel, reorderQuantity }: {
-      stockItemId: string
-      reorderLevel: number
-      reorderQuantity: number
-    },
-    { rejectWithValue }
-  ) => {
-    try {
-      await updateStockReorder(stockItemId, reorderLevel, reorderQuantity)
-      const items = await fetchStockItems()
-      return { items }
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to update reorder')
-    }
-  }
+export const updateReorderLevels = mutationThunk<{
+  stockItemId: string
+  reorderLevel: number
+  reorderQuantity: number
+}>('stock/updateReorder', 'Failed to update reorder levels', ({ stockItemId, reorderLevel, reorderQuantity }) =>
+  updateStockReorder(stockItemId, reorderLevel, reorderQuantity)
 )
 
 function applyStockData(state: StockState, items: StockItem[], movements: StockMovement[]) {
@@ -92,6 +115,15 @@ function applyStockData(state: StockState, items: StockItem[], movements: StockM
   state.alerts = buildStockAlerts(items)
   state.stats = computeStockStats(items, movements)
 }
+
+const mutations = [
+  createStockItemThunk,
+  updateStockItemThunk,
+  deleteStockItemThunk,
+  receiveStockItem,
+  adjustStockItem,
+  updateReorderLevels,
+]
 
 const stockSlice = createSlice({
   name: 'stock',
@@ -115,34 +147,20 @@ const stockSlice = createSlice({
         state.loading = false
         state.error = (action.payload as string) ?? 'Failed to load stock'
       })
-      .addCase(receiveStockItem.pending, (state) => {
-        state.saving = true
-        state.error = null
-      })
-      .addCase(receiveStockItem.fulfilled, (state, action) => {
-        state.saving = false
-        applyStockData(state, action.payload.items, action.payload.movements)
-      })
-      .addCase(receiveStockItem.rejected, (state, action) => {
-        state.saving = false
-        state.error = (action.payload as string) ?? 'Failed to receive stock'
-      })
-      .addCase(adjustStockItem.pending, (state) => {
-        state.saving = true
-        state.error = null
-      })
-      .addCase(adjustStockItem.fulfilled, (state, action) => {
-        state.saving = false
-        applyStockData(state, action.payload.items, action.payload.movements)
-      })
-      .addCase(adjustStockItem.rejected, (state, action) => {
-        state.saving = false
-        state.error = (action.payload as string) ?? 'Failed to adjust stock'
-      })
-      .addCase(updateReorderLevels.fulfilled, (state, action) => {
-        const movements = state.movements
-        applyStockData(state, action.payload.items, movements)
-      })
+
+    for (const thunk of mutations) {
+      builder
+        .addCase(thunk.pending, (state) => {
+          state.saving = true
+        })
+        .addCase(thunk.fulfilled, (state, action) => {
+          state.saving = false
+          applyStockData(state, action.payload.items, action.payload.movements)
+        })
+        .addCase(thunk.rejected, (state) => {
+          state.saving = false
+        })
+    }
   },
 })
 

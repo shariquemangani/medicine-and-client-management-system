@@ -5,10 +5,20 @@ import { useAppDispatch, useAppSelector } from '@/redux'
 import {
   adjustStockItem,
   clearStockError,
+  createStockItemThunk,
+  deleteStockItemThunk,
   loadStockData,
   receiveStockItem,
+  updateStockItemThunk,
 } from '@/redux/slices/stockSlice'
-import type { StockAdjustInput, StockItem, StockReceiveInput } from '@/types/stock'
+import type {
+  StockAdjustInput,
+  StockItem,
+  StockItemInput,
+  StockItemUpdate,
+  StockMovementType,
+  StockReceiveInput,
+} from '@/types/stock'
 import type {
   StockDirectoryFilters,
   StockDirectoryTab,
@@ -18,6 +28,22 @@ import type {
 import { getStockLevelStatus } from '@/lib/stock-utils'
 
 const PAGE_SIZE = 8
+
+export type MovementRange = '7' | '30' | '90' | 'all'
+export type MovementTypeFilter = StockMovementType | 'all'
+
+/** Mirrors the service-side cap so the UI can say how many movements are loaded. */
+export const MOVEMENT_LOAD_LIMIT = 300
+
+/** Redux thunks reject with a plain string; turn it back into an Error so callers can read `.message`. */
+async function unwrapOrThrow<T>(promise: { unwrap: () => Promise<T> }): Promise<T> {
+  try {
+    return await promise.unwrap()
+  } catch (error) {
+    if (error instanceof Error) throw error
+    throw new Error(typeof error === 'string' ? error : 'Something went wrong')
+  }
+}
 
 const defaultFilters: StockDirectoryFilters = {
   search: '',
@@ -64,6 +90,8 @@ export function useStockDirectory() {
   const [page, setPage] = useState(1)
   const [tab, setTab] = useState<StockDirectoryTab>('ledger')
   const [refreshing, setRefreshing] = useState(false)
+  const [movementType, setMovementType] = useState<MovementTypeFilter>('all')
+  const [movementRange, setMovementRange] = useState<MovementRange>('all')
 
   const reload = useCallback(async () => {
     setRefreshing(true)
@@ -103,6 +131,7 @@ export function useStockDirectory() {
         item.potency,
         item.location,
         item.supplier,
+        ...item.batches.map((b) => b.batchNumber),
       ]
         .filter(Boolean)
         .join(' ')
@@ -114,6 +143,18 @@ export function useStockDirectory() {
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => compareStockItems(a, b, sortField, sortDirection))
   }, [filteredItems, sortField, sortDirection])
+
+  const filteredMovements = useMemo(() => {
+    const cutoff =
+      movementRange === 'all' ? 0 : Date.now() - Number(movementRange) * 24 * 60 * 60 * 1000
+    return movements.filter((m) => {
+      if (movementType !== 'all' && m.type !== movementType) return false
+      return cutoff === 0 || new Date(m.createdAt).getTime() >= cutoff
+    })
+  }, [movements, movementType, movementRange])
+
+  /** Items sorted and filtered for export (all pages, not just the visible one). */
+  const exportItems = sortedItems
 
   const totalPages = Math.max(1, Math.ceil(sortedItems.length / PAGE_SIZE))
   const paginatedItems = useMemo(() => {
@@ -156,14 +197,35 @@ export function useStockDirectory() {
 
   const receive = useCallback(
     async (input: StockReceiveInput) => {
-      await dispatch(receiveStockItem(input)).unwrap()
+      await unwrapOrThrow(dispatch(receiveStockItem(input)))
     },
     [dispatch]
   )
 
   const adjust = useCallback(
     async (input: StockAdjustInput) => {
-      await dispatch(adjustStockItem(input)).unwrap()
+      await unwrapOrThrow(dispatch(adjustStockItem(input)))
+    },
+    [dispatch]
+  )
+
+  const createItem = useCallback(
+    async (input: StockItemInput) => {
+      await unwrapOrThrow(dispatch(createStockItemThunk(input)))
+    },
+    [dispatch]
+  )
+
+  const updateItem = useCallback(
+    async (id: string, patch: StockItemUpdate) => {
+      await unwrapOrThrow(dispatch(updateStockItemThunk({ id, patch })))
+    },
+    [dispatch]
+  )
+
+  const removeItem = useCallback(
+    async (id: string) => {
+      await unwrapOrThrow(dispatch(deleteStockItemThunk(id)))
     },
     [dispatch]
   )
@@ -200,6 +262,15 @@ export function useStockDirectory() {
     reload,
     receive,
     adjust,
+    createItem,
+    updateItem,
+    removeItem,
+    movementType,
+    setMovementType,
+    movementRange,
+    setMovementRange,
+    filteredMovements,
+    exportItems,
     dismissError,
   }
 }

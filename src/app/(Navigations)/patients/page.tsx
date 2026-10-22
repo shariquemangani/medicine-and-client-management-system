@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, Wallet } from 'lucide-react'
-import { BentoGrid, BentoCard, AnimatedStat } from '@/components/shared'
+import { BentoGrid, BentoCard } from '@/components/shared'
+import { DashboardStatTile } from '@/components/dashboard'
 import {
   PatientsHero,
   PatientsFilters,
   PatientsDataTable,
   PatientsDeleteDialog,
-  PatientsStatSkeleton,
 } from '@/components/patients'
 import { usePatientsDirectory } from '@/hooks/use-patients-directory'
+import { downloadCsv } from '@/lib/download-csv'
 import { deletePatientApi } from '@/services/patient-api'
 import type { Patient } from '@/types'
 import { toast } from 'sonner'
@@ -36,6 +37,7 @@ export default function PatientsPage() {
     toggleSort,
     stats,
     paginatedPatients,
+    sortedPatients,
     page,
     setPage,
     totalPages,
@@ -44,6 +46,26 @@ export default function PatientsPage() {
     availableYears,
     reload,
   } = usePatientsDirectory()
+
+  const exportPatients = () => {
+    if (sortedPatients.length === 0) {
+      toast.error('No patients to export')
+      return
+    }
+    downloadCsv(`patients-${new Date().toISOString().split('T')[0]}.csv`, [
+      ['Roll No', 'First Name', 'Last Name', 'Phone', 'Address', 'Status', 'Fees', 'Registered'],
+      ...sortedPatients.map((p) => [
+        p.rollNumber,
+        p.firstName,
+        p.lastName,
+        p.phone ?? '',
+        p.address ?? '',
+        p.status,
+        p.fees ?? '',
+        p.createdAt ?? '',
+      ]),
+    ])
+  }
 
   const [deleteTarget, setDeleteTarget] = useState<Patient | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -72,42 +94,33 @@ export default function PatientsPage() {
   return (
     <div className="dashboard-shell patients-page space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <PatientsHero
             total={stats.total}
             active={stats.total}
+            onExport={exportPatients}
             onRefresh={reload}
             refreshing={refreshing}
+            loading={initialLoading}
+          />
+        </div>
+
+        <BentoCard colSpan={6} accent="patients" delay={60}>
+          <DashboardStatTile title="Total Patients" value={initialLoading ? null : stats.total} icon={Users} accent="patients" />
+        </BentoCard>
+        <BentoCard colSpan={6} accent="fees" delay={120}>
+          <DashboardStatTile
+            title="Total Amount"
+            value={initialLoading ? null : stats.totalAmount}
+            icon={Wallet}
+            accent="fees"
+            currency
           />
         </BentoCard>
 
-        {initialLoading ? (
-          <PatientsStatSkeleton />
-        ) : (
-          <>
-            <BentoCard colSpan={6} accent="patients" delay={60}>
-              <AnimatedStat
-                title="Total Patients"
-                value={stats.total}
-                icon={Users}
-                accent="patients"
-                compact
-              />
-            </BentoCard>
-            <BentoCard colSpan={6} accent="fees" delay={120}>
-              <AnimatedStat
-                title="Total Amount"
-                value={stats.totalAmount}
-                icon={Wallet}
-                accent="fees"
-                currency
-                compact
-              />
-            </BentoCard>
-          </>
-        )}
+      </BentoGrid>
 
-        <BentoCard colSpan={12} delay={300}>
+      <div className="space-y-4">
           <PatientsFilters
             filters={filters}
             searchInput={searchInput}
@@ -122,10 +135,11 @@ export default function PatientsPage() {
             totalFiltered={totalFiltered}
             total={stats.total}
             totalAmount={stats.totalAmount}
+            loading={initialLoading}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          <div className="mt-4">
+          <div>
             <PatientsDataTable
               patients={paginatedPatients}
               loading={initialLoading}
@@ -143,8 +157,7 @@ export default function PatientsPage() {
               viewMode={viewMode}
             />
           </div>
-        </BentoCard>
-      </BentoGrid>
+      </div>
 
       <PatientsDeleteDialog
         patient={deleteTarget}

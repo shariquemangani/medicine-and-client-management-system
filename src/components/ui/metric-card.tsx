@@ -25,7 +25,7 @@ export function MetricCard({
   trend 
 }: MetricCardProps) {
   return (
-    <Card className="border-none shadow-[0_8px_32px_rgba(15,23,42,0.08)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] transition-shadow duration-200">
+    <Card className="border-none shadow-[0_8px_32px_rgba(15,23,42,0.08)] transition-shadow duration-200">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div className={`h-10 w-10 rounded-lg ${iconBgColor} flex items-center justify-center flex-shrink-0`}>

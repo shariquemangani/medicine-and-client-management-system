@@ -113,7 +113,7 @@ export function PrescriptionsCreateDialog({
               className="exams-form-input mt-1.5"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder={'Midterm Prescriptionination'}
+              placeholder={t('prescriptions.examNamePlaceholder')}
               required
             />
           </div>
@@ -189,11 +189,11 @@ export function PrescriptionsCreateDialog({
           </div>
           <div>
             <Label>
-              {t('prescriptions.selectClasses')} <span className="text-destructive">*</span>
+              {t('prescriptions.selectMedicines')} <span className="text-destructive">*</span>
             </Label>
             <div className="exams-class-picker mt-2 max-h-32 space-y-1.5 overflow-y-auto rounded-xl border p-2">
               {classes.length === 0 ? (
-                <p className="px-2 py-1 text-xs text-muted-foreground">{t('prescriptions.noClasses')}</p>
+                <p className="px-2 py-1 text-xs text-muted-foreground">{t('prescriptions.noMedicines')}</p>
               ) : (
                 classes.map((c) => {
                   const selected = form.classIds.includes(c.id)
@@ -219,7 +219,7 @@ export function PrescriptionsCreateDialog({
             onClick={handleSubmit}
             disabled={submitting || !isValid}
           >
-            {submitting ? 'Saving...' : 'Create exam'}
+            {submitting ? 'Saving...' : t('prescriptions.createPrescription')}
           </Button>
         </div>
       </DialogContent>

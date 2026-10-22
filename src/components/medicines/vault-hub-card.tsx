@@ -53,7 +53,7 @@ export function VaultHubCard({
             <Icon className="h-6 w-6" strokeWidth={1.75} />
           </div>
           <span className="vault-hub-card-arrow flex h-9 w-9 items-center justify-center rounded-full">
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <ArrowUpRight className="h-4 w-4 transition-transform duration-300" />
           </span>
         </div>
 

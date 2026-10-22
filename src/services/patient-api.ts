@@ -1,4 +1,4 @@
-import { auth } from '@/lib/firebase/app'
+import { getFirebaseIdToken } from '@/lib/firebase/id-token'
 import type {
   ApiResponse,
   PaginatedResponse,
@@ -20,13 +20,6 @@ export interface FetchPatientsListParams {
   limit?: number
 }
 
-async function getFirebaseIdToken() {
-  const user = auth.currentUser
-  if (!user) {
-    throw new Error('Not authenticated')
-  }
-  return user.getIdToken()
-}
 
 async function patientApiFetch<T>(
   path: string,

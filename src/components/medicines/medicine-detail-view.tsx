@@ -1,11 +1,13 @@
 'use client'
 
+import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
 import { ROUTES } from '@/lib/routes'
 
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Skel, SkelChips } from '@/components/medicines/skeleton-bits'
 import { t } from '@/lib/labels'
 import type { Medicine } from '@/types/medicine'
 import type { MedicineFlagFieldOptions } from '@/data/medicine-flag-fields'
@@ -41,21 +43,14 @@ function DetailSection({
   delay?: number
 }) {
   return (
-    <section className="medicine-vault-section" style={{ animationDelay: `${delay}ms` }}>
-      <div className="medicine-vault-section-glow" aria-hidden />
-      <div className="relative z-10 space-y-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--metric-classes)/0.14)] text-[hsl(var(--metric-classes))]">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-          </div>
-        </div>
-        {children}
-      </div>
-    </section>
+    <KitSectionCard>
+      <SectionCardHeader
+        title={title}
+        description={subtitle}
+        icon={<Icon className="h-4 w-4" />}
+      />
+      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+    </KitSectionCard>
   )
 }
 
@@ -63,10 +58,14 @@ function DetailField({
   label,
   children,
   className,
+  loading,
+  skeleton,
 }: {
   label: string
-  children: React.ReactNode
+  children?: React.ReactNode
   className?: string
+  loading?: boolean
+  skeleton?: React.ReactNode
 }) {
   const empty =
     children === null ||
@@ -78,7 +77,9 @@ function DetailField({
       <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </p>
-      {empty ? (
+      {loading ? (
+        <div aria-busy="true">{skeleton ?? <Skel className="h-5 w-40" />}</div>
+      ) : empty ? (
         <p className="text-sm italic text-muted-foreground/70">{t('medicines.detail.emptyField')}</p>
       ) : (
         <div className="text-sm leading-relaxed text-foreground">{children}</div>
@@ -88,13 +89,14 @@ function DetailField({
 }
 
 interface MedicineDetailHeaderProps {
-  name: string
+  name?: string
   commonName?: string
+  loading?: boolean
   onEdit?: () => void
   actions?: React.ReactNode
 }
 
-export function MedicineDetailHeader({ name, commonName, onEdit, actions }: MedicineDetailHeaderProps) {
+export function MedicineDetailHeader({ name, commonName, loading, onEdit, actions }: MedicineDetailHeaderProps) {
   return (
     <div className="medicine-detail-hero">
       <div className="medicine-detail-hero-orbit" aria-hidden />
@@ -118,8 +120,16 @@ export function MedicineDetailHeader({ name, commonName, onEdit, actions }: Medi
         </div>
 
         <div className="min-w-0 space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{name}</h1>
-          {commonName?.trim() ? (
+          {loading ? (
+            <div aria-busy="true" className="space-y-2">
+              <h1 className="sr-only">{t('medicines.detail.title')}</h1>
+              <Skel className="h-9 w-64 sm:h-10" />
+              <Skel className="h-5 w-40" />
+            </div>
+          ) : (
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{name}</h1>
+          )}
+          {loading ? null : commonName?.trim() ? (
             <p className="text-base italic text-muted-foreground">{commonName}</p>
           ) : (
             <p className="text-sm italic text-muted-foreground/60">{t('medicines.detail.emptyField')}</p>
@@ -131,12 +141,23 @@ export function MedicineDetailHeader({ name, commonName, onEdit, actions }: Medi
 }
 
 interface MedicineDetailViewProps {
-  medicine: Medicine
+  medicine?: Medicine | null
+  loading?: boolean
+  optionsLoading?: boolean
   flagOptions?: MedicineFlagFieldOptions
   onEdit?: () => void
 }
 
-export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDetailViewProps) {
+export function MedicineDetailView({
+  medicine: medicineProp,
+  loading,
+  optionsLoading,
+  flagOptions,
+  onEdit,
+}: MedicineDetailViewProps) {
+  const medicine = (medicineProp ?? {}) as Medicine
+  const dataLoading = !!loading || !medicineProp
+  const flagsPending = dataLoading || !!optionsLoading
   const formOptions = flagOptions?.formType ?? []
   const statusOptions = flagOptions?.status ?? []
   const potencyOptions = flagOptions?.potencies ?? []
@@ -160,7 +181,8 @@ export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDe
       <MedicineDetailHeader
         name={medicine.name}
         commonName={medicine.commonName}
-        onEdit={onEdit}
+        loading={dataLoading}
+        onEdit={dataLoading ? undefined : onEdit}
       />
 
       <DetailSection
@@ -170,12 +192,12 @@ export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDe
         delay={40}
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <DetailField label={t('medicines.form.formType')}>
+          <DetailField label={t('medicines.form.formType')} loading={flagsPending} skeleton={<Skel className="h-6 w-20 rounded-full" />}>
             <Badge variant="outline" className="capitalize font-normal">
               {formLabel}
             </Badge>
           </DetailField>
-          <DetailField label={t('medicines.form.status')}>
+          <DetailField label={t('medicines.form.status')} loading={flagsPending} skeleton={<Skel className="h-6 w-20 rounded-full" />}>
             <Badge variant={isInactive ? 'secondary' : 'default'} className="capitalize font-normal">
               {statusLabel}
             </Badge>
@@ -189,7 +211,9 @@ export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDe
         icon={FlaskConical}
         delay={90}
       >
-        {potencies.length > 0 ? (
+        {flagsPending ? (
+          <SkelChips count={5} />
+        ) : potencies.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {potencies.map((potency) => (
               <span
@@ -212,7 +236,7 @@ export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDe
         delay={140}
       >
         <div className="grid grid-cols-1 gap-4">
-          <DetailField label={t('medicines.form.symptoms')}>
+          <DetailField label={t('medicines.form.symptoms')} loading={flagsPending} skeleton={<SkelChips count={4} />}>
             {symptoms.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {symptoms.map((symptom) => (
@@ -223,7 +247,7 @@ export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDe
               </div>
             ) : null}
           </DetailField>
-          <DetailField label={t('medicines.information')}>
+          <DetailField label={t('medicines.information')} loading={dataLoading} skeleton={<div className="space-y-2"><Skel className="h-4 w-full" /><Skel className="h-4 w-3/4" /></div>}>
             {medicine.information?.trim() ? (
               <p className="whitespace-pre-wrap">{medicine.information}</p>
             ) : null}
@@ -238,12 +262,12 @@ export function MedicineDetailView({ medicine, flagOptions, onEdit }: MedicineDe
         delay={190}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <DetailField label={t('medicines.form.antidotes')}>
+          <DetailField label={t('medicines.form.antidotes')} loading={dataLoading} skeleton={<div className="space-y-2"><Skel className="h-4 w-full" /><Skel className="h-4 w-2/3" /></div>}>
             {medicine.antidotes?.trim() ? (
               <p className="whitespace-pre-wrap">{medicine.antidotes}</p>
             ) : null}
           </DetailField>
-          <DetailField label={t('medicines.form.caution')}>
+          <DetailField label={t('medicines.form.caution')} loading={dataLoading} skeleton={<div className="space-y-2"><Skel className="h-4 w-full" /><Skel className="h-4 w-2/3" /></div>}>
             {medicine.cautionNotes?.trim() ? (
               <p className="whitespace-pre-wrap">{medicine.cautionNotes}</p>
             ) : null}

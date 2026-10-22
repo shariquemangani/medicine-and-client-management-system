@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { FolderPlus, Loader2, Plus, Tags, Trash2 } from 'lucide-react'
+import { FolderPlus, Plus, Tags, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -102,7 +102,6 @@ export function FlagCategoryDialog({
             >
               {submitting ? (
                 <>
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   {'Saving...'}
                 </>
               ) : (
@@ -290,7 +289,6 @@ export function FlagItemDialog({
             >
               {submitting ? (
                 <>
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   {'Saving...'}
                 </>
               ) : (
@@ -367,7 +365,6 @@ export function FlagDeleteDialog({
           >
             {busy ? (
               <>
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 {'Deleting...'}
               </>
             ) : (

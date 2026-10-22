@@ -53,8 +53,9 @@ const PATH_RESOURCE_MAP: { prefix: string; resource: PermissionResource }[] = [
 ]
 
 export function normalizeUserRole(role: string | null | undefined): UserRole {
-  if (role === 'staff') return 'staff'
-  return 'super_admin'
+  // Fail closed: only an explicit super_admin role gets admin rights.
+  if (role === 'super_admin') return 'super_admin'
+  return 'staff'
 }
 
 export function isUserActive(isActive: boolean | null | undefined): boolean {
@@ -85,7 +86,19 @@ export function canAccessPath(
 ): boolean {
   const resource = getResourceForPath(pathname)
   if (!resource) return true
-  return roleHasPermission(role, resource, action)
+  return roleHasPermission(role, resource, requiredActionForPath(pathname, action))
+}
+
+/**
+ * Opening a view is `view`, but "create" screens (/new) need `create` and the shared flag
+ * catalogue (only editable screen in the vault) needs `edit`, so read-only roles are redirected
+ * instead of being shown forms whose writes would be rejected.
+ */
+function requiredActionForPath(pathname: string, action: PermissionAction): PermissionAction {
+  if (action !== 'view') return action
+  if (/\/new\/?$/.test(pathname)) return 'create'
+  if (pathname === ROUTES.vaultFlags || pathname.startsWith(`${ROUTES.vaultFlags}/`)) return 'edit'
+  return action
 }
 
 /** First path the role can open (used when current page is denied). */

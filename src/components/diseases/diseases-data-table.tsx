@@ -17,8 +17,10 @@ import {
   DiseasesTableSkeleton,
 } from '@/components/diseases/diseases-skeleton'
 import { Button } from '@/components/ui/button'
+import { usePermission } from '@/hooks/use-permission'
 import { cn } from '@/lib/utils'
 import { t } from '@/lib/labels'
+import { Skel } from '@/components/medicines/skeleton-bits'
 import type { MedicineFlagOption } from '@/data/medicine-flag-fields'
 import { DiseaseSymptomBadges } from '@/components/diseases/disease-symptom-badges'
 import { resolveSymptomLabels } from '@/lib/diseases/disease-symptoms'
@@ -70,6 +72,8 @@ function DiseaseRowActions({
   onView: (disease: Disease) => void
   onDelete: (disease: Disease) => void
 }) {
+  const { hasPermission } = usePermission()
+  const canDelete = hasPermission('medicines', 'delete')
   return (
     <div
       className="clinic-table-actions flex items-center justify-end gap-0.5"
@@ -85,15 +89,17 @@ function DiseaseRowActions({
       >
         <Eye className="h-4 w-4" />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="clinic-table-action clinic-table-action-delete h-8 w-8"
-        aria-label={t('diseases.deleteDiseaseAction', { name: disease.name })}
-        onClick={() => onDelete(disease)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      {canDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="clinic-table-action clinic-table-action-delete h-8 w-8"
+          aria-label={t('diseases.deleteDiseaseAction', { name: disease.name })}
+          onClick={() => onDelete(disease)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   )
 }
@@ -151,13 +157,12 @@ export function DiseasesDataTable({
           ) : diseases.length === 0 ? (
             <div className="clinic-table-empty col-span-full">{t('diseases.listEmpty')}</div>
           ) : (
-            diseases.map((disease, index) => (
+            diseases.map((disease) => (
               <div
                 key={disease.id}
                 role="button"
                 tabIndex={0}
-                className="clinic-compact-card clinic-compact-card-clickable clinic-list-item-enter group cursor-pointer"
-                style={{ animationDelay: `${index * 55}ms` }}
+                className="clinic-compact-card clinic-compact-card-clickable group cursor-pointer"
                 onClick={() => onView(disease)}
                 onKeyDown={(e) => handleRowKeyDown(e, () => onView(disease))}
               >
@@ -181,7 +186,7 @@ export function DiseasesDataTable({
             ))
           )}
         </div>
-        <div className="clinic-table-shell overflow-hidden rounded-xl border">
+        <div className="clinic-table-shell overflow-hidden rounded-[20px] border">
           <DiseasesPagination
             page={page}
             totalPages={totalPages}
@@ -189,6 +194,7 @@ export function DiseasesDataTable({
             end={end}
             totalFiltered={totalFiltered}
             onPageChange={onPageChange}
+            loading={showSkeleton}
           />
         </div>
       </div>
@@ -198,7 +204,7 @@ export function DiseasesDataTable({
   return (
     <div
       className={cn(
-        'clinic-table-shell overflow-hidden rounded-xl border',
+        'clinic-table-shell overflow-hidden rounded-[20px] border',
         refreshing && 'pointer-events-none opacity-60'
       )}
       aria-busy={loading || undefined}
@@ -252,12 +258,11 @@ export function DiseasesDataTable({
               </td>
             </tr>
           ) : (
-            diseases.map((disease, index) => (
+            diseases.map((disease) => (
               <tr
                 key={disease.id}
                 tabIndex={0}
-                className="clinic-table-row clinic-table-row-clickable clinic-list-item-enter group cursor-pointer"
-                style={{ animationDelay: `${index * 55}ms` }}
+                className="clinic-table-row clinic-table-row-clickable group cursor-pointer"
                 onClick={() => onView(disease)}
                 onKeyDown={(e) => handleRowKeyDown(e, () => onView(disease))}
               >
@@ -296,6 +301,7 @@ export function DiseasesDataTable({
         end={end}
         totalFiltered={totalFiltered}
         onPageChange={onPageChange}
+        loading={showSkeleton}
       />
     </div>
   )
@@ -308,6 +314,7 @@ function DiseasesPagination({
   end,
   totalFiltered,
   onPageChange,
+  loading,
 }: {
   page: number
   totalPages: number
@@ -315,11 +322,14 @@ function DiseasesPagination({
   end: number
   totalFiltered: number
   onPageChange: (page: number) => void
+  loading?: boolean
 }) {
   return (
     <div className="clinic-pagination flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
-        {totalFiltered === 0
+        {loading ? (
+          <Skel className="h-3.5 w-40" />
+        ) : totalFiltered === 0
           ? t('diseases.noResults')
           : t('diseases.listPagination', { start, end, total: totalFiltered })}
       </p>
@@ -328,7 +338,8 @@ function DiseasesPagination({
           variant="outline"
           size="sm"
           className="h-8 w-8 p-0"
-          disabled={page <= 1}
+          disabled={loading || page <= 1}
+          aria-label="Previous page"
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -353,7 +364,8 @@ function DiseasesPagination({
           variant="outline"
           size="sm"
           className="h-8 w-8 p-0"
-          disabled={page >= totalPages}
+          disabled={loading || page >= totalPages}
+          aria-label="Next page"
           onClick={() => onPageChange(page + 1)}
         >
           <ChevronRight className="h-4 w-4" />

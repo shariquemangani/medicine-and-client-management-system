@@ -46,7 +46,7 @@ Options:
 
 async function listBusinessIds(): Promise<string[]> {
   const snap = await adminDb.collection('businesses').get()
-  return snap.docs.map((doc) => doc.id)
+  return snap.docs.map((doc: { id: string }) => doc.id)
 }
 
 async function migrateBusiness(

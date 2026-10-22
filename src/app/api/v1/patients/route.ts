@@ -9,7 +9,7 @@ import type { ApiResponse, PatientCreateInput } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
-    const { idToken, businessId } = await requireApiIdToken(request)
+    const { idToken, businessId } = await requireApiIdToken(request, { resource: 'patients', action: 'create' })
     const body = normalizePatientCreateInput((await request.json()) as PatientCreateInput)
 
     const validationError = validatePatientCreateInput(body)

@@ -15,11 +15,13 @@ import { deleteMedicine } from '@/services/pharmacy-api'
 import type { Medicine } from '@/types'
 import { t } from '@/lib/labels'
 import { toast } from 'sonner'
+import { downloadCsv } from '@/lib/download-csv'
 import { BentoGrid, BentoCard } from '@/components/shared'
 
 export default function MedicinesListPage() {
   const router = useRouter()
   const {
+    medicines,
     initialLoading,
     refreshing,
     error,
@@ -39,6 +41,24 @@ export default function MedicinesListPage() {
     totalFiltered,
     reload,
   } = useMedicinesDirectory()
+
+  const exportRows = () => {
+    if (medicines.length === 0) {
+      toast.error('No medicines to export')
+      return
+    }
+    downloadCsv(`medicines-${new Date().toISOString().split('T')[0]}.csv`, [
+      ['Name', 'Common Name', 'Form', 'Status', 'Potencies', 'Symptoms'],
+      ...medicines.map((m) => [
+        m.name,
+        m.commonName ?? '',
+        m.formType ?? '',
+        m.status ?? '',
+        (m.potencies ?? []).join('; '),
+        (m.symptoms ?? []).join('; '),
+      ]),
+    ])
+  }
 
   const [deleteTarget, setDeleteTarget] = useState<Medicine | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -60,38 +80,34 @@ export default function MedicinesListPage() {
       toast.success(t('medicines.deleted'))
       setDeleteTarget(null)
       await reload()
-    } catch {
-      toast.error(t('medicines.deleteFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('medicines.deleteFailed'))
       throw new Error('delete failed')
     } finally {
       setDeleting(false)
     }
   }
 
-  if (initialLoading) {
-    return (
-      <div className="medicine-vault-page dashboard-shell space-y-4" aria-busy="true">
-        <div className="dashboard-skeleton h-28 rounded-2xl" />
-        <div className="dashboard-skeleton h-96 rounded-2xl" />
-      </div>
-    )
-  }
-
   return (
     <div className="medicine-vault-page dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <MedicinesHero
+            loading={initialLoading}
+            onExport={exportRows}
             total={stats.total}
             active={stats.active}
             onRefresh={reload}
             refreshing={refreshing}
             onAdd={() => router.push(ROUTES.vaultMedicineNew)}
           />
-        </BentoCard>
+        </div>
 
-        <BentoCard colSpan={12} delay={120}>
+        <div className="col-span-12 min-w-0">
+          <div className="space-y-4">
           <MedicinesFilters
+            loading={initialLoading}
+            medicines={medicines}
             filters={filters}
             onFilterChange={updateFilter}
             onClear={clearFilters}
@@ -101,7 +117,7 @@ export default function MedicinesListPage() {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          <div className="mt-4">
+          <div>
             <MedicinesDataTable
               medicines={paginatedMedicines}
               loading={initialLoading}
@@ -119,7 +135,8 @@ export default function MedicinesListPage() {
               viewMode={viewMode}
             />
           </div>
-        </BentoCard>
+          </div>
+        </div>
       </BentoGrid>
 
       <MedicinesDeleteDialog

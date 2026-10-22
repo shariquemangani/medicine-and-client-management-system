@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     result = filterPatientsByTableSearch(result, search)
 
-    result.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    result.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
 
     const paged = paginate(result, page, limit)
     const response: PaginatedResponse<Patient> = {

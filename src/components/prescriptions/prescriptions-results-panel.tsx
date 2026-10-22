@@ -15,7 +15,7 @@ export function PrescriptionsResultsPanel({ results, loading, onView }: Prescrip
 
   if (loading) {
     return (
-      <div className="clinic-table-shell rounded-xl border p-8">
+      <div className="clinic-table-shell rounded-[20px] border p-8">
         <div className="dashboard-skeleton mx-auto h-4 w-48 rounded" />
       </div>
     )
@@ -51,7 +51,7 @@ export function PrescriptionsResultsPanel({ results, loading, onView }: Prescrip
         </div>
       </div>
 
-      <div className="clinic-table-shell overflow-x-auto rounded-xl border">
+      <div className="clinic-table-shell overflow-x-auto rounded-[20px] border">
         <table className="clinic-table w-full">
           <thead>
             <tr className="clinic-table-head">

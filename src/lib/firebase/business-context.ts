@@ -18,7 +18,7 @@ export function clearBusinessId() {
 export function requireBusinessId(): string {
   const businessId = readBusinessId()
   if (!businessId) {
-    throw new Error('School context is missing. Please sign in again.')
+    throw new Error('Clinic context is missing. Please sign in again.')
   }
   return businessId
 }
