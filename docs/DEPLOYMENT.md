@@ -180,3 +180,22 @@ PLAYWRIGHT_START_SERVER=1 npx playwright test   # needs a production build: npm 
 ```
 
 Use the **test** Firebase project for local work and for Playwright (`TEST_USER_EMAIL` / `TEST_USER_PASSWORD` in `.env.local`, never in git). Never point automated tests at the production project.
+
+---
+
+## Appendix: recovering data left under an old business id
+
+Records created before the strict rules can sit under `businesses/{oldId}/...` where `oldId` is no longer anyone's `businessId` (the old owner account is gone), so the app cannot see them. `scripts/migrate-orphan-business.ts` copies `medicines` and `diseases` into the live business. It never deletes the source.
+
+1. Get the ids from the Firebase console: `oldId` is the italic (phantom) document under Firestore → `businesses`; `newId` is your owner's uid (Authentication → Users → User UID, also `users/{uid}.businessId`).
+2. Save a **private** env file outside the repo with `FIREBASE_ADMIN_PROJECT_ID`, `FIREBASE_ADMIN_CLIENT_EMAIL`, `FIREBASE_ADMIN_PRIVATE_KEY` for the target project. Delete it afterwards.
+3. Dry run (writes nothing):
+   ```bash
+   npx tsx --env-file=C:/path/to/prod.env scripts/migrate-orphan-business.ts --from OLD_ID --to NEW_ID
+   ```
+   Check the project name printed on the first line and the counts.
+4. Apply:
+   ```bash
+   npx tsx --env-file=C:/path/to/prod.env scripts/migrate-orphan-business.ts --from OLD_ID --to NEW_ID --apply --confirm-project mediflow-prod-cc377
+   ```
+5. Sign in to the app and check Vault → Medicines / Diseases. Re-running is safe: existing documents are skipped unless you pass `--force`.
