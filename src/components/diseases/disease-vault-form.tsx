@@ -1,5 +1,6 @@
 'use client'
 
+import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
 import { useMemo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -73,21 +74,14 @@ function SectionCard({
   delay?: number
 }) {
   return (
-    <section className="disease-vault-section" style={{ animationDelay: `${delay}ms` }}>
-      <div className="disease-vault-section-glow" aria-hidden />
-      <div className="relative z-10 space-y-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--metric-exams)/0.14)] text-[hsl(var(--metric-exams))]">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-          </div>
-        </div>
-        {children}
-      </div>
-    </section>
+    <KitSectionCard>
+      <SectionCardHeader
+        title={title}
+        description={subtitle}
+        icon={<Icon className="h-4 w-4" />}
+      />
+      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+    </KitSectionCard>
   )
 }
 

@@ -9,13 +9,7 @@ import {
   Settings2,
   Trash2,
 } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { FilterToolbar, FilterChip, SectionCard } from '@/components/shared'
 import type { StockMovement } from '@/types/stock'
 import type { MovementRange, MovementTypeFilter } from '@/hooks/use-stock-directory'
 import { STOCK_MOVEMENT_LABELS } from '@/lib/stock-utils'
@@ -88,64 +82,61 @@ export function InventoryMovementsPanel({
 }: InventoryMovementsPanelProps) {
   const filtersActive = movementType !== 'all' || movementRange !== 'all'
 
+  const countText = filtersActive
+    ? t('inventory.movementsFooterFiltered', { shown: movements.length, limit: loadLimit })
+    : loadedCount >= loadLimit
+      ? t('inventory.movementsFooter', { limit: loadLimit })
+      : t('inventory.movementsFooterAll', { count: loadedCount })
+
   const filters = (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <div>
-        <label htmlFor="movement-type-filter" className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          {t('inventory.filterMovementType')}
-        </label>
-        <Select value={movementType} onValueChange={(v) => onMovementTypeChange(v as MovementTypeFilter)}>
-          <SelectTrigger id="movement-type-filter" className="attendance-input">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {typeOptions.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type === 'all' ? t('inventory.typeAll') : STOCK_MOVEMENT_LABELS[type]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <label htmlFor="movement-range-filter" className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          {t('inventory.filterDateRange')}
-        </label>
-        <Select value={movementRange} onValueChange={(v) => onMovementRangeChange(v as MovementRange)}>
-          <SelectTrigger id="movement-range-filter" className="attendance-input">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {rangeOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {t(opt.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+    <FilterToolbar
+      count={
+        loading ? (
+          <span aria-busy="true" className="animate-pulse inline-block h-3 w-32 rounded-md bg-muted align-middle" />
+        ) : (
+          <span data-testid="movements-footer">{countText}</span>
+        )
+      }
+    >
+      <FilterChip
+        label={t('inventory.filterMovementType')}
+        options={typeOptions
+          .filter((x) => x !== 'all')
+          .map((x) => ({ value: x, label: STOCK_MOVEMENT_LABELS[x as keyof typeof STOCK_MOVEMENT_LABELS] }))}
+        selected={movementType === 'all' ? [] : [movementType]}
+        onChange={(next) =>
+          onMovementTypeChange((next.find((v) => v !== movementType) ?? 'all') as MovementTypeFilter)
+        }
+      />
+      <FilterChip
+        label={t('inventory.filterDateRange')}
+        options={rangeOptions
+          .filter((o) => o.value !== 'all')
+          .map((o) => ({ value: o.value, label: t(o.labelKey) }))}
+        selected={movementRange === 'all' ? [] : [movementRange]}
+        onChange={(next) =>
+          onMovementRangeChange((next.find((v) => v !== movementRange) ?? 'all') as MovementRange)
+        }
+      />
+    </FilterToolbar>
   )
 
   if (loading) {
     return (
       <div className="space-y-4">
         {filters}
-        <div className="space-y-3" aria-busy="true">
+        <SectionCard className="space-y-3 p-4" aria-busy="true">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="animate-pulse h-20 w-full rounded-md bg-muted" />
           ))}
-        </div>
-        <div className="flex h-4 items-center justify-center">
-          <div className="animate-pulse h-3 w-40 rounded-md bg-muted" />
-        </div>
+        </SectionCard>
       </div>
     )
   }
 
   if (loadedCount === 0) {
     return (
-      <div className="attendance-history-empty rounded-2xl border p-10 text-center">
+      <SectionCard className="p-10 text-center">
         <div className="attendance-history-empty-icon mx-auto flex h-14 w-14 items-center justify-center rounded-2xl">
           <History className="h-7 w-7" />
         </div>
@@ -153,7 +144,7 @@ export function InventoryMovementsPanel({
         <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
           {t('inventory.noMovementsHint')}
         </p>
-      </div>
+      </SectionCard>
     )
   }
 
@@ -162,7 +153,7 @@ export function InventoryMovementsPanel({
       {filters}
 
       {movements.length === 0 ? (
-        <div className="attendance-history-empty rounded-2xl border p-10 text-center">
+        <SectionCard className="p-10 text-center">
           <div className="attendance-history-empty-icon mx-auto flex h-14 w-14 items-center justify-center rounded-2xl">
             <History className="h-7 w-7" />
           </div>
@@ -170,9 +161,9 @@ export function InventoryMovementsPanel({
           <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
             {t('inventory.noMovementsFilteredHint')}
           </p>
-        </div>
+        </SectionCard>
       ) : (
-        <div className="attendance-history-list space-y-3">
+        <SectionCard className="space-y-3 p-4">
           {movements.map((movement, index) => {
             const Icon = typeIcons[movement.type]
             const isInbound = movement.quantity > 0
@@ -180,7 +171,7 @@ export function InventoryMovementsPanel({
             return (
               <article
                 key={movement.id}
-                className="attendance-history-row clinic-list-item-enter rounded-2xl border p-4"
+                className="rounded-2xl border border-border p-4"
                 style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -237,16 +228,9 @@ export function InventoryMovementsPanel({
               </article>
             )
           })}
-        </div>
+        </SectionCard>
       )}
 
-      <p className="text-center text-xs text-muted-foreground" data-testid="movements-footer">
-        {filtersActive
-          ? t('inventory.movementsFooterFiltered', { shown: movements.length, limit: loadLimit })
-          : loadedCount >= loadLimit
-            ? t('inventory.movementsFooter', { limit: loadLimit })
-            : t('inventory.movementsFooterAll', { count: loadedCount })}
-      </p>
     </div>
   )
 }

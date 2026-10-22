@@ -2,35 +2,25 @@
 
 import { Flag, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared/page-hero'
+
 interface FlagConfigHeroProps {
   onAddCategory: () => void
 }
 
 export function FlagConfigHero({ onAddCategory }: FlagConfigHeroProps) {
   return (
-    <div className="flag-config-hero relative overflow-hidden rounded-2xl p-4 sm:p-5">
-      <div className="flag-config-hero-mesh pointer-events-none" aria-hidden />
-      <div className="flag-config-hero-scan pointer-events-none" aria-hidden />
-
-      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <div className="flag-config-badge mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium">
-            <Flag className="h-3 w-3" />
-            {'Signals'}
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            {'Flag Configuration'}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {'Manage flags and categories for filtering'}
-          </p>
-        </div>
-
-        <Button size="sm" className="flag-config-primary shrink-0" onClick={onAddCategory}>
+    <PageHero
+      icon={Flag}
+      badge="Signals"
+      title="Flag Configuration"
+      subtitle="Manage flags and categories for filtering"
+      actions={
+        <Button size="sm" className={heroPrimaryClass} onClick={onAddCategory}>
           <Plus className="mr-1.5 h-3.5 w-3.5" />
           {'Add Category'}
         </Button>
-      </div>
-    </div>
+      }
+    />
   )
 }

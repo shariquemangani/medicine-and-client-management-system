@@ -29,7 +29,7 @@ export default function SettingsPage() {
   return (
     <div className="dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <SettingsHero
             loading={initialLoading}
             schoolName={profile?.name ?? ''}
@@ -37,7 +37,7 @@ export default function SettingsPage() {
             onRefresh={reload}
             refreshing={refreshing}
           />
-        </BentoCard>
+        </div>
 
         <BentoCard colSpan={3} accent="staff" delay={0}>
           <StatCardContent
@@ -80,7 +80,7 @@ export default function SettingsPage() {
           />
         </BentoCard>
 
-        <BentoCard colSpan={12} delay={300}>
+        <div className="min-w-0 sm:col-span-2 lg:col-span-12">
           <SettingsTabs
             loading={initialLoading}
             profile={profile}
@@ -95,7 +95,7 @@ export default function SettingsPage() {
             onToggleUser={toggleUser}
             onCreateUser={createUser}
           />
-        </BentoCard>
+        </div>
       </BentoGrid>
     </div>
   )

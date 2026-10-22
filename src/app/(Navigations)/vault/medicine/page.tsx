@@ -91,7 +91,7 @@ export default function MedicinesListPage() {
   return (
     <div className="medicine-vault-page dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <MedicinesHero
             loading={initialLoading}
             onExport={exportRows}
@@ -101,11 +101,13 @@ export default function MedicinesListPage() {
             refreshing={refreshing}
             onAdd={() => router.push(ROUTES.vaultMedicineNew)}
           />
-        </BentoCard>
+        </div>
 
-        <BentoCard colSpan={12} delay={120}>
+        <div className="col-span-12 min-w-0">
+          <div className="space-y-4">
           <MedicinesFilters
             loading={initialLoading}
+            medicines={medicines}
             filters={filters}
             onFilterChange={updateFilter}
             onClear={clearFilters}
@@ -115,7 +117,7 @@ export default function MedicinesListPage() {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          <div className="mt-4">
+          <div>
             <MedicinesDataTable
               medicines={paginatedMedicines}
               loading={initialLoading}
@@ -133,7 +135,8 @@ export default function MedicinesListPage() {
               viewMode={viewMode}
             />
           </div>
-        </BentoCard>
+          </div>
+        </div>
       </BentoGrid>
 
       <MedicinesDeleteDialog

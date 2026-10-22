@@ -249,3 +249,7 @@ Full findings and roadmap: `docs/IMPROVEMENT-PLAN.md`. Deployment: `docs/DEPLOYM
 - Verified on a production build: `npm run verify` exit 0; Playwright 46/46 (public + 12 pages x desktop/mobile + stock journey), 0 console errors.
 - Connectivity audit (this session): static trace of every page/CRUD path plus live tests under the strict rules: owner CRUD for patients, vault, flags, stock, billing, settings, dashboard; staff, disabled-user and cross-tenant isolation checks. Fixed: patient profile read of non-existent school collections (view/edit 500), self-service owner creation, API role gaps, disable-user not disabling Auth, false failures when the activity feed write failed, dashboard staff count, overpayment, flag value stability.
 - Not done by the assistant (needs the account owner): signing in to Firebase/Vercel (shariquecode@gmail.com) and running the deploy commands in `docs/DEPLOYMENT.md`.
+
+## Page headers & cards
+- Every page header is `PageHero` (`src/components/shared/page-hero.tsx`): two lines (icon + h1 + badge, then muted subtitle), actions on the right, `heroButtonClass` / `heroPrimaryClass` for buttons. Per-page `*-hero.tsx` files are thin wrappers; place them in a `col-span-full` div, not a BentoCard.
+- Cards have no hover effect; only table rows and buttons keep hover states.

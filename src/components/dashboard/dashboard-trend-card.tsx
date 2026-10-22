@@ -16,7 +16,7 @@ export function DashboardTrendCard({ data }: { data: EnrollmentTrend[] | null })
     <div className="flex h-full min-h-[240px] flex-col" aria-busy={data === null || undefined}>
       <div className="mb-4 flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{'Patient Growth'}</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Patient Growth'}</h3>
           <p className="text-xs text-muted-foreground">{'Active patients over 6 months'}</p>
         </div>
         {data === null ? (

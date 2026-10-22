@@ -121,7 +121,7 @@ export default function BillingPage() {
   return (
     <div className="dashboard-shell fees-page space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <BillingHero
             loading={initialLoading}
             totalAccounts={stats.totalAccounts}
@@ -130,9 +130,10 @@ export default function BillingPage() {
             onExport={exportBalances}
             refreshing={refreshing}
           />
-        </BentoCard>
+        </div>
 
-        <BentoCard colSpan={3} accent="fees" delay={0}>
+
+        <BentoCard colSpan={3} accent="fees" delay={0}>
           <StatCardContent
             title="Total Accounts"
             badge="Accounts"
@@ -175,7 +176,7 @@ export default function BillingPage() {
           />
         </BentoCard>
 
-        <BentoCard colSpan={12} delay={300}>
+        <div className="min-w-0 sm:col-span-2 lg:col-span-12">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="fees-tabs">
             <TabsList className="fees-tabs-list mb-4">
               <TabsTrigger value="balances" className="fees-tab-trigger">
@@ -209,7 +210,7 @@ export default function BillingPage() {
               )}
             </TabsContent>
           </Tabs>
-        </BentoCard>
+        </div>
       </BentoGrid>
 
       {payDialog && (

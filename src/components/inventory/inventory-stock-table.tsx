@@ -18,6 +18,7 @@ import {
 import type { StockItem } from '@/types/stock'
 import type { StockSortDirection, StockSortField } from '@/types/stock-page'
 import { Button } from '@/components/ui/button'
+import { SectionCard, DataTable, THead, Th, Tr, Td } from '@/components/shared'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
@@ -215,63 +216,49 @@ export function InventoryStockTable({
     // Column headers are static; only the rows are pending.
     const headers = [
       t('inventory.colMedicine'),
-      t('inventory.colPotency'),
       t('inventory.colOnHand'),
       t('inventory.colLocation'),
       t('inventory.colStatus'),
       t('inventory.colActions'),
     ]
     return (
-      <div className="space-y-4" aria-busy="true">
-        <div className="space-y-3 md:hidden">
+      <SectionCard aria-busy="true">
+        <div className="space-y-3 p-4 md:hidden">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="animate-pulse h-36 w-full rounded-md bg-muted" />
           ))}
         </div>
-        <div className="hidden overflow-x-auto rounded-2xl border md:block">
-          <table className="clinic-data-table w-full min-w-[52rem] text-sm">
-            <thead>
-              <tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground">
+        <div className="hidden md:block">
+          <DataTable className="min-w-[48rem]">
+            <THead>
+              <tr>
                 {headers.map((label, i) => (
-                  <th key={label} className={cn('px-4 py-3 font-semibold', i === 2 && 'min-w-[10rem]', i === 5 && 'text-right')}>
+                  <Th key={label} className={cn(i === 1 && 'min-w-[10rem]', i === 4 && 'text-right')}>
                     {label}
-                  </th>
+                  </Th>
                 ))}
               </tr>
-            </thead>
+            </THead>
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b last:border-0">
-                  <td className="px-4 py-3.5">
-                    <div className="animate-pulse h-9 w-40 rounded-md bg-muted" />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="animate-pulse h-4 w-10 rounded-md bg-muted" />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="animate-pulse h-9 w-32 rounded-md bg-muted" />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="animate-pulse h-4 w-20 rounded-md bg-muted" />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="animate-pulse h-5 w-16 rounded-md bg-muted" />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="animate-pulse ml-auto h-9 w-28 rounded-md bg-muted" />
-                  </td>
-                </tr>
+                <Tr key={i}>
+                  <Td><div className="animate-pulse h-9 w-40 rounded-md bg-muted" /></Td>
+                  <Td><div className="animate-pulse h-9 w-32 rounded-md bg-muted" /></Td>
+                  <Td><div className="animate-pulse h-4 w-20 rounded-md bg-muted" /></Td>
+                  <Td><div className="animate-pulse h-5 w-16 rounded-md bg-muted" /></Td>
+                  <Td><div className="animate-pulse ml-auto h-9 w-28 rounded-md bg-muted" /></Td>
+                </Tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
-      </div>
+      </SectionCard>
     )
   }
 
   if (totalItems === 0) {
     return (
-      <div className="attendance-record-empty rounded-2xl border p-10 text-center">
+      <SectionCard className="p-10 text-center">
         <Pill className="mx-auto h-10 w-10 text-muted-foreground/60" />
         <p className="mt-3 text-sm font-medium text-foreground">{t('inventory.noItemsTitle')}</p>
         <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">{t('inventory.noItemsHint')}</p>
@@ -279,17 +266,17 @@ export function InventoryStockTable({
           <Plus className="mr-1.5 h-3.5 w-3.5" />
           {t('inventory.addItem')}
         </Button>
-      </div>
+      </SectionCard>
     )
   }
 
   if (items.length === 0) {
     return (
-      <div className="attendance-record-empty rounded-2xl border p-10 text-center">
+      <SectionCard className="p-10 text-center">
         <Pill className="mx-auto h-10 w-10 text-muted-foreground/60" />
         <p className="mt-3 text-sm font-medium text-foreground">{t('inventory.emptyTitle')}</p>
         <p className="mt-1 text-xs text-muted-foreground">{t('inventory.emptyHint')}</p>
-      </div>
+      </SectionCard>
     )
   }
 
@@ -308,8 +295,8 @@ export function InventoryStockTable({
   const end = Math.min(page * pageSize, totalFiltered)
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-3 md:hidden" data-testid="stock-cards">
+    <SectionCard>
+      <div className="space-y-3 p-4 md:hidden" data-testid="stock-cards">
         {items.map((item) => {
           const status = getStockLevelStatus(item)
           return (
@@ -354,58 +341,46 @@ export function InventoryStockTable({
         })}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-2xl border md:block">
-        <table className="clinic-data-table w-full min-w-[52rem] text-sm">
-          <thead>
-            <tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground">
-              <th className="px-4 py-3">{sortableHeader('medicineName', t('inventory.colMedicine'))}</th>
-              <th className="px-4 py-3">{t('inventory.colPotency')}</th>
-              <th className="px-4 py-3 min-w-[10rem]">
-                {sortableHeader('totalQuantity', t('inventory.colOnHand'))}
-              </th>
-              <th className="px-4 py-3">{sortableHeader('location', t('inventory.colLocation'))}</th>
-              <th className="px-4 py-3">{t('inventory.colStatus')}</th>
-              <th className="px-4 py-3 text-right">{t('inventory.colActions')}</th>
+      <div className="hidden md:block">
+        <DataTable className="min-w-[48rem]">
+          <THead>
+            <tr>
+              <Th>{sortableHeader('medicineName', t('inventory.colMedicine'))}</Th>
+              <Th className="min-w-[10rem]">{sortableHeader('totalQuantity', t('inventory.colOnHand'))}</Th>
+              <Th>{sortableHeader('location', t('inventory.colLocation'))}</Th>
+              <Th>{t('inventory.colStatus')}</Th>
+              <Th className="text-right">{t('inventory.colActions')}</Th>
             </tr>
-          </thead>
+          </THead>
           <tbody>
-            {items.map((item, index) => {
+            {items.map((item) => {
               const status = getStockLevelStatus(item)
               return (
-                <tr
+                <Tr
                   key={item.id}
                   className={cn(
-                    'clinic-list-item-enter border-b transition-colors last:border-0 hover:bg-muted/20',
                     status === 'out_of_stock' && 'bg-red-500/[0.03]',
                     status === 'critical' && 'bg-orange-500/[0.03]'
                   )}
-                  style={{ animationDelay: `${index * 30}ms` }}
                 >
-                  <td className="px-4 py-3.5">
-                    <button
-                      type="button"
-                      className="text-left"
-                      onClick={() => onView(item)}
-                    >
-                      <p className="font-semibold text-foreground">{item.medicineName}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {[item.formType, item.commonName].filter(Boolean).join(' · ') || '—'}
+                  <Td>
+                    <button type="button" className="text-left" onClick={() => onView(item)}>
+                      <p className="font-medium text-foreground">{item.medicineName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {[item.potency, item.formType, item.commonName].filter(Boolean).join(' · ') || '—'}
                       </p>
                     </button>
-                  </td>
-                  <td className="px-4 py-3.5 font-mono text-xs text-muted-foreground">
-                    {item.potency ?? '—'}
-                  </td>
-                  <td className="px-4 py-3.5">
+                  </Td>
+                  <Td>
                     <StockLevelBar item={item} />
-                  </td>
-                  <td className="px-4 py-3.5 text-xs text-muted-foreground">{item.location}</td>
-                  <td className="px-4 py-3.5">
+                  </Td>
+                  <Td className="text-xs text-muted-foreground">{item.location}</Td>
+                  <Td>
                     <Badge variant="outline" className={cn('text-[10px] font-semibold', statusBadgeClass[status])}>
                       {STOCK_STATUS_LABELS[status]}
                     </Badge>
-                  </td>
-                  <td className="px-4 py-3.5">
+                  </Td>
+                  <Td>
                     <ItemActions
                       item={item}
                       onView={onView}
@@ -414,15 +389,15 @@ export function InventoryStockTable({
                       onEdit={onEdit}
                       onDelete={onDelete}
                     />
-                  </td>
-                </tr>
+                  </Td>
+                </Tr>
               )
             })}
           </tbody>
-        </table>
+        </DataTable>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-border px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">
           {t('inventory.pagination', { start, end, total: totalFiltered })}
         </p>
@@ -452,6 +427,6 @@ export function InventoryStockTable({
           </Button>
         </div>
       </div>
-    </div>
+    </SectionCard>
   )
 }

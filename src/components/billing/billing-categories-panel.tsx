@@ -1,6 +1,7 @@
 'use client'
 
 import type { BillingCategory } from '@/types'
+import { DataTable, SectionCard, SectionCardHeader, Td, Th, THead, Tr } from '@/components/shared'
 import { formatAmount } from '@/lib/patient-stats'
 
 interface BillingCategoriesPanelProps {
@@ -12,24 +13,25 @@ export function BillingCategoriesPanel({ categories, loading }: BillingCategorie
   const showSkeleton = !!loading
 
   return (
-    <div className="clinic-table-shell overflow-hidden rounded-xl border">
-      <table className="clinic-table w-full">
-        <thead>
-          <tr className="clinic-table-head">
-            <th>{'Category'}</th>
-            <th>{'Description'}</th>
-            <th className="text-right">{'Default Amount'}</th>
+    <SectionCard>
+      <SectionCardHeader title="Categories" description="Fee categories and their default amounts" />
+      <DataTable>
+        <THead>
+          <tr>
+            <Th>{'Category'}</Th>
+            <Th>{'Description'}</Th>
+            <Th className="text-right">{'Default Amount'}</Th>
           </tr>
-        </thead>
+        </THead>
         <tbody aria-busy={showSkeleton || undefined}>
           {showSkeleton ? (
             <>
               {Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i} className="clinic-table-row">
-                  <td><div className="animate-pulse bg-muted h-3 w-24 rounded-md" /></td>
-                  <td><div className="animate-pulse bg-muted h-3 w-40 rounded-md" /></td>
-                  <td><div className="animate-pulse bg-muted ml-auto h-3 w-16 rounded-md" /></td>
-                </tr>
+                <Tr key={i}>
+                  <Td><div className="animate-pulse bg-muted h-3 w-24 rounded-md" /></Td>
+                  <Td><div className="animate-pulse bg-muted h-3 w-40 rounded-md" /></Td>
+                  <Td><div className="animate-pulse bg-muted ml-auto h-3 w-16 rounded-md" /></Td>
+                </Tr>
               ))}
             </>
           ) : categories.length === 0 ? (
@@ -40,17 +42,17 @@ export function BillingCategoriesPanel({ categories, loading }: BillingCategorie
             </tr>
           ) : (
             categories.map((c) => (
-              <tr key={c.id} className="clinic-table-row">
-                <td className="font-medium text-foreground">{c.name}</td>
-                <td className="text-muted-foreground">{c.description ?? '—'}</td>
-                <td className="text-right tabular-nums font-medium">
+              <Tr key={c.id}>
+                <Td className="font-medium text-foreground">{c.name}</Td>
+                <Td className="text-muted-foreground">{c.description ?? '—'}</Td>
+                <Td className="text-right tabular-nums font-medium">
                   {formatAmount(c.defaultAmount)}
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))
           )}
         </tbody>
-      </table>
-    </div>
+      </DataTable>
+    </SectionCard>
   )
 }

@@ -93,9 +93,9 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className='!p-0'>
+        <div className="col-span-full">
           <DashboardHero />
-        </BentoCard>
+        </div>
 
         <BentoCard colSpan={3} accent="patients" delay={60}>
           <DashboardStatTile title={'Total Patients'} value={stats?.totalPatients ?? null} icon={Users} accent="patients" />
@@ -141,12 +141,8 @@ export default function DashboardPage() {
                 <FileText className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">{'Clinic Snapshot'}</p>
-                {stats ? (
-                  <p className="text-2xl font-bold tabular-nums text-foreground">{stats.totalPatients}</p>
-                ) : (
-                  <Sk className="mt-1 h-8 w-12" />
-                )}
+                <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Clinic Snapshot'}</h3>
+                <p className="text-xs text-muted-foreground">{'Key counts at a glance'}</p>
               </div>
             </div>
             <dl className="mt-4 space-y-2">
@@ -185,7 +181,7 @@ export default function DashboardPage() {
               <ClipboardCheck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">{'Clinic Status'}</p>
+              <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Clinic Status'}</h3>
               {stats ? (
                 <>
                   <p className="text-lg font-semibold text-foreground">

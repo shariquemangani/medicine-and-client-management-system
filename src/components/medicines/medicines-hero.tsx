@@ -2,9 +2,9 @@
 
 import { BookOpen, Plus, Download, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared/page-hero'
 import { usePermission } from '@/hooks/use-permission'
 import { t } from '@/lib/labels'
-import { Skel } from '@/components/medicines/skeleton-bits'
 
 interface MedicinesHeroProps {
   total?: number
@@ -20,53 +20,35 @@ export function MedicinesHero({ total, active, onRefresh, onExport, onAdd, refre
   const { hasPermission } = usePermission()
   const canCreate = hasPermission('medicines', 'create')
   return (
-    <div className="classes-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
-      <div className="classes-hero-mesh pointer-events-none" aria-hidden />
-      <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <div className="classes-hero-badge mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium">
-            <BookOpen className="h-3 w-3" />
-            {t('medicines.vaultBadge')}
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            {t('medicines.heroTitle')}
-          </h1>
-          {loading ? (
-            <div className="mt-1.5" aria-busy="true">
-              <Skel className="h-4 w-48" />
-            </div>
-          ) : typeof total === 'number' ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t('medicines.listHeroSubtitle', {
-                total,
-                active: active ?? total,
-              })}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="classes-hero-btn"
-            onClick={onRefresh}
-            disabled={refreshing}
-          >
+    <PageHero
+      icon={BookOpen}
+      badge={t('medicines.vaultBadge')}
+      title={t('medicines.heroTitle')}
+      subtitle={
+        loading ? (
+          <span className="inline-block h-4 w-56 max-w-full animate-pulse rounded-md bg-muted align-middle" aria-hidden />
+        ) : typeof total === 'number' ? (
+          t('medicines.listHeroSubtitle', { total, active: active ?? total })
+        ) : undefined
+      }
+      actions={
+        <>
+          <Button variant="outline" size="sm" className={heroButtonClass} onClick={onRefresh} disabled={refreshing}>
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             {t('common.refresh')}
           </Button>
-          <Button variant="outline" size="sm" className="classes-hero-btn" onClick={onExport} disabled={!onExport}>
+          <Button variant="outline" size="sm" className={heroButtonClass} onClick={onExport} disabled={!onExport}>
             <Download className="mr-1.5 h-3.5 w-3.5" />
             {t('common.export')}
           </Button>
           {canCreate && (
-            <Button size="sm" className="classes-hero-primary" onClick={onAdd}>
+            <Button size="sm" className={heroPrimaryClass} onClick={onAdd}>
               <Plus className="mr-1.5 h-3.5 w-3.5" />
               {t('medicines.addMedicine')}
             </Button>
           )}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   )
 }

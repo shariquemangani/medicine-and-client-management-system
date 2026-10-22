@@ -19,9 +19,10 @@ export function DashboardAttendanceGauge({ rate, loading = false }: DashboardAtt
 
   return (
     <div className="flex h-full flex-col items-center justify-center text-center" aria-busy={loading || undefined}>
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {'Stock Health'}
-      </p>
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Stock Health'}</h3>
+        <p className="text-xs text-muted-foreground">{'Items above reorder level'}</p>
+      </div>
       <div className="relative">
         <svg width="140" height="140" className="-rotate-90">
           <circle

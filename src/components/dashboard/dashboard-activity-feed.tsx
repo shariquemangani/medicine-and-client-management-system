@@ -41,7 +41,7 @@ export function DashboardActivityFeed({ activities, loading = false }: Dashboard
           <Activity className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{'Recent Activity'}</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Recent Activity'}</h3>
           <p className="text-xs text-muted-foreground">{'Latest clinic events'}</p>
         </div>
       </div>

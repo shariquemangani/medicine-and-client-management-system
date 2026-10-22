@@ -209,7 +209,7 @@ export default function InventoryPage() {
   return (
     <div className="inventory-page dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <InventoryHero
             totalSkus={dataLoading || !stats ? null : stats.totalSkus}
             totalValue={dataLoading || !stats ? null : stats.totalValue}
@@ -222,7 +222,7 @@ export default function InventoryPage() {
             onExport={handleExport}
             refreshing={refreshing}
           />
-        </BentoCard>
+        </div>
 
         {refreshing || dataLoading || !stats ? (
           <InventoryStatSkeleton />
@@ -230,7 +230,7 @@ export default function InventoryPage() {
           <InventoryStatsCards stats={stats} />
         )}
 
-        <BentoCard colSpan={12} delay={300}>
+        <div className="min-w-0 sm:col-span-2 lg:col-span-12">
           <Tabs
             value={tab}
             onValueChange={(value) => setTab(value as typeof tab)}
@@ -323,7 +323,7 @@ export default function InventoryPage() {
               )}
             </TabsContent>
           </Tabs>
-        </BentoCard>
+        </div>
       </BentoGrid>
 
       <InventoryReceiveDialog

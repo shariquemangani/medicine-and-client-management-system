@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SectionCard, SectionCardHeader } from '@/components/shared'
 import { SettingsUsersPanel } from './settings-users-panel'
 import type { BusinessProfile, AcademicConfig, AdminUser } from '@/types'
 import type { SettingsNewUserForm } from '@/types/settings-page'
@@ -59,7 +60,9 @@ export function SettingsTabs({
 
       {activeTab === 'profile' && (
         <TabsContent value="profile" className="settings-tabs-panel mt-4">
-          <div className="grid max-w-xl gap-4">
+          <SectionCard className="max-w-xl">
+          <SectionCardHeader title="Clinic profile" description="Name and contact details shown on bills and reports." />
+          <div className="grid gap-4 p-5 sm:p-6">
             <div>
               <Label htmlFor="clinic-name">{'Clinic Name'}</Label>
               {loading || !profile ? (
@@ -119,12 +122,15 @@ export function SettingsTabs({
               {'Save Profile'}
             </Button>
           </div>
+          </SectionCard>
         </TabsContent>
       )}
 
       {activeTab === 'academic' && (
         <TabsContent value="academic" className="settings-tabs-panel mt-4">
-          <div className="grid max-w-xl gap-4">
+          <SectionCard className="max-w-xl">
+          <SectionCardHeader title="Operations" description="Operating year and current term for the clinic." />
+          <div className="grid gap-4 p-5 sm:p-6">
             <div>
               <Label htmlFor="academic-year">{'Operations Year'}</Label>
               {loading || !academic ? (
@@ -165,6 +171,7 @@ export function SettingsTabs({
               {t('settings.saveOperations')}
             </Button>
           </div>
+          </SectionCard>
         </TabsContent>
       )}
 

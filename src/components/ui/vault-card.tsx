@@ -13,7 +13,7 @@ export function VaultCard({ title, icon, onClick, className }: VaultCardProps) {
   return (
     <Card
       className={cn(
-        'group flex flex-col items-center justify-center p-6 cursor-pointer hover:shadow-md transition-all aspect-square rounded-xl border border-gray-100 bg-white shadow-sm',
+        'group flex flex-col items-center justify-center p-6 cursor-pointer transition-all aspect-square rounded-xl border border-gray-100 bg-white shadow-sm',
         className
       )}
       onClick={onClick}

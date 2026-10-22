@@ -94,7 +94,7 @@ export default function PatientsPage() {
   return (
     <div className="dashboard-shell patients-page space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <PatientsHero
             total={stats.total}
             active={stats.total}
@@ -103,7 +103,7 @@ export default function PatientsPage() {
             refreshing={refreshing}
             loading={initialLoading}
           />
-        </BentoCard>
+        </div>
 
         <BentoCard colSpan={6} accent="patients" delay={60}>
           <DashboardStatTile title="Total Patients" value={initialLoading ? null : stats.total} icon={Users} accent="patients" />
@@ -118,7 +118,9 @@ export default function PatientsPage() {
           />
         </BentoCard>
 
-        <BentoCard colSpan={12} delay={300}>
+      </BentoGrid>
+
+      <div className="space-y-4">
           <PatientsFilters
             filters={filters}
             searchInput={searchInput}
@@ -137,7 +139,7 @@ export default function PatientsPage() {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          <div className="mt-4">
+          <div>
             <PatientsDataTable
               patients={paginatedPatients}
               loading={initialLoading}
@@ -155,8 +157,7 @@ export default function PatientsPage() {
               viewMode={viewMode}
             />
           </div>
-        </BentoCard>
-      </BentoGrid>
+      </div>
 
       <PatientsDeleteDialog
         patient={deleteTarget}

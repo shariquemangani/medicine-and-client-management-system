@@ -220,7 +220,7 @@ export default function PatientDetailPage() {
         />
 
         {!isEditing ? (
-          <div className="col-span-12">
+          <div className="col-span-full">
             <PatientDetailTabs
               activeTab={activeTab}
               onTabChange={setActiveTab}

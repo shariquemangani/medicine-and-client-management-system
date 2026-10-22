@@ -60,11 +60,11 @@ export function FlagConfigurationView() {
         </div>
       ) : null}
 
-      <div className="flag-config-workspace overflow-hidden rounded-2xl">
-        <div className="grid h-[min(72vh,720px)] min-h-[420px] grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="flag-config-workspace">
+        <div className="grid h-[min(72vh,720px)] min-h-[420px] grid-cols-1 gap-4 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)]">
           <div
             className={cn(
-              'border-[hsl(var(--glass-border))] md:border-r',
+              'min-h-0',
               mobilePane === 'flags' ? 'hidden md:flex md:flex-col' : 'flex flex-col'
             )}
           >

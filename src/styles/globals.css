@@ -497,9 +497,6 @@
     transition: opacity 0.3s ease;
   }
 
-  .bento-card-premium:hover .bento-card-accent-orb {
-    opacity: 0.7;
-  }
 
   .metric-stat-icon {
     background: hsl(var(--stat-accent) / 0.12);
@@ -507,10 +504,6 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .bento-card-premium:hover .metric-stat-icon {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px hsl(var(--stat-accent) / 0.25);
-  }
 
   .metric-stat-badge {
     background: hsl(var(--stat-accent) / 0.1);
@@ -986,15 +979,7 @@
     background: hsl(var(--glass) / 0.4);
   }
 
-  .clinic-compact-card:hover {
-    border-color: hsl(var(--metric-patients) / 0.35);
-    background: hsl(var(--metric-patients) / 0.06);
-    transform: translateY(-2px);
-  }
 
-  .dark .clinic-compact-card:hover {
-    box-shadow: 0 12px 28px -12px hsl(var(--metric-patients) / 0.25);
-  }
 
   /* Vault hub — futuristic destination cards */
   .vault-hero {
@@ -1096,13 +1081,6 @@
       0 22px 48px -28px hsl(var(--vault-accent) / 0.55);
   }
 
-  .vault-hub-card:hover {
-    transform: translateY(-4px) scale(1.01);
-    border-color: hsl(var(--vault-accent) / 0.45);
-    box-shadow:
-      0 0 0 1px hsl(var(--vault-accent) / 0.2),
-      0 28px 56px -24px hsl(var(--vault-accent) / 0.5);
-  }
 
   .vault-hub-card--medicine {
     --vault-accent: var(--metric-classes);
@@ -1128,9 +1106,6 @@
     transition: opacity 0.35s ease;
   }
 
-  .vault-hub-card:hover .vault-hub-card-grid {
-    opacity: 0.55;
-  }
 
   .vault-hub-card-orb {
     position: absolute;
@@ -1158,10 +1133,6 @@
     animation: vault-orb-drift 10s ease-in-out infinite reverse;
   }
 
-  .vault-hub-card:hover .vault-hub-card-orb--primary {
-    transform: scale(1.15);
-    opacity: 1;
-  }
 
   .vault-hub-card-scan {
     position: absolute;
@@ -1177,9 +1148,6 @@
     pointer-events: none;
   }
 
-  .vault-hub-card:hover .vault-hub-card-scan {
-    transform: translateX(120%);
-  }
 
   .vault-hub-card-icon {
     border: 1px solid hsl(var(--vault-accent) / 0.35);
@@ -1198,10 +1166,6 @@
     color: hsl(var(--foreground));
   }
 
-  .vault-hub-card:hover .vault-hub-card-icon {
-    transform: scale(1.06);
-    box-shadow: 0 0 32px -6px hsl(var(--vault-accent) / 0.85);
-  }
 
   .vault-hub-card-arrow {
     border: 1px solid hsl(var(--glass-border));
@@ -1214,11 +1178,6 @@
       background 0.3s ease;
   }
 
-  .vault-hub-card:hover .vault-hub-card-arrow {
-    color: hsl(var(--vault-accent));
-    border-color: hsl(var(--vault-accent) / 0.4);
-    background: hsl(var(--vault-accent) / 0.12);
-  }
 
   .vault-hub-card-badge {
     border: 1px solid hsl(var(--vault-accent) / 0.3);
@@ -1244,10 +1203,6 @@
     transition: opacity 0.35s ease, transform 0.35s ease;
   }
 
-  .vault-hub-card:hover .vault-hub-card-edge {
-    opacity: 1;
-    transform: scaleX(1);
-  }
 
   @keyframes vault-hub-arrive {
     from {
@@ -1288,9 +1243,6 @@
       animation: none !important;
     }
 
-    .vault-hub-card:hover {
-      transform: none;
-    }
 
     .vault-hub-card-scan {
       display: none;
@@ -1829,14 +1781,7 @@
     background: hsl(var(--metric-classes) / 0.08);
   }
 
-  .classes-page .clinic-compact-card:hover {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    background: hsl(var(--metric-classes) / 0.06);
-  }
 
-  .dark .classes-page .clinic-compact-card:hover {
-    box-shadow: 0 12px 28px -12px hsl(var(--metric-classes) / 0.25);
-  }
 
   .classes-page .clinic-table-sort-btn:hover {
     color: hsl(var(--foreground));
@@ -2185,15 +2130,7 @@
     background: hsl(var(--glass) / 0.4);
   }
 
-  .teachers-compact-card:hover {
-    border-color: hsl(var(--metric-teachers) / 0.35);
-    background: hsl(var(--metric-teachers) / 0.06);
-    transform: translateY(-2px);
-  }
 
-  .dark .teachers-compact-card:hover {
-    box-shadow: 0 12px 28px -12px hsl(var(--metric-teachers) / 0.25);
-  }
 
   .teachers-form-section-title {
     @apply text-sm font-semibold text-foreground;
@@ -2579,13 +2516,7 @@
     box-shadow: inset 3px 0 0 hsl(var(--metric-exams));
   }
 
-  .attendance-record-card:hover {
-    transform: translateY(-2px);
-  }
 
-  .dark .attendance-record-card:hover {
-    box-shadow: 0 12px 28px -14px hsl(var(--metric-attendance) / 0.35);
-  }
 
   .attendance-record-avatar {
     background: linear-gradient(
@@ -3218,13 +3149,7 @@
     background: hsl(var(--muted) / 0.12);
   }
 
-  .exams-list-card:hover {
-    border-color: hsl(var(--metric-exams) / 0.35);
-  }
 
-  .dark .exams-list-card:hover {
-    box-shadow: 0 4px 24px hsl(var(--metric-exams) / 0.08);
-  }
 
   .exams-list-icon {
     background: hsl(var(--metric-exams) / 0.12);
@@ -3328,13 +3253,7 @@
     color: hsl(0 0% 100%);
   }
 
-  .exams-page .clinic-compact-card:hover {
-    border-color: hsl(var(--metric-exams) / 0.35);
-  }
 
-  .dark .exams-page .clinic-compact-card:hover {
-    box-shadow: 0 4px 24px hsl(var(--metric-exams) / 0.08);
-  }
 
   .exams-page .clinic-table-sort-btn:hover {
     color: hsl(var(--metric-exams));
@@ -4038,13 +3957,6 @@
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
   }
 
-  .login-card-3d:hover {
-    transform: translateY(-4px) rotateX(2deg);
-    box-shadow:
-      0 24px 64px rgba(0, 0, 0, 0.45),
-      0 0 0 1px rgba(255, 255, 255, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  }
 
   .login-text-glow {
     text-shadow: 0 0 40px hsl(var(--metric-patients) / 0.35);
@@ -6446,4 +6358,73 @@
 /* Safety net: any leftover spinner is hidden rather than spinning. */
 .animate-spin {
   display: none !important;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Common page header (PageHero): the Flag Configuration look, used on every page.
+   --------------------------------------------------------------------------- */
+.page-hero {
+  border: 1px solid hsl(var(--glass-border));
+  background: linear-gradient(
+    135deg,
+    hsl(var(--metric-fees) / 0.1) 0%,
+    hsl(var(--glass) / 0.5) 42%,
+    hsl(var(--metric-classes) / 0.08) 100%
+  );
+  box-shadow: 0 18px 40px -30px hsl(var(--metric-fees) / 0.45);
+}
+
+.dark .page-hero {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--metric-fees) / 0.16) 0%,
+    hsl(0 0% 11%) 48%,
+    hsl(var(--metric-classes) / 0.1) 100%
+  );
+}
+
+.page-hero-mesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 100% 0%, hsl(var(--metric-fees) / 0.28), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 0% 100%, hsl(var(--metric-classes) / 0.14), transparent 50%),
+    linear-gradient(hsl(var(--metric-fees) / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--metric-fees) / 0.06) 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px, 24px 24px;
+}
+
+.page-hero-icon {
+  border: 1px solid hsl(var(--metric-fees) / 0.3);
+  background: hsl(var(--metric-fees) / 0.12);
+  color: hsl(var(--metric-fees));
+}
+
+.page-hero-badge {
+  border: 1px solid hsl(var(--metric-fees) / 0.3);
+  background: hsl(var(--metric-fees) / 0.12);
+  color: hsl(var(--metric-fees));
+}
+
+.page-hero-btn {
+  border: 1px solid hsl(var(--glass-border));
+  background: hsl(var(--background) / 0.6);
+  color: hsl(var(--foreground));
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.page-hero-btn:hover {
+  background: hsl(var(--muted) / 0.6);
+}
+
+.page-hero-primary {
+  background: hsl(var(--metric-classes));
+  color: hsl(0 0% 100%);
+  box-shadow: 0 10px 24px -14px hsl(var(--metric-classes) / 0.8);
+  transition: background-color 0.15s ease, filter 0.15s ease;
+}
+
+.page-hero-primary:hover {
+  filter: brightness(1.06);
 }

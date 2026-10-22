@@ -1,5 +1,6 @@
 'use client'
 
+import { SectionCard, SectionCardHeader } from '@/components/shared/section-card'
 import { Settings2, Tags } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FlagCategory } from '@/types/flag-config'
@@ -24,20 +25,14 @@ export function FlagConfigCategories({
   className,
 }: FlagConfigCategoriesProps) {
   return (
-    <aside className={cn('flag-config-sidebar flex h-full flex-col', className)}>
-      <div className="border-b border-[hsl(var(--glass-border))] px-4 py-3.5">
-        <div className="flex items-center gap-2">
-          <div className="flag-config-sidebar-icon flex h-8 w-8 items-center justify-center rounded-lg">
-            <Settings2 className="h-4 w-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">{'Categories'}</p>
-            <p className="text-[11px] text-muted-foreground">{'Select a category to manage.'}</p>
-          </div>
-        </div>
-      </div>
+    <SectionCard className={cn('flag-config-sidebar h-full', className)}>
+      <SectionCardHeader
+        title={'Categories'}
+        description={'Select a category to manage.'}
+        icon={<Settings2 className="h-4 w-4" />}
+      />
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1">
         {loading ? (
           <div className="space-y-2 p-2.5">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -94,6 +89,6 @@ export function FlagConfigCategories({
           </ul>
         )}
       </ScrollArea>
-    </aside>
+    </SectionCard>
   )
 }

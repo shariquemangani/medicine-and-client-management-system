@@ -105,7 +105,7 @@ export default function PrescriptionsPage() {
   return (
     <div className="prescriptions-page dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <PrescriptionsHero
             total={initialLoading ? null : stats.total}
             subjects={initialLoading ? null : stats.subjects}
@@ -113,7 +113,7 @@ export default function PrescriptionsPage() {
             onCreate={() => setCreateOpen(true)}
             refreshing={refreshing}
           />
-        </BentoCard>
+        </div>
 
         {refreshing || initialLoading ? (
           <>
@@ -170,7 +170,7 @@ export default function PrescriptionsPage() {
           </>
         )}
 
-        <BentoCard colSpan={12} delay={300}>
+        <div className="min-w-0 sm:col-span-2 lg:col-span-12">
           <Tabs
             value={tab}
             onValueChange={(value) => setTab(value as typeof tab)}
@@ -262,7 +262,7 @@ export default function PrescriptionsPage() {
               )}
             </TabsContent>
           </Tabs>
-        </BentoCard>
+        </div>
       </BentoGrid>
 
       <PrescriptionsCreateDialog

@@ -98,7 +98,7 @@ export function PrescriptionItemsPanel({
       </div>
 
       {loading ? (
-        <div className="clinic-table-shell rounded-xl border p-8">
+        <div className="clinic-table-shell rounded-[20px] border p-8">
           <div className="dashboard-skeleton mx-auto h-4 w-48 rounded" />
         </div>
       ) : !exam || patients.length === 0 ? (
@@ -108,7 +108,7 @@ export function PrescriptionItemsPanel({
           <p className="mt-1 text-xs text-muted-foreground">{'Select an exam and class with enrolled patients.'}</p>
         </div>
       ) : (
-        <div className="clinic-table-shell overflow-x-auto rounded-xl border">
+        <div className="clinic-table-shell overflow-x-auto rounded-[20px] border">
           <table className="clinic-table w-full">
             <thead>
               <tr className="clinic-table-head">

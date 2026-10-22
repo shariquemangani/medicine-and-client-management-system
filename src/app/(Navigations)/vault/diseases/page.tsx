@@ -92,7 +92,7 @@ export default function DiseasesListPage() {
   return (
     <div className="disease-vault-page dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
+        <div className="col-span-full">
           <DiseasesHero
             loading={initialLoading}
             onExport={exportRows}
@@ -101,9 +101,10 @@ export default function DiseasesListPage() {
             refreshing={refreshing}
             onAdd={() => router.push(ROUTES.vaultDiseaseNew)}
           />
-        </BentoCard>
+        </div>
 
-        <BentoCard colSpan={12} delay={120}>
+        <div className="col-span-12 min-w-0">
+          <div className="space-y-4">
           <DiseasesFilters
             loading={initialLoading}
             filters={filters}
@@ -115,7 +116,7 @@ export default function DiseasesListPage() {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          <div className="mt-4">
+          <div>
             <DiseasesDataTable
               diseases={paginatedDiseases}
               symptomOptions={symptomOptions}
@@ -134,7 +135,8 @@ export default function DiseasesListPage() {
               viewMode={viewMode}
             />
           </div>
-        </BentoCard>
+          </div>
+        </div>
       </BentoGrid>
 
       <DiseasesDeleteDialog
