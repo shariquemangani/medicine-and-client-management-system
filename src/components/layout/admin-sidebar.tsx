@@ -29,13 +29,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useState, useEffect, useMemo } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { canAccessPath } from '@/lib/permissions'
 import { t } from '@/lib/labels'
 import { readStoredAuthSession } from '@/lib/auth-session'
+import { ProfileMenu } from '@/components/layout/profile-menu'
 import { ROUTES } from '@/lib/routes'
 
 type NavAccent =
@@ -165,8 +165,6 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
     [user?.isActive, effectiveRole]
   )
 
-  const initial = user?.name?.charAt(0).toUpperCase() ?? 'A'
-  const roleKey = user?.role ? `roles.${user.role}` : 'roles.admin'
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
@@ -282,37 +280,10 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
         ))}
       </nav>
 
-      <div className="relative z-10 shrink-0 space-y-2 border-t border-[hsl(var(--glass-border))] p-3">
-        {!collapsed && user && (
-          <div className="admin-sidebar-user flex items-center gap-2.5 rounded-xl px-2.5 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-              {initial}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{t(roleKey)}</p>
-            </div>
-            <span className="admin-sidebar-online-dot" title={'Online'} />
-          </div>
-        )}
+      <div className="relative z-10 shrink-0 border-t border-[hsl(var(--glass-border))] p-3">
+        <ProfileMenu collapsed={collapsed} onSignOut={() => setLogoutOpen(true)} onNavigate={handleNavClick} />
 
         <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-          <AlertDialogTrigger asChild>
-            <button
-              type="button"
-              disabled={isLoggingOut}
-              className={cn(
-                'admin-sidebar-logout flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-all duration-200',
-                collapsed && 'justify-center px-2',
-                isLoggingOut && 'pointer-events-none opacity-60'
-              )}
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                <LogOut className="h-[18px] w-[18px]" />
-              </span>
-              {!collapsed && <span>{'Logout'}</span>}
-            </button>
-          </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{'Confirm logout'}</AlertDialogTitle>

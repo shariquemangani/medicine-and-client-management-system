@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { Menu } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppDispatch, useAppSelector } from '@/redux'
 import { logout, setMobileSidebarOpen } from '@/redux/slices'
 import { AdminSidebar } from '@/components/layout/admin-sidebar'
-import { AdminHeader } from '@/components/layout/admin-header'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { PageSkeleton } from '@/components/shared/page-skeleton'
 import {
@@ -108,9 +108,16 @@ export default function NavigationsLayout({
           <AdminSidebar mobile />
         </SheetContent>
       </Sheet>
+      <button
+        type="button"
+        aria-label="Open menu"
+        onClick={() => dispatch(setMobileSidebarOpen(true))}
+        className="fixed left-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-background/90 text-foreground shadow-sm backdrop-blur md:hidden"
+      >
+        <Menu className="h-5 w-5" aria-hidden />
+      </button>
       <div className="flex-1 flex flex-col min-w-0">
-        <AdminHeader />
-        <main className="flex-1 p-4 md:p-6 overflow-auto">{pending ? <PageSkeleton label="Loading page" /> : children}</main>
+        <main className="flex-1 overflow-auto p-4 pt-16 md:p-6">{pending ? <PageSkeleton label="Loading page" /> : children}</main>
       </div>
     </div>
   )
