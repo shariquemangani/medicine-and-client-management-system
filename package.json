@@ -92,6 +92,6 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": ">=20 <25"
+    "node": ">=22 <25"
   }
 }
