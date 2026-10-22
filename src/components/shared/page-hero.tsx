@@ -31,7 +31,7 @@ export function PageHero({ icon: Icon, badge, title, subtitle, actions, classNam
     <div className={cn('page-hero relative overflow-hidden rounded-2xl px-4 py-3 sm:px-5', className)}>
       <div className="page-hero-mesh pointer-events-none" aria-hidden />
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 basis-full items-center gap-3 lg:flex-1 lg:basis-0">
           <span className="page-hero-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" aria-hidden>
             <Icon className="h-[18px] w-[18px]" />
           </span>
@@ -47,11 +47,11 @@ export function PageHero({ icon: Icon, badge, title, subtitle, actions, classNam
               ) : null}
             </div>
             {subtitle ? (
-              <p className="mt-0.5 min-h-[1.25rem] max-w-2xl text-sm leading-5 text-muted-foreground">{subtitle}</p>
+              <p className="mt-0.5 min-h-[1.25rem] max-w-md text-sm leading-5 text-muted-foreground">{subtitle}</p>
             ) : null}
           </div>
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">{actions}</div> : null}
       </div>
     </div>
   )
