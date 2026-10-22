@@ -9,7 +9,7 @@ interface BillingCategoriesPanelProps {
 }
 
 export function BillingCategoriesPanel({ categories, loading }: BillingCategoriesPanelProps) {
-  const showSkeleton = loading && categories.length === 0
+  const showSkeleton = !!loading
 
   return (
     <div className="clinic-table-shell overflow-hidden rounded-xl border">
@@ -21,14 +21,14 @@ export function BillingCategoriesPanel({ categories, loading }: BillingCategorie
             <th className="text-right">{'Default Amount'}</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody aria-busy={showSkeleton || undefined}>
           {showSkeleton ? (
             <>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="clinic-table-row">
-                  <td><div className="dashboard-skeleton h-3 w-24 rounded" /></td>
-                  <td><div className="dashboard-skeleton h-3 w-40 rounded" /></td>
-                  <td><div className="dashboard-skeleton ml-auto h-3 w-16 rounded" /></td>
+                  <td><div className="animate-pulse bg-muted h-3 w-24 rounded-md" /></td>
+                  <td><div className="animate-pulse bg-muted h-3 w-40 rounded-md" /></td>
+                  <td><div className="animate-pulse bg-muted ml-auto h-3 w-16 rounded-md" /></td>
                 </tr>
               ))}
             </>

@@ -19,10 +19,9 @@ import type { FlagCategory, FlagCategoryWithFlags, FlagItem, FlagItemInput } fro
 
 export { toCamelCaseFlagLabel } from '@/lib/flags/camel-case-flag-label'
 
+/** Display label as the user typed it (trimmed, inner whitespace collapsed). */
 function normalizeFlagLabel(label: string): string {
-  const trimmed = label.trim()
-  if (!trimmed) return ''
-  return toCamelCaseFlagLabel(trimmed)
+  return label.trim().replace(/\s+/g, ' ')
 }
 
 function slugifyCategory(name: string): string {
@@ -65,7 +64,7 @@ export async function createFlagCategory(idToken: string, name: string): Promise
 
   const existing = await listFlagCategories(idToken)
   const duplicate = existing.find((c) => c.name.toLowerCase() === trimmed.toLowerCase())
-  if (duplicate) return duplicate
+  if (duplicate) throw new Error('A category with this name already exists')
 
   const now = new Date().toISOString()
   const id = generateId(slugifyCategory(trimmed) || 'flag-cat')
@@ -153,19 +152,24 @@ export async function createFlags(
   categoryId: string,
   labels: string[]
 ): Promise<FlagItem[]> {
-  const cleaned = Array.from(
-    new Set(
-      labels
-        .map((label) => normalizeFlagLabel(label))
-        .filter((label) => label.length > 0)
-    )
-  )
-  if (cleaned.length === 0) throw new Error('At least one flag label is required')
+  // De-duplicate on the derived value so "30C" and "30c" count as the same flag.
+  const byValue = new Map<string, string>()
+  for (const raw of labels) {
+    const label = normalizeFlagLabel(raw)
+    const value = toCamelCaseFlagLabel(label)
+    if (label && value && !byValue.has(value)) byValue.set(value, label)
+  }
+  if (byValue.size === 0) throw new Error('At least one flag label is required')
 
   const category = await fetchFirestoreDocument<FlagCategory>(flagCategoryPath(categoryId), idToken)
   if (!category) throw new Error('Category not found')
 
   const existingFlags = await listFlagsForCategory(idToken, categoryId)
+  const existingValues = new Set(existingFlags.map((flag) => (flag.value || toCamelCaseFlagLabel(flag.label)).toLowerCase()))
+  const cleaned = Array.from(byValue.entries())
+    .filter(([value]) => !existingValues.has(value.toLowerCase()))
+    .map(([, label]) => label)
+  if (cleaned.length === 0) throw new Error('Those flags already exist in this category')
   const existingIds = existingFlags.map((flag) => flag.id)
   const now = new Date().toISOString()
   const created: FlagItem[] = []
@@ -175,7 +179,7 @@ export async function createFlags(
     const flag: FlagItem = {
       id,
       label,
-      value: label,
+      value: toCamelCaseFlagLabel(label),
       categoryId,
       createdAt: now,
       updatedAt: now,
@@ -211,7 +215,8 @@ export async function updateFlag(
   )
   if (!current) throw new Error('Flag not found')
 
-  const value = label
+  // Keep `value` stable: medicines and diseases store it, so renaming the label must not orphan them.
+  const value = current.value || toCamelCaseFlagLabel(label)
   const updatedAt = new Date().toISOString()
 
   await patchFirestoreDocument(categoryFlagPath(categoryId, flagId), idToken, {

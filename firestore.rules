@@ -1,0 +1,192 @@
+rules_version = '2';
+
+// MediFlow Firestore security rules.
+// Deny by default: every path not matched below is inaccessible to clients.
+// The Firebase Admin SDK (server routes) bypasses these rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profilePath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function hasProfile() {
+      return signedIn() && exists(profilePath());
+    }
+
+    function profile() {
+      return get(profilePath()).data;
+    }
+
+    // Existing, not-disabled user profile. Fails closed when the profile is missing.
+    function isActiveUser() {
+      return hasProfile() && profile().get('isActive', true) != false;
+    }
+
+    function role() {
+      return profile().get('role', '');
+    }
+
+    function isSuperAdmin() {
+      return isActiveUser() && role() == 'super_admin';
+    }
+
+    function isStaffOrAdmin() {
+      return isActiveUser() && (role() == 'super_admin' || role() == 'staff');
+    }
+
+    // The tenant comes from the server-side profile, never from the client.
+    function isMember(b) {
+      return isStaffOrAdmin() && profile().get('businessId', '') == b;
+    }
+
+    function isBusinessAdmin(b) {
+      return isSuperAdmin() && profile().get('businessId', '') == b;
+    }
+
+    function shortString(v, max) {
+      return v is string && v.size() > 0 && v.size() <= max;
+    }
+
+    function optionalString(d, k, max) {
+      return !(k in d) || (d[k] is string && d[k].size() <= max);
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      allow get: if isActiveUser() && (
+        request.auth.uid == uid ||
+        (isSuperAdmin() && resource.data.get('businessId', '') == profile().businessId)
+      );
+
+      // Queries must be constrained to where('businessId','==', own businessId).
+      allow list: if isSuperAdmin() &&
+        resource.data.get('businessId', '') == profile().businessId;
+
+      // Never created from the browser: owners are created by /api/auth/register and staff by
+      // /api/admin/users (Admin SDK). This closes self-service creation of a super_admin profile.
+      allow create: if false;
+
+      allow update: if isActiveUser() && (
+        // Own profile: display name only.
+        (request.auth.uid == uid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']) &&
+          shortString(request.resource.data.name, 200)) ||
+        // Super admin: name / isActive of staff in the same business.
+        (isSuperAdmin() &&
+          request.auth.uid != uid &&
+          resource.data.get('role', '') == 'staff' &&
+          resource.data.get('businessId', '') == profile().businessId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isActive', 'name']) &&
+          request.resource.data.isActive is bool &&
+          shortString(request.resource.data.name, 200))
+      );
+
+      allow delete: if false;
+    }
+
+    // ---------- global flag taxonomy ----------
+    match /flagCategories/{categoryId} {
+      allow read: if isActiveUser();
+      allow write: if isSuperAdmin();
+
+      match /flags/{flagId} {
+        allow read: if isActiveUser();
+        allow write: if isSuperAdmin();
+      }
+    }
+
+    // ---------- tenant ----------
+    match /businesses/{businessId} {
+      allow read: if isMember(businessId);
+
+      // Created server-side together with the owner profile (see /api/auth/register).
+      allow create: if false;
+
+      allow update: if isBusinessAdmin(businessId);
+      allow delete: if false;
+
+      // Admin-managed configuration, readable by members.
+      match /{coll}/{docId}
+        {
+        allow read: if isMember(businessId) &&
+          coll in ['medicines', 'diseases', 'feeStructures', 'billingCategories', 'staff', 'classes'];
+        allow write: if isBusinessAdmin(businessId) &&
+          coll in ['medicines', 'diseases', 'feeStructures', 'billingCategories', 'staff', 'classes'];
+      }
+
+      // Operational data. Staff may read and create/update clinical records; destructive operations
+      // and financial corrections are admin-only (matches src/lib/permissions.ts).
+      match /patients/{id} {
+        allow read, create, update: if isMember(businessId);
+        allow delete: if isBusinessAdmin(businessId);
+      }
+      match /payments/{id} {
+        allow read, create: if isMember(businessId);
+        allow update, delete: if isBusinessAdmin(businessId);
+      }
+      match /prescriptions/{id} {
+        allow read, create, update: if isMember(businessId);
+        allow delete: if isBusinessAdmin(businessId);
+      }
+      match /prescriptionItems/{id} {
+        allow read, write: if isMember(businessId);
+      }
+      // Roll-number reservations: create-only, so a number can never be issued twice.
+      match /rollNumbers/{id} {
+        allow read, create: if isMember(businessId);
+        allow update, delete: if false;
+      }
+      // Append-only activity feed: nobody can rewrite history.
+      match /activities/{id} {
+        allow read, create: if isMember(businessId);
+        allow update, delete: if false;
+      }
+      match /inventory/{id} {
+        allow read, write: if isMember(businessId);
+      }
+
+      // ---------- stock ----------
+      match /stockItems/{id} {
+        function validItem(d) {
+          return d.totalQuantity is number && d.totalQuantity >= 0 &&
+            d.reorderLevel is number && d.reorderLevel >= 0 &&
+            d.reorderQuantity is number && d.reorderQuantity >= 0 &&
+            d.unit in ['bottles', 'strips', 'ml', 'grams', 'units'] &&
+            d.batches is list &&
+            shortString(d.medicineName, 200) &&
+            optionalString(d, 'commonName', 200) &&
+            optionalString(d, 'location', 200) &&
+            optionalString(d, 'supplier', 200);
+        }
+
+        allow read: if isMember(businessId);
+        allow create, update: if isMember(businessId) && validItem(request.resource.data);
+        allow delete: if isBusinessAdmin(businessId) && resource.data.totalQuantity == 0;
+      }
+
+      // Immutable audit log.
+      match /stockMovements/{id} {
+        function validMovement(d) {
+          return d.type in ['purchase', 'dispense', 'adjustment', 'return', 'expired', 'transfer'] &&
+            d.quantity is number && d.quantity != 0 &&
+            d.get('performedById', null) == request.auth.uid &&
+            d.createdAt is string &&
+            d.balanceAfter is number && d.balanceAfter >= 0 &&
+            shortString(d.medicineName, 200) &&
+            optionalString(d, 'notes', 2000) &&
+            optionalString(d, 'reference', 500);
+        }
+
+        allow read: if isMember(businessId);
+        allow create: if isMember(businessId) && validMovement(request.resource.data);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

@@ -8,7 +8,7 @@ import { logout, setMobileSidebarOpen } from '@/redux/slices'
 import { AdminSidebar } from '@/components/layout/admin-sidebar'
 import { AdminHeader } from '@/components/layout/admin-header'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { LoadingScreen } from '@/components'
+import { PageSkeleton } from '@/components/shared/page-skeleton'
 import {
   canAccessPath,
   getDefaultAccessiblePath,
@@ -84,17 +84,15 @@ export default function NavigationsLayout({
     user,
   ])
 
-  if (isLoggingOut) {
-    return <LoadingScreen message={'Signing out...'} />
-  }
+  // Signed out (and not mid-sign-in/out): the redirect effect is already running.
+  if (!isLoading && !isLoggingOut && !isAuthenticated) return null
 
-  if (isLoading) return <LoadingScreen message={'Loading portal'} />
-
-  if (!isAuthenticated) return null
-
-  if (!hasRouteAccess) {
-    return <LoadingScreen message="Checking access..." />
-  }
+  // The app shell (sidebar, header) is static and always paints immediately; only the page
+  // area shows a skeleton while the session or access check resolves.
+  // While the session is still being resolved the real page renders right away (its static parts
+  // are always visible and its data areas show their own skeletons). A generic placeholder is only
+  // used when access is actually denied or the user is signing out.
+  const pending = !isLoading && (isLoggingOut || !hasRouteAccess)
 
   return (
     <div className="min-h-screen flex bg-muted/30 dark:bg-background">
@@ -112,7 +110,7 @@ export default function NavigationsLayout({
       </Sheet>
       <div className="flex-1 flex flex-col min-w-0">
         <AdminHeader />
-        <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 md:p-6 overflow-auto">{pending ? <PageSkeleton label="Loading page" /> : children}</main>
       </div>
     </div>
   )

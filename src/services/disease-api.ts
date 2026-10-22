@@ -1,14 +1,9 @@
-import { auth } from '@/lib/firebase/app'
+import { getFirebaseIdToken } from '@/lib/firebase/id-token'
 import type { ApiResponse } from '@/types'
 import type { Disease, DiseaseCreateInput } from '@/types/disease'
 
 const DISEASES_API = '/api/v1/diseases'
 
-async function getFirebaseIdToken() {
-  const user = auth.currentUser
-  if (!user) throw new Error('Not authenticated')
-  return user.getIdToken()
-}
 
 async function diseaseApiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const idToken = await getFirebaseIdToken()

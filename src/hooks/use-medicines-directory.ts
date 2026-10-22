@@ -52,6 +52,7 @@ export function useMedicinesDirectory() {
   const [sortField, setSortField] = useState<MedicineSortField>('name')
   const [sortDirection, setSortDirection] = useState<MedicineSortDirection>('asc')
   const [page, setPage] = useState(1)
+  const [libraryStats, setLibraryStats] = useState<ReturnType<typeof computeMedicinePageStats> | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -65,8 +66,10 @@ export function useMedicinesDirectory() {
         formType: filters.formType !== 'all' ? filters.formType : undefined,
       })
       setMedicines(res.data)
+      const unfiltered = !filters.search.trim() && filters.status === 'all' && filters.formType === 'all'
+      if (unfiltered) setLibraryStats(computeMedicinePageStats(res.data))
     } catch (err) {
-      setMedicines([])
+      // Keep what is on screen: a failed refresh must not look like an empty vault.
       setError(err instanceof Error ? err.message : 'Failed to load medicines')
     } finally {
       setLoading(false)
@@ -78,7 +81,11 @@ export function useMedicinesDirectory() {
     void load()
   }, [load, authLoading, isAuthenticated])
 
-  const stats = useMemo(() => computeMedicinePageStats(medicines), [medicines])
+  // Hero totals describe the whole vault, not the current search result.
+  const stats = useMemo(
+    () => libraryStats ?? computeMedicinePageStats(medicines),
+    [libraryStats, medicines]
+  )
 
   const filteredMedicines = useMemo(
     () => [...medicines].sort((a, b) => compareMedicines(a, b, sortField, sortDirection)),

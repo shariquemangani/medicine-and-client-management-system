@@ -7,4 +7,13 @@ export { InventoryAlertsPanel, findStockItemById } from './inventory-alerts-pane
 export { InventoryReceiveDialog } from './inventory-receive-dialog'
 export { InventoryAdjustDialog } from './inventory-adjust-dialog'
 export { InventoryDetailSheet } from './inventory-detail-sheet'
-export { InventoryStatSkeleton, InventoryPageSkeleton } from './inventory-skeleton'
+export {
+  InventoryStatSkeleton,
+  InventoryPageSkeleton,
+  InventoryRowsSkeleton,
+  PendingStat,
+} from './inventory-skeleton'
+export { InventoryItemFormDialog } from './inventory-item-form-dialog'
+export { InventoryDeleteDialog } from './inventory-delete-dialog'
+export { InventoryMedicinePicker } from './inventory-medicine-picker'
+export { InventoryField } from './inventory-field'

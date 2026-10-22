@@ -53,7 +53,7 @@ export function OfflineOverlay() {
             No Internet Connection
           </h2>
           <p className="text-muted-foreground">
-            It looks like you're offline. Please check your internet connection
+            It looks like you&apos;re offline. Please check your internet connection
             to continue using the application.
           </p>
         </div>

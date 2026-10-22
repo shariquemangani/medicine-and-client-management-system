@@ -4,16 +4,20 @@ import { Wallet, RefreshCw, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface BillingHeroProps {
+  loading?: boolean
   totalAccounts: number
   outstanding: number
   onRefresh: () => void
+  onExport?: () => void
   refreshing?: boolean
 }
 
 export function BillingHero({
+  loading,
   totalAccounts,
   outstanding,
   onRefresh,
+  onExport,
   refreshing,
 }: BillingHeroProps) {
 
@@ -26,11 +30,15 @@ export function BillingHero({
             <Wallet className="h-3 w-3" />
             {'Finance'}
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             {'Billing & Payments'}
-          </h2>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            {`${totalAccounts} accounts · ₹${outstanding.toLocaleString('en-IN')} outstanding`}
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground" aria-busy={loading || undefined}>
+            {loading ? (
+              <span className="inline-block h-4 w-56 max-w-full animate-pulse rounded-md bg-muted align-middle" />
+            ) : (
+              `${totalAccounts} accounts · ₹${Math.round(outstanding).toLocaleString('en-IN')} outstanding`
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -41,10 +49,10 @@ export function BillingHero({
             onClick={onRefresh}
             disabled={refreshing}
           >
-            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={"mr-1.5 h-3.5 w-3.5"} />
             {'Refresh'}
           </Button>
-          <Button variant="outline" size="sm" className="fees-hero-btn">
+          <Button variant="outline" size="sm" className="fees-hero-btn" onClick={onExport} disabled={!onExport}>
             <Download className="mr-1.5 h-3.5 w-3.5" />
             {'Export'}
           </Button>

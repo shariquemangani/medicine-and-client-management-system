@@ -7,22 +7,34 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  MoreHorizontal,
   Minus,
   PackagePlus,
+  Pencil,
   Pill,
+  Plus,
+  Trash2,
 } from 'lucide-react'
 import type { StockItem } from '@/types/stock'
 import type { StockSortDirection, StockSortField } from '@/types/stock-page'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import {
-  getAvailableQuantity,
+  getExpiredQuantity,
+  getSellableQuantity,
   getStockFillPercent,
   getStockLevelStatus,
   STOCK_STATUS_LABELS,
 } from '@/lib/stock-utils'
 import { t } from '@/lib/labels'
+import { usePermission } from '@/hooks/use-permission'
 
 interface InventoryStockTableProps {
   items: StockItem[]
@@ -33,6 +45,11 @@ interface InventoryStockTableProps {
   onView: (item: StockItem) => void
   onReceive: (item: StockItem) => void
   onAdjust: (item: StockItem) => void
+  onEdit: (item: StockItem) => void
+  onDelete: (item: StockItem) => void
+  onAddItem: () => void
+  /** Number of stock items before any filter is applied; 0 shows the first-run empty state. */
+  totalItems: number
   page: number
   totalPages: number
   totalFiltered: number
@@ -81,7 +98,7 @@ function StockLevelBar({ item }: { item: StockItem }) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-[11px] tabular-nums">
         <span className="font-semibold text-foreground">
-          {getAvailableQuantity(item)} {item.unit}
+          {getSellableQuantity(item)} {item.unit}
         </span>
         <span className="text-muted-foreground">
           {t('inventory.reorderAt')} {item.reorderLevel}
@@ -93,6 +110,84 @@ function StockLevelBar({ item }: { item: StockItem }) {
           style={{ width: `${percent}%` }}
         />
       </div>
+      {getExpiredQuantity(item) > 0 ? (
+        <p className="text-[10px] font-medium text-red-600 dark:text-red-400">
+          +{getExpiredQuantity(item)} {item.unit} {t('inventory.expired').toLowerCase()}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+interface ItemActionsProps {
+  item: StockItem
+  onView: (item: StockItem) => void
+  onReceive: (item: StockItem) => void
+  onAdjust: (item: StockItem) => void
+  onEdit: (item: StockItem) => void
+  onDelete: (item: StockItem) => void
+}
+
+function ItemActions({ item, onView, onReceive, onAdjust, onEdit, onDelete }: ItemActionsProps) {
+  const { hasPermission } = usePermission()
+  const canDelete = hasPermission('inventory', 'delete')
+  return (
+    <div className="flex items-center justify-end gap-0.5">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="clinic-table-action h-9 w-9"
+        aria-label={`${t('inventory.viewItem')}: ${item.medicineName}`}
+        onClick={() => onView(item)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="clinic-table-action h-9 w-9"
+        aria-label={`${t('inventory.receiveStock')}: ${item.medicineName}`}
+        onClick={() => onReceive(item)}
+      >
+        <PackagePlus className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="clinic-table-action h-9 w-9"
+        aria-label={`${t('inventory.adjustStock')}: ${item.medicineName}`}
+        onClick={() => onAdjust(item)}
+        disabled={item.totalQuantity <= 0}
+      >
+        <Minus className="h-4 w-4" />
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="clinic-table-action h-9 w-9"
+            aria-label={`${t('inventory.moreActions')}: ${item.medicineName}`}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => onEdit(item)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            {t('inventory.editItem')}
+          </DropdownMenuItem>
+          {canDelete && (
+            <DropdownMenuItem
+              className="text-red-600 focus:text-red-600 dark:text-red-400"
+              onSelect={() => onDelete(item)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('inventory.deleteItem')}
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }
@@ -106,6 +201,10 @@ export function InventoryStockTable({
   onView,
   onReceive,
   onAdjust,
+  onEdit,
+  onDelete,
+  onAddItem,
+  totalItems,
   page,
   totalPages,
   totalFiltered,
@@ -113,11 +212,73 @@ export function InventoryStockTable({
   onPageChange,
 }: InventoryStockTableProps) {
   if (loading) {
+    // Column headers are static; only the rows are pending.
+    const headers = [
+      t('inventory.colMedicine'),
+      t('inventory.colPotency'),
+      t('inventory.colOnHand'),
+      t('inventory.colLocation'),
+      t('inventory.colStatus'),
+      t('inventory.colActions'),
+    ]
     return (
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="dashboard-skeleton h-16 rounded-2xl" />
-        ))}
+      <div className="space-y-4" aria-busy="true">
+        <div className="space-y-3 md:hidden">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="animate-pulse h-36 w-full rounded-md bg-muted" />
+          ))}
+        </div>
+        <div className="hidden overflow-x-auto rounded-2xl border md:block">
+          <table className="clinic-data-table w-full min-w-[52rem] text-sm">
+            <thead>
+              <tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground">
+                {headers.map((label, i) => (
+                  <th key={label} className={cn('px-4 py-3 font-semibold', i === 2 && 'min-w-[10rem]', i === 5 && 'text-right')}>
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b last:border-0">
+                  <td className="px-4 py-3.5">
+                    <div className="animate-pulse h-9 w-40 rounded-md bg-muted" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="animate-pulse h-4 w-10 rounded-md bg-muted" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="animate-pulse h-9 w-32 rounded-md bg-muted" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="animate-pulse h-4 w-20 rounded-md bg-muted" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="animate-pulse h-5 w-16 rounded-md bg-muted" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="animate-pulse ml-auto h-9 w-28 rounded-md bg-muted" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  if (totalItems === 0) {
+    return (
+      <div className="attendance-record-empty rounded-2xl border p-10 text-center">
+        <Pill className="mx-auto h-10 w-10 text-muted-foreground/60" />
+        <p className="mt-3 text-sm font-medium text-foreground">{t('inventory.noItemsTitle')}</p>
+        <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">{t('inventory.noItemsHint')}</p>
+        <Button size="sm" className="attendance-hero-primary mt-4" onClick={onAddItem}>
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          {t('inventory.addItem')}
+        </Button>
       </div>
     )
   }
@@ -148,7 +309,52 @@ export function InventoryStockTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border">
+      <div className="space-y-3 md:hidden" data-testid="stock-cards">
+        {items.map((item) => {
+          const status = getStockLevelStatus(item)
+          return (
+            <article
+              key={item.id}
+              className={cn(
+                'rounded-2xl border p-4',
+                status === 'out_of_stock' && 'bg-red-500/[0.03]',
+                status === 'critical' && 'bg-orange-500/[0.03]'
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <button type="button" className="min-w-0 text-left" onClick={() => onView(item)}>
+                  <p className="truncate font-semibold text-foreground">{item.medicineName}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {[item.formType, item.potency, item.commonName].filter(Boolean).join(' · ') || '—'}
+                  </p>
+                </button>
+                <Badge
+                  variant="outline"
+                  className={cn('shrink-0 text-[10px] font-semibold', statusBadgeClass[status])}
+                >
+                  {STOCK_STATUS_LABELS[status]}
+                </Badge>
+              </div>
+              <div className="mt-3">
+                <StockLevelBar item={item} />
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">{item.location}</p>
+              <div className="mt-2 border-t pt-2">
+                <ItemActions
+                  item={item}
+                  onView={onView}
+                  onReceive={onReceive}
+                  onAdjust={onAdjust}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              </div>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border md:block">
         <table className="clinic-data-table w-full min-w-[52rem] text-sm">
           <thead>
             <tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground">
@@ -200,36 +406,14 @@ export function InventoryStockTable({
                     </Badge>
                   </td>
                   <td className="px-4 py-3.5">
-                    <div className="flex items-center justify-end gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="clinic-table-action h-8 w-8"
-                        aria-label={t('inventory.viewItem')}
-                        onClick={() => onView(item)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="clinic-table-action h-8 w-8"
-                        aria-label={t('inventory.receiveStock')}
-                        onClick={() => onReceive(item)}
-                      >
-                        <PackagePlus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="clinic-table-action h-8 w-8"
-                        aria-label={t('inventory.adjustStock')}
-                        onClick={() => onAdjust(item)}
-                        disabled={item.totalQuantity <= 0}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <ItemActions
+                      item={item}
+                      onView={onView}
+                      onReceive={onReceive}
+                      onAdjust={onAdjust}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
                   </td>
                 </tr>
               )
@@ -248,6 +432,7 @@ export function InventoryStockTable({
             size="sm"
             className="attendance-hero-btn"
             disabled={page <= 1}
+            aria-label={t('inventory.previousPage')}
             onClick={() => onPageChange(page - 1)}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -260,6 +445,7 @@ export function InventoryStockTable({
             size="sm"
             className="attendance-hero-btn"
             disabled={page >= totalPages}
+            aria-label={t('inventory.nextPage')}
             onClick={() => onPageChange(page + 1)}
           >
             <ChevronRight className="h-4 w-4" />

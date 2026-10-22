@@ -26,6 +26,7 @@ interface PrescriptionsFiltersProps {
   total: number
   viewMode: 'table' | 'compact'
   onViewModeChange: (mode: 'table' | 'compact') => void
+  loading?: boolean
 }
 
 export function PrescriptionsFilters({
@@ -38,6 +39,7 @@ export function PrescriptionsFilters({
   total,
   viewMode,
   onViewModeChange,
+  loading,
 }: PrescriptionsFiltersProps) {
 
   return (
@@ -103,7 +105,11 @@ export function PrescriptionsFilters({
 
       <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
         <SlidersHorizontal className="h-3.5 w-3.5" />
-        <span>{`Showing ${totalFiltered} of ${total} exams`}</span>
+        {loading ? (
+          <span className="animate-pulse inline-block h-3 w-28 rounded-md bg-muted" aria-busy="true" />
+        ) : (
+          <span>{`Showing ${totalFiltered} of ${total} exams`}</span>
+        )}
       </div>
     </div>
   )

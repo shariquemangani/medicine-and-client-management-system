@@ -1,22 +1,29 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import React from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface ErrorProps {
-  error: Error
+  error: Error & { digest?: string }
   reset: () => void
 }
 
 export default function Error({ error, reset }: ErrorProps) {
   const router = useRouter()
-  console.error(error)
+
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4">
-      <h1 className="text-2xl font-bold">An Error Occurred</h1>
-      <p className="text-gray-500">Sorry, something went wrong.</p>
+    <div
+      role="alert"
+      className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-center"
+    >
+      <h1 className="text-2xl font-bold text-foreground">An Error Occurred</h1>
+      <p className="text-muted-foreground">Sorry, something went wrong.</p>
       <div className="flex flex-row gap-2">
         <Button variant="outline" onClick={() => reset()}>
           Try again

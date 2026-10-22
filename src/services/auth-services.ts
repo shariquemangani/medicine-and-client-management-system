@@ -1,13 +1,11 @@
 import {
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile,
-  deleteUser,
+  sendPasswordResetEmail,
   type User,
 } from 'firebase/auth'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore/lite'
 import { auth, db } from '@/lib/firebase/app'
 import { mapFirebaseAuthError } from '@/lib/firebase/auth-errors'
 import { normalizeAuthEmail, normalizeAuthFullName } from '@/lib/firebase/auth-input'
@@ -16,12 +14,21 @@ import { clearAuthSession, persistAuthSession } from '@/lib/auth-session'
 import { normalizeUserRole } from '@/lib/permissions'
 import type { AdminUser } from '@/types'
 
+import { SESSION_FLAG_COOKIE_NAME } from '@/lib/firebase/session'
+
 const SESSION_ROUTE = '/api/auth/session'
+const REGISTER_ROUTE = '/api/auth/register'
 const LOGOUT_ROUTE = '/api/auth/logout'
 
 let establishSessionPromise: Promise<void> | null = null
 let restoreSessionPromise: Promise<{ user: AdminUser; token: string } | null> | null = null
 let logoutPromise: Promise<{ success: boolean }> | null = null
+
+/** True when the server session cookie was issued (companion flag cookie is readable by JS). */
+function hasSessionFlag(): boolean {
+  if (typeof document === 'undefined') return false
+  return document.cookie.split('; ').some((c) => c.startsWith(`${SESSION_FLAG_COOKIE_NAME}=`))
+}
 
 function resetAuthRuntimeState() {
   establishSessionPromise = null
@@ -84,41 +91,6 @@ async function establishSession(idToken: string): Promise<void> {
   }
 }
 
-async function createTenantForNewAdmin(
-  uid: string,
-  fullName: string,
-  email: string
-): Promise<AdminUser> {
-  const now = new Date().toISOString()
-  const profile = {
-    name: fullName,
-    email,
-    role: 'super_admin' as const,
-    businessId: uid,
-    isActive: true,
-    createdAt: now,
-  }
-
-  await setDoc(doc(db, 'users', uid), profile)
-  await setDoc(doc(db, 'businesses', uid), {
-    createdAt: now,
-    profile: {
-      name: `${fullName}'s Clinic`,
-      logoUrl: 'https://dummyimage.com/120x120/1e3a5f/ffffff.png&text=MF',
-      address: '',
-      phone: '',
-      email,
-      website: '',
-    },
-    clinicConfig: {
-      fiscalYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
-      defaultCurrency: 'INR',
-    },
-  })
-
-  return toAdminUser(uid, profile)
-}
-
 export async function fetchUserProfile(uid: string): Promise<AdminUser | null> {
   const snap = await getDoc(doc(db, 'users', uid))
   if (!snap.exists()) return null
@@ -134,6 +106,28 @@ async function completeSignIn(user: User, profile: AdminUser) {
 }
 
 export const authService = {
+  hasSessionFlag,
+
+  /**
+   * Sends a Firebase password-reset email. Always reports success for unknown
+   * addresses so the form cannot be used to discover which emails have accounts.
+   */
+  requestPasswordReset: async (email: string) => {
+    const normalizedEmail = normalizeAuthEmail(email)
+    if (!normalizedEmail) {
+      return { success: false as const, message: 'Enter your email address first' }
+    }
+    try {
+      await sendPasswordResetEmail(auth, normalizedEmail)
+    } catch (error) {
+      const code = (error as { code?: string }).code
+      if (code !== 'auth/user-not-found' && code !== 'auth/invalid-email') {
+        return { success: false as const, message: mapFirebaseAuthError(error, 'Could not send the reset email') }
+      }
+    }
+    return { success: true as const }
+  },
+
   login: async (email: string, password: string) => {
     const normalizedEmail = normalizeAuthEmail(email)
 
@@ -185,29 +179,32 @@ export const authService = {
     if (!normalizedEmail) {
       return { success: false as const, message: 'Email is required' }
     }
-    if (password.length < 6) {
-      return { success: false as const, message: 'Password must be at least 6 characters' }
+    if (password.length < 8) {
+      return { success: false as const, message: 'Password must be at least 8 characters' }
     }
 
-    let createdUser: User | null = null
-
     try {
-      const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password)
-      createdUser = credential.user
+      // The owner account, profile and clinic document are created server-side (Admin SDK):
+      // Firestore rules do not let browsers create `users` or `businesses` documents.
+      const res = await fetch(REGISTER_ROUTE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: trimmedName, email: normalizedEmail, password }),
+      })
+      const body = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) {
+        return { success: false as const, message: body.message ?? 'Registration failed' }
+      }
 
-      await updateProfile(createdUser, { displayName: trimmedName })
-
-      const profile = await createTenantForNewAdmin(createdUser.uid, trimmedName, normalizedEmail)
-      const result = await completeSignIn(createdUser, profile)
+      const credential = await signInWithEmailAndPassword(auth, normalizedEmail, password)
+      const profile = await fetchUserProfile(credential.user.uid)
+      if (!profile) {
+        await signOut(auth)
+        return { success: false as const, message: 'Account was created but could not be loaded. Please sign in.' }
+      }
+      const result = await completeSignIn(credential.user, profile)
       return { success: true as const, ...result }
     } catch (error) {
-      if (createdUser) {
-        try {
-          await deleteUser(createdUser)
-        } catch {
-          // Auth user may already be removed
-        }
-      }
       return {
         success: false as const,
         message: mapFirebaseAuthError(error, 'Registration failed'),
@@ -250,20 +247,28 @@ export const authService = {
     restoreSessionPromise = (async () => {
       const user = await authService.waitForAuthReady()
       if (!user) {
+        // A leftover server cookie without a client user would make middleware
+        // and the auth layout bounce between "/" and "/dashboard" forever.
+        await clearServerSession()
         clearAuthSession()
         clearBusinessId()
         return null
       }
 
-      const profile = await fetchUserProfile(user.uid)
+      // A fresh token is only needed to mint a session cookie; skip that round trip when the
+      // cookie already exists. Profile read and token refresh are independent — run in parallel.
+      const needsCookie = !hasSessionFlag()
+      const [profile, token] = await Promise.all([
+        fetchUserProfile(user.uid),
+        needsCookie ? user.getIdToken(true) : Promise.resolve(''),
+      ])
       if (!profile || !profile.isActive) {
         await clearServerSession()
         await clearLocalAuthState()
         return null
       }
 
-      const token = await user.getIdToken(true)
-      await establishSession(token)
+      if (needsCookie) await establishSession(token)
       persistAuthSession(profile)
       persistBusinessId(profile.businessId)
 

@@ -19,6 +19,8 @@ export function useFlagConfiguration() {
   const [mobilePane, setMobilePane] = useState<'categories' | 'flags'>('categories')
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [flagsLoading, setFlagsLoading] = useState(false)
+  // Which category the `flags` state currently describes (avoids an empty-state flash).
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const [mutating, setMutating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
@@ -57,7 +59,10 @@ export function useFlagConfiguration() {
     if (!force) {
       const cached = flagsCache.current.get(categoryId)
       if (cached) {
-        startTransition(() => setFlags(cached))
+        startTransition(() => {
+          setFlags(cached)
+          setLoadedFor(categoryId)
+        })
         return
       }
     }
@@ -69,10 +74,12 @@ export function useFlagConfiguration() {
       flagsCache.current.set(categoryId, list)
       if (selectedRef.current === categoryId) {
         setFlags(list)
+        setLoadedFor(categoryId)
       }
     } catch (err) {
       if (selectedRef.current === categoryId) {
         setFlags([])
+        setLoadedFor(categoryId)
         setError(err instanceof Error ? err.message : 'Failed to load flags')
       }
     } finally {
@@ -128,6 +135,7 @@ export function useFlagConfiguration() {
     try {
       const category = await createCategoryApi(name)
       flagsCache.current.set(category.id, [])
+      setLoadedFor(category.id)
       setCategories((prev) => {
         if (prev.some((c) => c.id === category.id)) {
           return prev.map((c) => (c.id === category.id ? category : c))
@@ -214,7 +222,7 @@ export function useFlagConfiguration() {
     setFlagSearch,
     mobilePane,
     categoriesLoading,
-    flagsLoading,
+    flagsLoading: flagsLoading || (selectedCategoryId !== null && loadedFor !== selectedCategoryId),
     mutating,
     error,
     selectCategory,

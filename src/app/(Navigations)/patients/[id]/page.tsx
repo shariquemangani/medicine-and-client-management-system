@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
-import { Loader2, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { PatientDetailHeader } from '@/components/patients/detail/clinic-detail-header'
-import { PatientDetailSkeleton } from '@/components/patients/detail/clinic-detail-skeleton'
 import { PatientDetailTabs, type PatientDetailTab } from '@/components/patients/detail/patient-detail-tabs'
 import { PatientDetailViewSections } from '@/components/patients/detail/patient-detail-view-sections'
 import { PatientVisitHistoryPanel } from '@/components/patients/detail/patient-visit-history-panel'
@@ -62,7 +61,7 @@ export default function PatientDetailPage() {
   const dispatch = useAppDispatch()
   const id = params.id as string
   const { isAuthenticated, isLoading: authLoading } = useAppSelector((s) => s.auth)
-  const { profile, loadingProfile, saving } = useAppSelector((s) => s.patients)
+  const { profile, loadingProfile, saving, error: profileError, profileId } = useAppSelector((s) => s.patients)
 
   const activeTab = parseActiveTab(searchParams.get('tab'))
   const [isEditing, setIsEditing] = useState(false)
@@ -186,11 +185,10 @@ export default function PatientDetailPage() {
     setPendingValues(null)
   }
 
-  if (authLoading || loadingProfile) {
-    return <PatientDetailSkeleton />
-  }
+  const notFound = !authLoading && !loadingProfile && !profile && !!profileError && profileId === id
+  const loading = !notFound && (authLoading || loadingProfile || !profile)
 
-  if (!profile || !patient) {
+  if (notFound) {
     return (
       <div className="dashboard-shell flex min-h-[40vh] flex-col items-center justify-center gap-4 text-center">
         <p className="text-lg font-semibold text-foreground">Patient not found</p>
@@ -204,13 +202,13 @@ export default function PatientDetailPage() {
     )
   }
 
-  const confirmPatientName = pendingValues?.patientName.trim() || patient.firstName
+  const confirmPatientName = pendingValues?.patientName.trim() || patient?.firstName || ''
 
   return (
     <div className="dashboard-shell space-y-4">
       <BentoGrid>
         <PatientDetailHeader
-          patient={patient}
+          patient={loading ? null : patient}
           isEditing={isEditing}
           isNewVisit={isNewVisit}
           saving={saving}
@@ -226,14 +224,15 @@ export default function PatientDetailPage() {
             <PatientDetailTabs
               activeTab={activeTab}
               onTabChange={setActiveTab}
-              historyCount={visitCount}
+              historyCount={loading ? 0 : visitCount}
+              disabled={loading}
             />
           </div>
         ) : null}
 
         <Form {...form}>
           <form onSubmit={(e) => e.preventDefault()} className="contents">
-            {isEditing ? (
+            {isEditing && patient ? (
               <>
                 <PatientRegistrationFormSections
                   form={form}
@@ -260,7 +259,6 @@ export default function PatientDetailPage() {
                       >
                         {saving ? (
                           <>
-                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                             Saving...
                           </>
                         ) : (
@@ -283,8 +281,8 @@ export default function PatientDetailPage() {
                   </div>
                 </BentoCard>
               </>
-            ) : activeTab === 'overview' ? (
-              <PatientDetailViewSections patient={patient} />
+            ) : activeTab === 'overview' || !patient ? (
+              <PatientDetailViewSections patient={loading ? null : patient} />
             ) : (
               <PatientVisitHistoryPanel patient={patient} currentVisitDate={patient.admissionDate} />
             )}

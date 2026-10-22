@@ -16,11 +16,13 @@ import { deleteDisease } from '@/services/disease-api'
 import type { Disease } from '@/types/disease'
 import { t } from '@/lib/labels'
 import { toast } from 'sonner'
+import { downloadCsv } from '@/lib/download-csv'
 import { BentoGrid, BentoCard } from '@/components/shared'
 
 export default function DiseasesListPage() {
   const router = useRouter()
   const {
+    filteredDiseases,
     initialLoading,
     refreshing,
     error,
@@ -42,6 +44,23 @@ export default function DiseasesListPage() {
   } = useDiseasesDirectory()
   const { symptoms: symptomOptions } = useDiseaseFlagOptions()
 
+  const exportRows = () => {
+    if (filteredDiseases.length === 0) {
+      toast.error('No diseases to export')
+      return
+    }
+    downloadCsv(`diseases-${new Date().toISOString().split('T')[0]}.csv`, [
+      ['Name', 'Symptoms', 'Cure', 'Diet', 'Precautions'],
+      ...filteredDiseases.map((d) => [
+        d.name,
+        (d.symptoms ?? []).join('; '),
+        d.cure ?? '',
+        d.diet ?? '',
+        d.precautions ?? '',
+      ]),
+    ])
+  }
+
   const [deleteTarget, setDeleteTarget] = useState<Disease | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [viewMode, setViewMode] = useState<'table' | 'compact'>('table')
@@ -62,21 +81,12 @@ export default function DiseasesListPage() {
       toast.success(t('diseases.deleted'))
       setDeleteTarget(null)
       await reload()
-    } catch {
-      toast.error(t('diseases.deleteFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('diseases.deleteFailed'))
       throw new Error('delete failed')
     } finally {
       setDeleting(false)
     }
-  }
-
-  if (initialLoading) {
-    return (
-      <div className="disease-vault-page dashboard-shell space-y-4" aria-busy="true">
-        <div className="dashboard-skeleton h-28 rounded-2xl" />
-        <div className="dashboard-skeleton h-96 rounded-2xl" />
-      </div>
-    )
   }
 
   return (
@@ -84,6 +94,8 @@ export default function DiseasesListPage() {
       <BentoGrid>
         <BentoCard colSpan={12} delay={0} className="!p-0">
           <DiseasesHero
+            loading={initialLoading}
+            onExport={exportRows}
             total={stats.total}
             onRefresh={reload}
             refreshing={refreshing}
@@ -93,6 +105,7 @@ export default function DiseasesListPage() {
 
         <BentoCard colSpan={12} delay={120}>
           <DiseasesFilters
+            loading={initialLoading}
             filters={filters}
             onFilterChange={updateFilter}
             onClear={clearFilters}

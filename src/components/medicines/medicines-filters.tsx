@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import type { MedicineDirectoryFilters } from '@/types/medicine-page'
 import { cn } from '@/lib/utils'
 import { t } from '@/lib/labels'
+import { Skel } from '@/components/medicines/skeleton-bits'
 
 interface MedicinesFiltersProps {
   filters: MedicineDirectoryFilters
@@ -18,6 +19,7 @@ interface MedicinesFiltersProps {
   activeFilterCount: number
   totalFiltered: number
   total: number
+  loading?: boolean
   viewMode: 'table' | 'compact'
   onViewModeChange: (mode: 'table' | 'compact') => void
 }
@@ -29,6 +31,7 @@ export function MedicinesFilters({
   activeFilterCount,
   totalFiltered,
   total,
+  loading,
   viewMode,
   onViewModeChange,
 }: MedicinesFiltersProps) {
@@ -106,7 +109,7 @@ export function MedicinesFilters({
 
       <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
         <SlidersHorizontal className="h-3.5 w-3.5" />
-        <span>{t('medicines.showing', { filtered: totalFiltered, total })}</span>
+        {loading ? <Skel className="h-3.5 w-32" /> : <span>{t('medicines.showing', { filtered: totalFiltered, total })}</span>}
       </div>
     </div>
   )

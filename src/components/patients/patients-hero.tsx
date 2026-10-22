@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/routes'
 
 interface PatientsHeroProps {
+  onExport?: () => void
   total: number
   active: number
   onRefresh: () => void
   refreshing?: boolean
+  loading?: boolean
 }
 
-export function PatientsHero({ total, active, onRefresh, refreshing }: PatientsHeroProps) {
+export function PatientsHero({ total, active, onRefresh, onExport, refreshing, loading = false }: PatientsHeroProps) {
   return (
     <div className="clinic-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
       <div className="clinic-hero-mesh pointer-events-none" aria-hidden />
@@ -22,11 +24,13 @@ export function PatientsHero({ total, active, onRefresh, refreshing }: PatientsH
             <Users className="h-3 w-3" />
             Patient registry
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             Manage patient records
-          </h2>
+          </h1>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            {active} active patients across {total} total records — search, filter, and update profiles.
+            {loading
+              ? 'Search, filter, and update patient profiles.'
+              : `${active} active patients across ${total} total records — search, filter, and update profiles.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -37,10 +41,10 @@ export function PatientsHero({ total, active, onRefresh, refreshing }: PatientsH
             onClick={onRefresh}
             disabled={refreshing}
           >
-            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${refreshing ? 'opacity-60' : ''}`} />
             Refresh
           </Button>
-          <Button variant="outline" size="sm" className="clinic-hero-btn">
+          <Button variant="outline" size="sm" className="clinic-hero-btn" onClick={onExport} disabled={!onExport || loading}>
             <Download className="mr-1.5 h-3.5 w-3.5" />
             Export
           </Button>

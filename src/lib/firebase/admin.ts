@@ -28,7 +28,21 @@ function createAdminApp(): App {
   )
 }
 
-const adminApp = createAdminApp()
+/**
+ * Lazy singletons: credentials are validated on first use, not at import time,
+ * so `next build` can collect route metadata without Admin secrets.
+ */
+function lazy<T extends object>(factory: () => T): T {
+  let instance: T | undefined
+  const get = () => (instance ??= factory())
+  return new Proxy({} as T, {
+    get(_target, prop) {
+      const target = get()
+      const value = Reflect.get(target, prop, target)
+      return typeof value === 'function' ? value.bind(target) : value
+    },
+  })
+}
 
-export const adminAuth = getAuth(adminApp)
-export const adminDb = getFirestore(adminApp)
+export const adminAuth = lazy(() => getAuth(createAdminApp()))
+export const adminDb = lazy(() => getFirestore(createAdminApp()))

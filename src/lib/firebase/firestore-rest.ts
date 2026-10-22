@@ -73,12 +73,12 @@ function decodeFirestoreDocument(
   return data
 }
 
-async function firestoreFetch(path: string, idToken: string) {
+async function firestoreFetch(path: string, idToken: string, query = '') {
   if (!PROJECT_ID) {
     throw new Error('Firebase project ID is not configured')
   }
 
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}`
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}${query}`
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${idToken}` },
     cache: 'no-store',
@@ -89,6 +89,7 @@ async function firestoreFetch(path: string, idToken: string) {
     documents?: { name: string; fields?: Record<string, FirestoreValue> }[]
     fields?: Record<string, FirestoreValue>
     name?: string
+    nextPageToken?: string
   }
 
   if (!res.ok) {
@@ -186,8 +187,17 @@ export async function fetchFirestoreCollection<T extends { id: string }>(
   collectionPath: string,
   idToken: string
 ): Promise<T[]> {
-  const body = await firestoreFetch(collectionPath, idToken)
-  return (body.documents ?? []).map((doc) => decodeFirestoreDocument(doc) as T)
+  // The REST list endpoint returns one page per call; follow nextPageToken so
+  // collections larger than a single page are not silently truncated.
+  const results: T[] = []
+  let pageToken: string | undefined
+  do {
+    const query = `?pageSize=300${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`
+    const body = await firestoreFetch(collectionPath, idToken, query)
+    for (const doc of body.documents ?? []) results.push(decodeFirestoreDocument(doc) as T)
+    pageToken = body.nextPageToken
+  } while (pageToken)
+  return results
 }
 
 export async function fetchFirestoreDocument<T extends { id: string }>(
@@ -231,6 +241,27 @@ export async function fetchPatientRecord(
   patientId: string
 ): Promise<Patient | null> {
   return fetchFirestoreDocument<Patient>(`businesses/${businessId}/patients/${patientId}`, idToken)
+}
+
+export interface ApiUserProfile {
+  businessId: string
+  role?: string
+  isActive?: boolean
+}
+
+export async function fetchApiUserProfile(idToken: string, uid: string): Promise<ApiUserProfile | null> {
+  const profile = await fetchFirestoreDocument<{
+    id: string
+    businessId?: string
+    role?: string
+    isActive?: boolean
+  }>(`users/${uid}`, idToken)
+  if (!profile) return null
+  return {
+    businessId: profile.businessId ?? profile.id,
+    role: profile.role,
+    isActive: profile.isActive,
+  }
 }
 
 export async function fetchUserBusinessId(idToken: string, uid: string): Promise<string | null> {

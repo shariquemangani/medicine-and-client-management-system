@@ -9,6 +9,7 @@ import { t } from '@/lib/labels'
 import type { DiseaseFormValues } from '@/types/disease'
 import type { MedicineFlagOption } from '@/data/medicine-flag-fields'
 import { FormRequiredMark } from '@/components/shared/form-field-layout'
+import { Skel } from '@/components/medicines/skeleton-bits'
 import { CreatableMultiSelect } from '@/components/shared/creatable-multi-select'
 import { createFlag } from '@/services/flag-api'
 import { resolveSymptomLabel } from '@/lib/diseases/disease-symptoms'
@@ -18,7 +19,6 @@ import {
   Apple,
   FileText,
   HeartPulse,
-  Loader2,
   ShieldAlert,
   Sparkles,
 } from 'lucide-react'
@@ -171,28 +171,32 @@ export function DiseaseVaultForm({
           label={t('diseases.form.symptoms')}
           hint={
             symptomOptionsLoading
-              ? t('diseases.form.loadingSymptoms')
-              : !symptomOptionsLoading && symptomOptions.length === 0
+              ? t('diseases.form.symptomsHint')
+              : symptomOptions.length === 0
                 ? t('diseases.form.flagOptionsEmpty', { field: t('diseases.form.symptoms') })
                 : t('diseases.form.symptomsHint')
           }
         >
+          {symptomOptionsLoading ? (
+            <div className="classes-form-input flex min-h-11 flex-wrap items-center gap-2 rounded-md border px-3 py-2" aria-busy="true">
+              <Skel className="h-6 w-16 rounded-full" />
+              <Skel className="h-6 w-20 rounded-full" />
+              <Skel className="h-6 w-14 rounded-full" />
+            </div>
+          ) : (
           <CreatableMultiSelect
             options={symptomSelectOptions}
             selected={values.symptoms}
             onChange={(symptoms) => set('symptoms', symptoms)}
             onCreateOption={symptomsCategoryId ? handleCreateSymptom : undefined}
-            disabled={disabled || symptomOptionsLoading}
-            placeholder={
-              symptomOptionsLoading
-                ? t('diseases.form.loadingSymptoms')
-                : t('diseases.form.symptomsPlaceholder')
-            }
+            disabled={disabled}
+            placeholder={t('diseases.form.symptomsPlaceholder')}
             searchPlaceholder={t('diseases.form.searchSymptoms')}
             emptyMessage={t('diseases.form.noSymptomsFound')}
             createLabel={(term) => t('diseases.form.createSymptom', { term })}
             className="classes-form-input min-h-11"
           />
+          )}
         </FieldShell>
       </SectionCard>
 
@@ -245,12 +249,6 @@ export function DiseaseVaultForm({
         </div>
       </SectionCard>
 
-      {symptomOptionsLoading ? (
-        <div className="flex items-center gap-2 whitespace-nowrap px-1 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-          <span>{t('diseases.form.loadingSymptoms')}</span>
-        </div>
-      ) : null}
     </div>
   )
 }

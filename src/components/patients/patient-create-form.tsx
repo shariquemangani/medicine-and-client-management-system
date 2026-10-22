@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/routes'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, GraduationCap, Loader2, UserPlus } from 'lucide-react'
+import { ChevronLeft, GraduationCap, UserPlus } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
@@ -135,7 +135,6 @@ export function PatientCreateForm() {
                   <Button type="submit" className="clinic-hero-primary sm:min-w-[10rem]" disabled={creating}>
                     {creating ? (
                       <>
-                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                         {'Saving...'}
                       </>
                     ) : (

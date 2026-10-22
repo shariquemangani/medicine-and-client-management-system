@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
-    const { idToken, businessId } = await requireApiIdToken(request)
+    const { idToken, businessId } = await requireApiIdToken(request, { resource: 'medicines', action: 'edit' })
     const { id } = await context.params
     const body = (await request.json()) as DiseaseCreateInput
 
@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { idToken, businessId } = await requireApiIdToken(request)
+    const { idToken, businessId } = await requireApiIdToken(request, { resource: 'medicines', action: 'delete' })
     const { id } = await context.params
 
     const disease = await fetchDiseaseById(idToken, businessId, id)

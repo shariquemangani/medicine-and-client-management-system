@@ -3,11 +3,10 @@
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { usePermission } from '@/hooks'
+import { usePermission } from '@/hooks/use-permission'
 import { useAppDispatch, useAppSelector } from '@/redux'
 import { logout } from '@/redux/slices'
 import type { Permission } from '@/types'
-import { LoadingScreen } from '@/components/loading-screen'
 import { getDefaultAccessiblePath } from '@/lib/permissions'
 
 interface PermissionGuardProps {
@@ -65,7 +64,7 @@ export function PermissionGuard({
   ])
 
   if (isLoading || isLoggingOut) {
-    return <LoadingScreen message="Checking access..." />
+    return fallback ?? null
   }
 
   if (!isAuthenticated || !hasAccess) {

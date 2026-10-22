@@ -2,15 +2,15 @@
 
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
+import { useTheme } from '@/components/theme-provider'
+import { Button } from '@/components/ui/button'
 import {
-  useTheme,
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components'
-import { useThemeEffect } from '@/hooks'
+} from '@/components/ui/dropdown-menu'
+import { useThemeEffect } from '@/hooks/use-theme-effect'
 
 interface ModeToggleProps {
   className?: string

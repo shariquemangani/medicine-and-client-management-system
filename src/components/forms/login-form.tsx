@@ -19,8 +19,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAppDispatch, useAppSelector } from '@/redux'
 import { login, clearError } from '@/redux/slices'
 import { ROUTES } from '@/lib/routes'
+import { authService } from '@/services/auth-services'
+import { toast } from 'sonner'
 import {
-  Loader2,
   Eye,
   EyeOff,
   AlertCircle,
@@ -43,6 +44,7 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
   const { error } = useAppSelector((s) => s.auth)
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const allowRegistration = process.env.NEXT_PUBLIC_ALLOW_REGISTRATION !== 'false'
 
   const schema = useMemo(
     () =>
@@ -73,10 +75,28 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
       })
     )
     if (login.fulfilled.match(result)) {
-      window.location.assign(ROUTES.dashboard)
+      const requested = new URLSearchParams(window.location.search).get('redirect')
+      // Only follow same-origin relative paths (blocks open redirects like //evil.com).
+      const safeRedirect =
+        requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : null
+      window.location.assign(safeRedirect ?? ROUTES.dashboard)
       return
     }
     setSubmitting(false)
+  }
+
+  const handleForgotPassword = async () => {
+    const email = form.getValues('email').trim()
+    if (!email) {
+      form.setError('email', { message: 'Enter your email, then choose Forgot password' })
+      return
+    }
+    const result = await authService.requestPasswordReset(email)
+    if (result.success) {
+      toast.success('If an account exists for that email, a reset link is on its way')
+    } else {
+      toast.error(result.message)
+    }
   }
 
   const busy = submitting
@@ -127,7 +147,7 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
                     <button
                       type="button"
                       className="login-card-link"
-                      onClick={() => alert('Password reset — coming soon')}
+                      onClick={handleForgotPassword}
                     >
                       {'Forgot?'}
                     </button>
@@ -164,7 +184,6 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
             >
               {busy ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
                   {'Signing in...'}
                 </>
               ) : (
@@ -177,12 +196,14 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
           </form>
         </Form>
 
-        <p className="text-center text-sm text-muted-foreground">
-          {"Don't have an account?"}{' '}
-          <Link href="/register" className="login-card-link font-medium">
-            {'Create account'}
-          </Link>
-        </p>
+        {allowRegistration && (
+          <p className="text-center text-sm text-muted-foreground">
+            {"Don't have an account?"}{' '}
+            <Link href="/register" className="login-card-link font-medium">
+              {'Create account'}
+            </Link>
+          </p>
+        )}
       </div>
     )
   }
@@ -255,18 +276,19 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
             <button
               type="button"
               className="font-medium text-primary hover:underline"
-              onClick={() => alert('Password reset — coming soon')}
+              onClick={handleForgotPassword}
             >
               {'Forgot password?'}
             </button>
-            <Link href="/register" className="text-muted-foreground transition-colors hover:text-foreground">
-              {'Create account'}
-            </Link>
+            {allowRegistration && (
+              <Link href="/register" className="text-muted-foreground transition-colors hover:text-foreground">
+                {'Create account'}
+              </Link>
+            )}
           </div>
           <Button type="submit" className="h-11 w-full" disabled={busy}>
             {busy ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {'Signing in...'}
               </>
             ) : (

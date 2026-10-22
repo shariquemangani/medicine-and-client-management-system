@@ -42,7 +42,7 @@ function comparePatients(
       result = getPatientDiseaseLabel(a).localeCompare(getPatientDiseaseLabel(b))
       break
     case 'createdAt':
-      result = a.createdAt.localeCompare(b.createdAt)
+      result = (a.createdAt ?? '').localeCompare(b.createdAt ?? '')
       break
     case 'address':
       result = (a.address ?? '').localeCompare(b.address ?? '')
@@ -66,20 +66,13 @@ export function usePatientsDirectory() {
   const [sortDirection, setSortDirection] = useState<PatientSortDirection>('desc')
   const [page, setPage] = useState(1)
 
-  const loadYearOptions = useCallback(async () => {
-    try {
-      const res = await fetchPatientsList({ page: 1, limit: 200 })
-      const years = Array.from(
-        new Set(
-          res.data
-            .map((patient) => patient.year)
-            .filter((year): year is number => Number.isFinite(year))
-        )
-      ).sort((a, b) => b - a)
-      setAvailableYears(years)
-    } catch {
-      setAvailableYears([])
-    }
+  // Year filter options come from the unfiltered list, so no separate request is needed
+  // (a second identical request used to double the server's Firestore reads on every visit).
+  const updateYearOptions = useCallback((list: Patient[]) => {
+    const years = Array.from(
+      new Set(list.map((patient) => patient.year).filter((year): year is number => Number.isFinite(year)))
+    ).sort((a, b) => b - a)
+    setAvailableYears(years)
   }, [])
 
   const load = useCallback(async () => {
@@ -93,18 +86,14 @@ export function usePatientsDirectory() {
         year: filters.year !== 'all' ? Number(filters.year) : undefined,
       })
       setPatients(res.data)
+      if (!filters.search.trim() && filters.year === 'all') updateYearOptions(res.data)
     } catch (err) {
       setPatients([])
       setError(err instanceof Error ? err.message : 'Request failed')
     } finally {
       setLoading(false)
     }
-  }, [filters])
-
-  useEffect(() => {
-    if (authLoading || !isAuthenticated) return
-    void loadYearOptions()
-  }, [loadYearOptions, authLoading, isAuthenticated])
+  }, [filters, updateYearOptions])
 
   useEffect(() => {
     if (authLoading || !isAuthenticated) return
@@ -200,9 +189,8 @@ export function usePatientsDirectory() {
     totalPages,
     pageSize: PAGE_SIZE,
     totalFiltered: sortedPatients.length,
+    sortedPatients,
     availableYears,
-    reload: async () => {
-      await Promise.all([load(), loadYearOptions()])
-    },
+    reload: load,
   }
 }

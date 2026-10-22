@@ -282,7 +282,7 @@ export function InputDropdown({
               className="sticky bottom-0 flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none border-t bg-background hover:bg-accent/50 hover:text-accent-foreground text-primary"
             >
               <Plus className="h-4 w-4 mr-2" />
-              <span>Add "{inputValue}"</span>
+              <span>Add &quot;{inputValue}&quot;</span>
             </div>
           )}
         </div>

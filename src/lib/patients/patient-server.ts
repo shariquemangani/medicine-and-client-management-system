@@ -2,7 +2,6 @@ import {
   createFirestoreDocument,
   deleteFirestoreDocument,
   fetchFirestoreCollection,
-  fetchFirestoreDocument,
   fetchPatientRecord,
   patchFirestoreDocument,
 } from '@/lib/firebase/firestore-rest'
@@ -11,11 +10,7 @@ import { buildPatientRollNumber } from '@/lib/patients/patient-roll-number'
 import { getMedicineCategoryName } from '@/data/medicine-categories'
 import { buildPatientProfileDetail } from '@/lib/patients/patient-profile-detail'
 import type {
-  InventoryRecord,
-  InventorySummary,
-  PrescriptionItem,
   Payment,
-  Medicine,
   Patient,
   PatientCreateInput,
   PatientBillingSummary,
@@ -25,27 +20,6 @@ import type { PatientProfileData } from '@/types/patient-profile'
 
 /** Firestore collection path segment for patient records. */
 const PATIENTS_COLLECTION = 'patients'
-
-function buildInventorySummary(records: InventoryRecord[]): InventorySummary[] {
-  const byPatient = new Map<string, InventorySummary>()
-  for (const r of records) {
-    const existing = byPatient.get(r.patientId) ?? {
-      patientId: r.patientId,
-      patientName: r.patientName,
-      rollNumber: r.rollNumber,
-      present: 0,
-      absent: 0,
-      late: 0,
-      total: 0,
-    }
-    existing.total += 1
-    if (r.status === 'present') existing.present += 1
-    else if (r.status === 'absent') existing.absent += 1
-    else if (r.status === 'late') existing.late += 1
-    byPatient.set(r.patientId, existing)
-  }
-  return Array.from(byPatient.values())
-}
 
 function buildFeeSummary(
   patient: Patient,
@@ -77,13 +51,18 @@ async function addBusinessActivity(
   type: string,
   message: string
 ) {
-  const id = generateId('act')
-  const now = new Date().toISOString()
-  await createFirestoreDocument(`businesses/${businessId}/activities/${id}`, idToken, {
-    type,
-    message,
-    timestamp: now,
-  })
+  // Best-effort: the patient is already saved, so a failed feed entry must not fail the request
+  // (a retry would register the patient twice).
+  try {
+    const id = generateId('act')
+    await createFirestoreDocument(`businesses/${businessId}/activities/${id}`, idToken, {
+      type,
+      message,
+      timestamp: new Date().toISOString(),
+    })
+  } catch (error) {
+    console.warn('[activity] could not record feed entry', error)
+  }
 }
 
 export async function createPatientRecord(
@@ -98,20 +77,30 @@ export async function createPatientRecord(
     `businesses/${businessId}/${PATIENTS_COLLECTION}`,
     idToken
   )
-  const rollNumber = buildPatientRollNumber(
-    visitDate,
-    existingPatients.map((patient) => patient.rollNumber)
-  )
-  const medicineCategory = await fetchFirestoreDocument<Medicine>(
-    `businesses/${businessId}/classes/${data.classId}`,
-    idToken
-  )
-  const className = medicineCategory?.name ?? getMedicineCategoryName(data.classId) ?? 'General'
+  // Reserve the roll number by creating `rollNumbers/{roll}`: Firestore refuses a second create of
+  // the same id, so two concurrent registrations can never end up with the same number.
+  const taken = existingPatients.map((patient) => patient.rollNumber)
+  let rollNumber = ''
+  for (let attempt = 0; attempt < 10 && !rollNumber; attempt++) {
+    const candidate = buildPatientRollNumber(visitDate, taken)
+    try {
+      await createFirestoreDocument(`businesses/${businessId}/rollNumbers/${candidate}`, idToken, {
+        patientId: id,
+        createdAt: now,
+      })
+      rollNumber = candidate
+    } catch (error) {
+      if (!/already exists/i.test(error instanceof Error ? error.message : '')) throw error
+      taken.push(candidate)
+    }
+  }
+  if (!rollNumber) throw new Error('Could not allocate a patient ID. Please try again')
+  const className = getMedicineCategoryName(data.classId) ?? 'General'
   const patient: Patient = {
     ...data,
     id,
     rollNumber,
-    email: `${rollNumber}@patient.local`,
+    email: data.email?.trim() || '',
     className,
     createdAt: now,
     updatedAt: now,
@@ -123,18 +112,11 @@ export async function createPatientRecord(
     patient as unknown as Record<string, unknown>
   )
 
-  if (medicineCategory) {
-    await patchFirestoreDocument(`businesses/${businessId}/classes/${medicineCategory.id}`, idToken, {
-      patientIds: [...(medicineCategory.patientIds ?? []), id],
-      updatedAt: now,
-    })
-  }
-
   await addBusinessActivity(
     idToken,
     businessId,
     'patient_added',
-    `Patient ${patient.firstName} ${patient.lastName} registered under ${patient.className}`
+    `Patient ${patient.firstName} ${patient.lastName === '-' ? '' : patient.lastName} registered (ID ${patient.rollNumber})`.replace('  ', ' ')
   )
 
   return patient
@@ -150,9 +132,9 @@ export async function fetchPatientProfileDetail(
     throw new Error('Patient not found')
   }
 
-  const [attendance, examResults, feeStructures, payments] = await Promise.all([
-    fetchFirestoreCollection<InventoryRecord>(`businesses/${businessId}/attendance`, idToken),
-    fetchFirestoreCollection<PrescriptionItem>(`businesses/${businessId}/examResults`, idToken),
+  // Only collections that exist in the clinic data model and in firestore.rules are read.
+  // (The old school `attendance` / `examResults` collections have no rules and carry no clinical data.)
+  const [feeStructures, payments] = await Promise.all([
     fetchFirestoreCollection<{ id: string; patientId: string; amount: number }>(
       `businesses/${businessId}/feeStructures`,
       idToken
@@ -160,17 +142,14 @@ export async function fetchPatientProfileDetail(
     fetchFirestoreCollection<Payment>(`businesses/${businessId}/payments`, idToken),
   ])
 
-  const patientAttendance = attendance.filter((a) => a.patientId === patientId)
-  const summaries = buildInventorySummary(patientAttendance)
   const feeSummary = buildFeeSummary(patient, feeStructures, payments)
-  const patientPrescriptions = examResults.filter((r) => r.patientId === patientId)
 
   return buildPatientProfileDetail({
-    patient: patient,
-    attendance: patientAttendance,
-    attendanceSummary: summaries[0] ?? null,
+    patient,
+    attendance: [],
+    attendanceSummary: null,
     feeSummary,
-    examResults: patientPrescriptions,
+    examResults: [],
   })
 }
 
@@ -189,25 +168,7 @@ export async function updatePatientRecord(
   let className = current.className
 
   if (data.classId && data.classId !== current.classId) {
-    const classes = await fetchFirestoreCollection<Medicine>(`businesses/${businessId}/classes`, idToken)
-    const oldCls = classes.find((c) => c.id === current.classId)
-    const newCls = classes.find((c) => c.id === data.classId)
-
-    if (oldCls) {
-      await patchFirestoreDocument(`businesses/${businessId}/classes/${oldCls.id}`, idToken, {
-        patientIds: (oldCls.patientIds ?? []).filter((sid) => sid !== patientId),
-        updatedAt: now,
-      })
-    }
-    if (newCls) {
-      await patchFirestoreDocument(`businesses/${businessId}/classes/${newCls.id}`, idToken, {
-        patientIds: [...(newCls.patientIds ?? []), patientId],
-        updatedAt: now,
-      })
-      className = newCls.name
-    } else if (data.classId) {
-      className = getMedicineCategoryName(data.classId) ?? className
-    }
+    className = getMedicineCategoryName(data.classId) ?? className
   }
 
   const updated: Patient = {
@@ -224,6 +185,12 @@ export async function updatePatientRecord(
     idToken,
     patchData as Record<string, unknown>
   )
+  await addBusinessActivity(
+    idToken,
+    businessId,
+    'patient_updated',
+    `Patient ${updated.firstName} ${updated.lastName === '-' ? '' : updated.lastName} updated (ID ${updated.rollNumber})`.replace('  ', ' ')
+  )
   return updated
 }
 
@@ -237,20 +204,11 @@ export async function deletePatientRecord(
     throw new Error('Patient not found')
   }
 
-  const now = new Date().toISOString()
-
-  if (patient.classId) {
-    const cls = await fetchFirestoreDocument<Medicine>(
-      `businesses/${businessId}/classes/${patient.classId}`,
-      idToken
-    )
-    if (cls) {
-      await patchFirestoreDocument(`businesses/${businessId}/classes/${cls.id}`, idToken, {
-        patientIds: (cls.patientIds ?? []).filter((sid) => sid !== patientId),
-        updatedAt: now,
-      })
-    }
-  }
-
   await deleteFirestoreDocument(`businesses/${businessId}/${PATIENTS_COLLECTION}/${patientId}`, idToken)
+  await addBusinessActivity(
+    idToken,
+    businessId,
+    'patient_removed',
+    `Patient ${patient.firstName} ${patient.lastName === '-' ? '' : patient.lastName} removed (ID ${patient.rollNumber})`.replace('  ', ' ')
+  )
 }

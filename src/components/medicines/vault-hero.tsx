@@ -11,9 +11,9 @@ export function VaultHero() {
           <Library className="h-3 w-3" />
           {'Clinical vault'}
         </div>
-        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+        <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           {'Vault'}
-        </h2>
+        </h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           {'Configure medicines, disease catalogs, and flag rules that power prescriptions and patient care.'}
         </p>

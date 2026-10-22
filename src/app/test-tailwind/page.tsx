@@ -1,6 +1,6 @@
 'use client'
 
-import { useTheme } from '@/components'
+import { useTheme } from '@/components/theme-provider'
 import { useState, useEffect } from 'react'
 
 export default function TestTailwind() {

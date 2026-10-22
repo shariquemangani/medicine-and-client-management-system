@@ -2,17 +2,23 @@
 
 import { BookOpen, Plus, Download, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePermission } from '@/hooks/use-permission'
 import { t } from '@/lib/labels'
+import { Skel } from '@/components/medicines/skeleton-bits'
 
 interface MedicinesHeroProps {
   total?: number
   active?: number
   onRefresh: () => void
+  onExport?: () => void
   onAdd: () => void
   refreshing?: boolean
+  loading?: boolean
 }
 
-export function MedicinesHero({ total, active, onRefresh, onAdd, refreshing }: MedicinesHeroProps) {
+export function MedicinesHero({ total, active, onRefresh, onExport, onAdd, refreshing, loading }: MedicinesHeroProps) {
+  const { hasPermission } = usePermission()
+  const canCreate = hasPermission('medicines', 'create')
   return (
     <div className="classes-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
       <div className="classes-hero-mesh pointer-events-none" aria-hidden />
@@ -22,10 +28,14 @@ export function MedicinesHero({ total, active, onRefresh, onAdd, refreshing }: M
             <BookOpen className="h-3 w-3" />
             {t('medicines.vaultBadge')}
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             {t('medicines.heroTitle')}
-          </h2>
-          {typeof total === 'number' ? (
+          </h1>
+          {loading ? (
+            <div className="mt-1.5" aria-busy="true">
+              <Skel className="h-4 w-48" />
+            </div>
+          ) : typeof total === 'number' ? (
             <p className="mt-1 text-sm text-muted-foreground">
               {t('medicines.listHeroSubtitle', {
                 total,
@@ -42,17 +52,19 @@ export function MedicinesHero({ total, active, onRefresh, onAdd, refreshing }: M
             onClick={onRefresh}
             disabled={refreshing}
           >
-            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             {t('common.refresh')}
           </Button>
-          <Button variant="outline" size="sm" className="classes-hero-btn">
+          <Button variant="outline" size="sm" className="classes-hero-btn" onClick={onExport} disabled={!onExport}>
             <Download className="mr-1.5 h-3.5 w-3.5" />
             {t('common.export')}
           </Button>
-          <Button size="sm" className="classes-hero-primary" onClick={onAdd}>
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            {t('medicines.addMedicine')}
-          </Button>
+          {canCreate && (
+            <Button size="sm" className="classes-hero-primary" onClick={onAdd}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              {t('medicines.addMedicine')}
+            </Button>
+          )}
         </div>
       </div>
     </div>

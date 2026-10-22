@@ -2,7 +2,7 @@ interface LoginLinesBackgroundProps {
   className?: string
 }
 
-/** Pure CSS animated grid — zero patient JS, no canvas. */
+/** Static CSS grid — zero patient JS, no canvas. */
 export function LoginLinesBackground({ className }: LoginLinesBackgroundProps) {
   return (
     <div className={className} aria-hidden>

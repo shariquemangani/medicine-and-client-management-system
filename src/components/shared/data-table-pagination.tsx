@@ -42,18 +42,23 @@ export function DataTablePagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page <= 1}
+          aria-label="Previous page"
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        {Array.from({ length: totalPages }).slice(0, 5).map((_, i) => {
-          const pageNum = i + 1
+        {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+          // Sliding window of up to 5 pages centred on the current page.
+          const windowStart = Math.max(1, Math.min(page - 2, totalPages - 4))
+          const pageNum = windowStart + i
           return (
             <Button
               key={pageNum}
               variant={pageNum === page ? 'default' : 'outline'}
               size="sm"
               className={cn('h-8 w-8 p-0 text-xs', pageNum === page && activePageClassName)}
+              aria-label={`Page ${pageNum}`}
+              aria-current={pageNum === page ? 'page' : undefined}
               onClick={() => onPageChange(pageNum)}
             >
               {pageNum}
@@ -65,6 +70,7 @@ export function DataTablePagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page >= totalPages}
+          aria-label="Next page"
           onClick={() => onPageChange(page + 1)}
         >
           <ChevronRight className="h-4 w-4" />

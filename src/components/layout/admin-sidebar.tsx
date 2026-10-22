@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/redux'
 import { toggleSidebar, setMobileSidebarOpen, setSidebarCollapsed, logout } from '@/redux/slices'
 import {
   LayoutDashboard,
-  GraduationCap,
+  Stethoscope,
   Users,
   BookOpen,
   FileText,
@@ -35,6 +35,7 @@ import { useState, useEffect, useMemo } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { canAccessPath } from '@/lib/permissions'
 import { t } from '@/lib/labels'
+import { readStoredAuthSession } from '@/lib/auth-session'
 import { ROUTES } from '@/lib/routes'
 
 type NavAccent =
@@ -141,6 +142,12 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
   const { user, isLoggingOut } = useAppSelector((s) => s.auth)
   const collapsed = mobile ? false : sidebarCollapsed
   const [logoutOpen, setLogoutOpen] = useState(false)
+  // Cached role keeps the right menu items on the first paint, before the session is verified.
+  const [cachedRole, setCachedRole] = useState<string | null>(null)
+  useEffect(() => {
+    setCachedRole(readStoredAuthSession()?.user.role ?? null)
+  }, [])
+  const effectiveRole = user?.role ?? cachedRole
 
   const navGroups = useMemo(
     () =>
@@ -148,14 +155,14 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
         .map((group) => ({
           title: t(group.titleKey),
           items: group.items
-            .filter((item) => canAccessPath(user?.role, item.href, 'view'))
+            .filter((item) => canAccessPath(effectiveRole, item.href, 'view'))
             .map((item) => ({
               ...item,
               label: t(item.labelKey),
             })),
         }))
         .filter((group) => group.items.length > 0),
-    [user?.isActive, user?.role]
+    [user?.isActive, effectiveRole]
   )
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A'
@@ -206,7 +213,7 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
           <div className="admin-sidebar-logo relative flex h-10 w-10 shrink-0 items-center justify-center">
             <div className="admin-sidebar-logo-ring" aria-hidden />
             <div className="admin-sidebar-logo-core">
-              <GraduationCap className="h-5 w-5 text-white" strokeWidth={1.75} />
+              <Stethoscope className="h-5 w-5 text-white" strokeWidth={1.75} />
             </div>
           </div>
           {!collapsed && (
@@ -214,7 +221,7 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
               <p className="truncate text-sm font-bold tracking-tight text-foreground">{'MediFlow'}</p>
               <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 <Sparkles className="h-2.5 w-2.5 text-primary" />
-                {'Admin'}
+                {effectiveRole === 'staff' ? 'Staff' : 'Admin'}
               </p>
             </div>
           )}

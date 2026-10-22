@@ -43,7 +43,7 @@ export function BillingBalancesPanel({
   pageSize,
   onPageChange,
 }: BillingBalancesPanelProps) {
-  const showSkeleton = loading && totalFiltered === 0 && summaries.length === 0
+  const showSkeleton = !!loading
 
   return (
     <div className="fees-balances space-y-4">
@@ -51,7 +51,7 @@ export function BillingBalancesPanel({
         <div className="fees-search relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder={'Search by patient, roll no, or class…'}
+            placeholder={'Search by patient, roll no, or category…'}
             className="fees-input pl-9"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -59,7 +59,11 @@ export function BillingBalancesPanel({
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <SlidersHorizontal className="h-3.5 w-3.5" />
-          <span>{`Showing ${totalFiltered} accounts`}</span>
+          {loading ? (
+            <span className="inline-block h-3.5 w-28 animate-pulse rounded-md bg-muted" />
+          ) : (
+            <span>{`Showing ${totalFiltered} accounts`}</span>
+          )}
         </div>
       </div>
 
@@ -86,12 +90,12 @@ export function BillingBalancesPanel({
         </button>
       </div>
 
-      <div className="clinic-table-shell overflow-hidden rounded-xl border">
+      <div className="clinic-table-shell overflow-x-auto rounded-xl border">
         <table className="clinic-table w-full">
           <thead>
             <tr className="clinic-table-head">
               <th>{'Patient'}</th>
-              <th>{'Class'}</th>
+              <th>{'Group'}</th>
               <th>{'Due'}</th>
               <th>{'Paid'}</th>
               <th>{'Balance'}</th>
@@ -99,7 +103,7 @@ export function BillingBalancesPanel({
               <th className="w-[5rem] text-right">{'Actions'}</th>
             </tr>
           </thead>
-          <tbody key={page}>
+          <tbody key={page} aria-busy={loading || undefined}>
             {showSkeleton ? (
               <FeesTableSkeleton rows={pageSize} />
             ) : summaries.length === 0 ? (
@@ -158,16 +162,22 @@ export function BillingBalancesPanel({
             )}
           </tbody>
         </table>
-        <DataTablePagination
-          page={page}
-          totalPages={totalPages}
-          start={start}
-          end={end}
-          totalFiltered={totalFiltered}
-          onPageChange={onPageChange}
-          emptyLabelKey="fees.noResults"
-          rangeLabelKey="fees.showingRange"
-        />
+        {loading ? (
+          <div className="clinic-pagination border-t px-4 py-3">
+            <div className="h-8 w-full animate-pulse rounded-md bg-muted" />
+          </div>
+        ) : (
+          <DataTablePagination
+            page={page}
+            totalPages={totalPages}
+            start={start}
+            end={end}
+            totalFiltered={totalFiltered}
+            onPageChange={onPageChange}
+            emptyLabelKey="billing.noResults"
+            rangeLabelKey="billing.showingRange"
+          />
+        )}
       </div>
     </div>
   )

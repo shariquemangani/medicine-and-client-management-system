@@ -42,6 +42,7 @@ interface PatientsFiltersProps {
   totalFiltered: number
   total: number
   totalAmount: number
+  loading?: boolean
   viewMode: 'table' | 'compact'
   onViewModeChange: (mode: 'table' | 'compact') => void
 }
@@ -60,6 +61,7 @@ export function PatientsFilters({
   totalFiltered,
   total,
   totalAmount,
+  loading = false,
   viewMode,
   onViewModeChange,
 }: PatientsFiltersProps) {
@@ -194,15 +196,21 @@ export function PatientsFilters({
           })}
           <span
             className="clinic-filter-chip clinic-filter-chip-billing rounded-full px-3 py-1 text-xs font-medium"
-            aria-label={`Total amount ${formatAmount(totalAmount)}`}
+            aria-label={loading ? 'Total amount loading' : `Total amount ${formatAmount(totalAmount)}`}
+            aria-busy={loading || undefined}
           >
-            Total Amount: {formatAmount(totalAmount)}
+            Total Amount:{' '}
+            {loading ? <span className="inline-block h-3 w-12 animate-pulse rounded-md bg-muted align-middle" /> : formatAmount(totalAmount)}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span>Showing {totalFiltered} of {total} patients</span>
+            {loading ? (
+              <span className="inline-block h-3 w-32 animate-pulse rounded-md bg-muted" aria-busy="true" />
+            ) : (
+              <span>Showing {totalFiltered} of {total} patients</span>
+            )}
           </div>
         </div>
       </div>

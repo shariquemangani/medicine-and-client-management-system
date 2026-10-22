@@ -6401,3 +6401,19 @@
   backdrop-filter: blur(5px) saturate(1.15);
   -webkit-backdrop-filter: blur(5px) saturate(1.15);
 }
+
+/* ---------------------------------------------------------------------------
+   Performance / no-motion policy
+   Pages paint static content immediately. There are no entrance, looping or loader animations
+   anywhere in the app; only skeleton placeholders (data still loading) may pulse.
+   --------------------------------------------------------------------------- */
+*:not(.animate-pulse):not(.dashboard-skeleton):not(.animate-breathing):not([data-skeleton]),
+*:not(.animate-pulse):not(.dashboard-skeleton):not(.animate-breathing):not([data-skeleton])::before,
+*:not(.animate-pulse):not(.dashboard-skeleton):not(.animate-breathing):not([data-skeleton])::after {
+  animation: none !important;
+}
+
+/* Safety net: any leftover spinner is hidden rather than spinning. */
+.animate-spin {
+  display: none !important;
+}

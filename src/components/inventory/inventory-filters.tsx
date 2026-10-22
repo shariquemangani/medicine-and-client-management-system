@@ -28,6 +28,7 @@ interface InventoryFiltersProps {
   total: number
   formTypes: string[]
   locations: string[]
+  loading?: boolean
 }
 
 const statusOptions: (StockLevelStatus | 'all')[] = [
@@ -48,6 +49,7 @@ export function InventoryFilters({
   total,
   formTypes,
   locations,
+  loading,
 }: InventoryFiltersProps) {
   const [searchDraft, setSearchDraft] = useState(filters.search)
 
@@ -155,9 +157,15 @@ export function InventoryFilters({
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {t('inventory.resultsCount', { filtered: totalFiltered, total })}
-      </p>
+      {loading ? (
+        <div className="flex h-4 items-center" aria-busy="true">
+          <div className="animate-pulse h-3 w-32 rounded-md bg-muted" />
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          {t('inventory.resultsCount', { filtered: totalFiltered, total })}
+        </p>
+      )}
     </div>
   )
 }

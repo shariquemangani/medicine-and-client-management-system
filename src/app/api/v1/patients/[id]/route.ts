@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    const { idToken, businessId } = await requireApiIdToken(request)
+    const { idToken, businessId } = await requireApiIdToken(request, { resource: 'patients', action: 'edit' })
     const { id } = await context.params
     const body = (await request.json()) as PatientProfileUpdateBody
     const updateInput = parsePatientUpdateBody(body)
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { idToken, businessId } = await requireApiIdToken(request)
+    const { idToken, businessId } = await requireApiIdToken(request, { resource: 'patients', action: 'delete' })
     const { id } = await context.params
     const { deletePatientRecord } = await import('@/lib/patients/patient-server')
     await deletePatientRecord(idToken, businessId, id)

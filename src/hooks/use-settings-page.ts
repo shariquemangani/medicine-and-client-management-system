@@ -15,9 +15,17 @@ import { computeSettingsPageStats } from '@/lib/settings-stats'
 import type { BusinessProfile, AcademicConfig, AdminUser } from '@/types'
 import type { SettingsNewUserForm } from '@/types/settings-page'
 import { defaultSettingsNewUser } from '@/types/settings-page'
-import { t } from '@/lib/labels'
+import { useAppSelector } from '@/redux'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE_RE = /^[+\d][\d\s()-]{6,19}$/
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback
+}
 
 export function useSettingsPage() {
+  const currentUserId = useAppSelector((s) => s.auth.user?.id)
   const [profile, setProfile] = useState<BusinessProfile | null>(null)
   const [academic, setAcademic] = useState<AcademicConfig | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -58,15 +66,35 @@ export function useSettingsPage() {
 
   const saveProfile = useCallback(async () => {
     if (!profile) return
-    await updateBusinessProfile(profile)
-    toast.success('Profile saved')
-  }, [profile, t])
+    if (!profile.name?.trim()) {
+      toast.error('Clinic name is required')
+      return
+    }
+    if (profile.email && !EMAIL_RE.test(profile.email.trim())) {
+      toast.error('Enter a valid email address')
+      return
+    }
+    if (profile.phone && !PHONE_RE.test(profile.phone.trim())) {
+      toast.error('Enter a valid phone number')
+      return
+    }
+    try {
+      await updateBusinessProfile(profile)
+      toast.success('Profile saved')
+    } catch (error) {
+      toast.error(errorMessage(error, 'Failed to save profile'))
+    }
+  }, [profile])
 
   const saveAcademic = useCallback(async () => {
     if (!academic) return
-    await updateAcademicConfig(academic)
-    toast.success('Operations config saved')
-  }, [academic, t])
+    try {
+      await updateAcademicConfig(academic)
+      toast.success('Operations config saved')
+    } catch (error) {
+      toast.error(errorMessage(error, 'Failed to save operations config'))
+    }
+  }, [academic])
 
   const refreshUsers = useCallback(async () => {
     setUsers(await fetchAdminUsers())
@@ -74,19 +102,43 @@ export function useSettingsPage() {
 
   const toggleUser = useCallback(
     async (user: AdminUser) => {
-      await updateAdminUser(user.id, { isActive: !user.isActive })
-      toast.success(user.isActive ? 'User disabled' : 'User enabled')
-      await refreshUsers()
+      if (user.isActive && user.id === currentUserId) {
+        toast.error('You cannot disable your own account')
+        return
+      }
+      try {
+        await updateAdminUser(user.id, { isActive: !user.isActive })
+        toast.success(user.isActive ? 'User disabled' : 'User enabled')
+        await refreshUsers()
+      } catch (error) {
+        toast.error(errorMessage(error, 'Failed to update user'))
+      }
     },
-    [refreshUsers, t]
+    [refreshUsers, currentUserId]
   )
 
   const createUser = useCallback(async () => {
-    await createAdminUser(newUser)
-    toast.success('User created')
-    setNewUser(defaultSettingsNewUser)
-    await refreshUsers()
-  }, [newUser, refreshUsers, t])
+    if (!newUser.name.trim()) {
+      toast.error('Name is required')
+      return
+    }
+    if (!EMAIL_RE.test(newUser.email.trim())) {
+      toast.error('Enter a valid email address')
+      return
+    }
+    if (newUser.password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    try {
+      await createAdminUser(newUser)
+      toast.success('User created')
+      setNewUser(defaultSettingsNewUser)
+      await refreshUsers()
+    } catch (error) {
+      toast.error(errorMessage(error, 'Failed to create user'))
+    }
+  }, [newUser, refreshUsers])
 
   return {
     profile,

@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
     }
 
-    const inviter = inviterSnap.data() as { businessId: string; role: UserRole }
+    const inviter = inviterSnap.data() as { businessId: string; role: UserRole; isActive?: boolean }
+    if (inviter.isActive === false) {
+      return NextResponse.json({ success: false, message: 'Account disabled' }, { status: 403 })
+    }
     if (inviter.role !== 'super_admin') {
       return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
     }
@@ -34,9 +37,13 @@ export async function POST(request: NextRequest) {
     const name = body.name.trim().replace(/\s+/g, ' ')
     const email = body.email.trim().toLowerCase()
 
-    if (body.password.length < 6) {
+    if (body.role !== 'staff' && body.role !== 'super_admin') {
+      return NextResponse.json({ success: false, message: 'Role must be staff or super_admin' }, { status: 400 })
+    }
+
+    if (body.password.length < 8) {
       return NextResponse.json(
-        { success: false, message: 'Password must be at least 6 characters' },
+        { success: false, message: 'Password must be at least 8 characters' },
         { status: 400 }
       )
     }
@@ -48,14 +55,20 @@ export async function POST(request: NextRequest) {
     })
 
     const now = new Date().toISOString()
-    await adminDb.doc(`users/${created.uid}`).set({
-      name,
-      email,
-      role: body.role,
-      businessId: inviter.businessId,
-      isActive: true,
-      createdAt: now,
-    })
+    try {
+      await adminDb.doc(`users/${created.uid}`).set({
+        name,
+        email,
+        role: body.role,
+        businessId: inviter.businessId,
+        isActive: true,
+        createdAt: now,
+      })
+    } catch (error) {
+      // Do not leave an Auth account without a profile (it could never sign in).
+      await adminAuth.deleteUser(created.uid).catch(() => undefined)
+      throw error
+    }
 
     return NextResponse.json({
       success: true,

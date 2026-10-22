@@ -4,7 +4,7 @@ import { Settings2, Tags } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FlagCategory } from '@/types/flag-config'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skel } from '@/components/medicines/skeleton-bits'
 
 interface FlagConfigCategoriesProps {
   categories: FlagCategory[]
@@ -41,7 +41,7 @@ export function FlagConfigCategories({
         {loading ? (
           <div className="space-y-2 p-2.5">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-xl" />
+              <Skel key={i} className="h-14 w-full rounded-xl" />
             ))}
           </div>
         ) : categories.length === 0 ? (

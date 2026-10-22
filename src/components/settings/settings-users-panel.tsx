@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { t } from '@/lib/labels'
 
 interface SettingsUsersPanelProps {
+  loading?: boolean
   users: AdminUser[]
   newUser: SettingsNewUserForm
   onNewUserChange: (user: SettingsNewUserForm) => void
@@ -18,6 +19,7 @@ interface SettingsUsersPanelProps {
 }
 
 export function SettingsUsersPanel({
+  loading,
   users,
   newUser,
   onNewUserChange,
@@ -38,8 +40,18 @@ export function SettingsUsersPanel({
               <th className="text-right">{'Actions'}</th>
             </tr>
           </thead>
-          <tbody>
-            {users.map((user) => (
+          <tbody aria-busy={loading || undefined}>
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <tr key={i} className="clinic-table-row">
+                    <td><div className="h-4 w-28 animate-pulse rounded-md bg-muted" /></td>
+                    <td><div className="h-4 w-40 animate-pulse rounded-md bg-muted" /></td>
+                    <td><div className="h-4 w-20 animate-pulse rounded-md bg-muted" /></td>
+                    <td><div className="h-5 w-16 animate-pulse rounded-full bg-muted" /></td>
+                    <td><div className="ml-auto h-8 w-16 animate-pulse rounded-md bg-muted" /></td>
+                  </tr>
+                ))
+              : users.map((user) => (
               <tr key={user.id} className="clinic-table-row">
                 <td className="font-medium text-foreground">{user.name}</td>
                 <td className="text-muted-foreground">{user.email}</td>
@@ -69,7 +81,7 @@ export function SettingsUsersPanel({
       </div>
 
       <div className="settings-add-user grid max-w-md gap-3 rounded-xl border border-border/50 bg-muted/20 p-4 dark:bg-muted/10">
-        <p className="text-sm font-semibold text-foreground">{'Add Admin User'}</p>
+        <p className="text-sm font-semibold text-foreground">{'Add Team Member'}</p>
         <Input
           placeholder={'Name'}
           className="settings-form-input"

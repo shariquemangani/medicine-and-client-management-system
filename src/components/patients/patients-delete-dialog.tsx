@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -66,7 +66,6 @@ export function PatientsDeleteDialog({
           >
             {loading ? (
               <>
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 Deleting...
               </>
             ) : (

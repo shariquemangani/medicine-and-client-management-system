@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/routes'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Activity, ArrowLeft, Loader2, Sparkles } from 'lucide-react'
+import { Activity, ArrowLeft, Sparkles } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,14 +28,11 @@ import type { DiseaseFormValues } from '@/types/disease'
 import { useDiseaseFlagOptions } from '@/hooks/use-disease-flag-options'
 import { t } from '@/lib/labels'
 import { toast } from 'sonner'
-import { useAppSelector } from '@/redux'
 
 export default function NewDiseasePage() {
   const router = useRouter()
-  const { isLoading: authLoading } = useAppSelector((s) => s.auth)
   const [values, setValues] = useState<DiseaseFormValues>(emptyDiseaseFormValues())
   const [saving, setSaving] = useState(false)
-  const [redirecting, setRedirecting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const {
     symptoms: symptomOptions,
@@ -58,26 +55,12 @@ export default function NewDiseasePage() {
     try {
       const payload = formValuesToDiseaseCreateInput(values)
       const disease = await createDisease(payload)
-      setRedirecting(true)
       toast.success(t('diseases.created'))
       router.replace(ROUTES.vaultDiseaseDetail(disease.id))
-    } catch {
-      toast.error(t('diseases.createFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('diseases.createFailed'))
       setSaving(false)
     }
-  }
-
-  if (authLoading || redirecting) {
-    return (
-      <div className="disease-vault-page dashboard-shell space-y-4" aria-busy="true">
-        <div className="dashboard-skeleton h-28 rounded-2xl" />
-        <div className="grid grid-cols-1 gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="dashboard-skeleton h-48 rounded-2xl" />
-          ))}
-        </div>
-      </div>
-    )
   }
 
   const confirmDiseaseName = values.name.trim() || 'Disease'
@@ -151,7 +134,6 @@ export default function NewDiseasePage() {
               >
                 {saving ? (
                   <>
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                     {t('common.saving')}
                   </>
                 ) : (

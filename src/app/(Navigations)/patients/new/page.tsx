@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, Loader2, UserPlus } from 'lucide-react'
+import { ChevronLeft, UserPlus } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
@@ -36,7 +36,6 @@ export default function NewPatientPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { creating } = useAppSelector((s) => s.patients)
-  const { isLoading: authLoading } = useAppSelector((s) => s.auth)
   const [diseaseOptions, setDiseaseOptions] = useState<CreatableMultiSelectOption[]>([])
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [pendingValues, setPendingValues] = useState<PatientRegistrationFormValues | null>(null)
@@ -73,19 +72,6 @@ export default function NewPatientPage() {
     await savePatient(pendingValues)
     setConfirmOpen(false)
     setPendingValues(null)
-  }
-
-  if (authLoading) {
-    return (
-      <div className="dashboard-shell space-y-4" aria-busy="true">
-        <div className="dashboard-skeleton h-28 rounded-2xl" />
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="dashboard-skeleton h-52 rounded-2xl" />
-          ))}
-        </div>
-      </div>
-    )
   }
 
   const confirmPatientName = pendingValues?.patientName.trim() || 'Patient'
@@ -150,7 +136,6 @@ export default function NewPatientPage() {
                   >
                     {creating ? (
                       <>
-                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                         Saving...
                       </>
                     ) : (

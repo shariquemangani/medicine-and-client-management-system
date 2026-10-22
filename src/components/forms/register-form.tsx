@@ -20,7 +20,6 @@ import { useAppDispatch, useAppSelector } from '@/redux'
 import { register, clearError } from '@/redux/slices'
 import { ROUTES } from '@/lib/routes'
 import {
-  Loader2,
   Eye,
   EyeOff,
   AlertCircle,
@@ -54,7 +53,7 @@ export function RegisterForm({ variant = 'default' }: RegisterFormProps) {
         .object({
           fullName: z.string().min(2, 'Full name must be at least 2 characters'),
           email: z.string().min(1, 'Email is required').email('Enter a valid email address'),
-          password: z.string().min(6, 'Password must be at least 6 characters'),
+          password: z.string().min(8, 'Password must be at least 8 characters'),
           confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
         })
         .refine((data) => data.password === data.confirmPassword, {
@@ -227,7 +226,6 @@ export function RegisterForm({ variant = 'default' }: RegisterFormProps) {
             >
               {busy ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
                   {'Creating account...'}
                 </>
               ) : (
@@ -339,7 +337,6 @@ export function RegisterForm({ variant = 'default' }: RegisterFormProps) {
           <Button type="submit" className="h-11 w-full" disabled={busy}>
             {busy ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {'Creating account...'}
               </>
             ) : (

@@ -1,15 +1,10 @@
-import { auth } from '@/lib/firebase/app'
+import { getFirebaseIdToken } from '@/lib/firebase/id-token'
 import type { ApiResponse } from '@/types'
 import type { FlagCategory, FlagCategoryWithFlags, FlagItem, FlagItemInput } from '@/types/flag-config'
 
 const CATEGORIES_API = '/api/v1/flag-categories'
 const FLAGS_API = '/api/v1/flags'
 
-async function getFirebaseIdToken() {
-  const user = auth.currentUser
-  if (!user) throw new Error('Not authenticated')
-  return user.getIdToken()
-}
 
 async function flagApiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const idToken = await getFirebaseIdToken()

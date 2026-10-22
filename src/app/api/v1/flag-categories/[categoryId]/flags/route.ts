@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { categoryId } = await context.params
-    const { idToken } = await requireAuthenticatedIdToken(request)
+    const { idToken } = await requireAuthenticatedIdToken(request, { resource: 'medicines', action: 'create' })
     const body = (await request.json()) as FlagBulkCreateInput & FlagItemInput
 
     const labels =

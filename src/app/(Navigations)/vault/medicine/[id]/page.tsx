@@ -5,14 +5,13 @@ import { ROUTES } from '@/lib/routes'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Sparkles } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
   MedicineDetailHeader,
   MedicineDetailView,
 } from '@/components/medicines/medicine-detail-view'
-import { MedicineDetailSkeleton } from '@/components/medicines/detail/medicine-detail-skeleton'
 import { MedicineVaultForm } from '@/components/medicines/medicine-vault-form'
 import {
   formValuesToMedicineCreateInput,
@@ -110,18 +109,16 @@ export default function MedicineDetailPage() {
       setFormValues(medicineToFormValues(updated))
       setIsEditing(false)
       toast.success(t('medicines.updated'))
-    } catch {
-      toast.error(t('medicines.saveFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('medicines.saveFailed'))
     } finally {
       setSaving(false)
     }
   }
 
-  if (authLoading || loading) {
-    return <MedicineDetailSkeleton />
-  }
+  const dataLoading = authLoading || loading
 
-  if (notFound || !medicine) {
+  if (!dataLoading && (notFound || !medicine)) {
     return (
       <div className="medicine-vault-page dashboard-shell space-y-4">
         <BentoCard colSpan={12} delay={0}>
@@ -142,9 +139,10 @@ export default function MedicineDetailPage() {
     )
   }
 
-  const headerName = isEditing && formValues ? formValues.name.trim() || medicine.name : medicine.name
+  const headerName =
+    isEditing && formValues ? formValues.name.trim() || medicine?.name : medicine?.name
   const headerCommonName =
-    isEditing && formValues ? formValues.commonName.trim() : medicine.commonName
+    isEditing && formValues ? formValues.commonName.trim() : medicine?.commonName
 
   return (
     <div className="medicine-vault-page dashboard-shell space-y-4">
@@ -173,11 +171,9 @@ export default function MedicineDetailPage() {
                     disabled={saving}
                     onClick={handleSave}
                   >
-                    {saving ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
+                    {!saving && (
                       <Sparkles className="h-3.5 w-3.5" />
-                    )}
+)}
                     {saving ? t('common.saving') : t('common.save')}
                   </Button>
                 </div>
@@ -201,7 +197,9 @@ export default function MedicineDetailPage() {
         <BentoGrid>
           <BentoCard colSpan={12} delay={0} className="!bg-transparent !border-0 !shadow-none !p-0">
             <MedicineDetailView
-              medicine={medicine}
+              medicine={dataLoading ? null : medicine}
+              loading={dataLoading}
+              optionsLoading={flagOptionsLoading}
               flagOptions={flagOptions}
               onEdit={handleEdit}
             />

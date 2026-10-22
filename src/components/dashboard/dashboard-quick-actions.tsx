@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, BookOpen, GraduationCap, Users, Wallet } from 'lucide-react'
+import { ArrowRight, BookOpen, Package, UserPlus, Wallet } from 'lucide-react'
 import { t } from '@/lib/labels'
 import { ROUTES } from '@/lib/routes'
 
@@ -9,13 +9,13 @@ const links = [
   {
     href: ROUTES.patientsNew,
     labelKey: 'patients.addPatient',
-    icon: GraduationCap,
+    icon: UserPlus,
     accent: '--metric-patients',
   },
   {
     href: ROUTES.inventory,
     labelKey: 'nav.inventory',
-    icon: Users,
+    icon: Package,
     accent: '--metric-inventory',
   },
   {

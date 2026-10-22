@@ -95,6 +95,7 @@ export function FlagConfigurationView() {
               onBack={backToCategories}
               showBack
               loading={flagsLoading}
+              categoriesLoading={categoriesLoading}
               disabled={mutating}
               className="h-full"
             />

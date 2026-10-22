@@ -115,7 +115,7 @@ export function Combobox({
                 className="text-primary"
               >
                 <span className="mr-2">+</span>
-                Add "{searchTerm}"
+                Add &quot;{searchTerm}&quot;
               </CommandItem>
             )}
           </CommandGroup>

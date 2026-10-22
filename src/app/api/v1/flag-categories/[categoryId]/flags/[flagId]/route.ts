@@ -9,7 +9,7 @@ type RouteContext = { params: Promise<{ categoryId: string; flagId: string }> }
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const { categoryId, flagId } = await context.params
-    const { idToken } = await requireAuthenticatedIdToken(request)
+    const { idToken } = await requireAuthenticatedIdToken(request, { resource: 'medicines', action: 'edit' })
     const body = (await request.json()) as FlagItemInput
     if (!body.label?.trim()) {
       return NextResponse.json({ error: 'Flag label is required' }, { status: 400 })
@@ -34,7 +34,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
     const { categoryId, flagId } = await context.params
-    const { idToken } = await requireAuthenticatedIdToken(_request)
+    const { idToken } = await requireAuthenticatedIdToken(_request, { resource: 'medicines', action: 'delete' })
     await deleteFlag(idToken, categoryId, flagId)
     return NextResponse.json({ data: { success: true } })
   } catch (error) {

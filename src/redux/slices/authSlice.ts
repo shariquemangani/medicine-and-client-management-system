@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import type { AdminUser } from '@/types'
 import { authService } from '@/services/auth-services'
-import { clearAuthSession } from '@/lib/auth-session'
+import { clearAuthSession, readStoredAuthSession } from '@/lib/auth-session'
 import { clearBusinessId } from '@/lib/firebase/business-context'
 
 interface AuthState {
@@ -10,6 +10,8 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   isLoggingOut: boolean
+  /** True once the server session and profile were confirmed (cached profiles render before that). */
+  sessionVerified: boolean
   error: string | null
 }
 
@@ -19,6 +21,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: true,
   isLoggingOut: false,
+  sessionVerified: false,
   error: null,
 }
 
@@ -52,10 +55,22 @@ export const register = createAsyncThunk(
 
 export const initAuth = createAsyncThunk(
   'auth/init',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
+      // Fast path: a cached profile plus a live session cookie means the user was signed in on
+      // this device. Render the app right away and verify against Firebase in the background.
+      const cached = readStoredAuthSession()
+      if (cached && authService.hasSessionFlag()) {
+        void authService
+          .restoreSession()
+          .then((session) => dispatch(session ? sessionConfirmed(session.user) : sessionInvalidated()))
+          // Network hiccup: keep the user in, the next request will surface a real auth failure.
+          .catch(() => dispatch(sessionConfirmed(null)))
+        return { user: cached.user, token: null, verified: false }
+      }
+
       const session = await authService.restoreSession()
-      return session
+      return session ? { user: session.user, token: session.token, verified: true } : null
     } catch {
       clearAuthSession()
       return rejectWithValue('Failed to restore session')
@@ -89,6 +104,19 @@ const authSlice = createSlice({
     clearError(state) {
       state.error = null
     },
+    /** Background verification succeeded (optionally with a refreshed profile). */
+    sessionConfirmed(state, action: PayloadAction<AdminUser | null>) {
+      state.sessionVerified = true
+      if (action.payload) state.user = action.payload
+    },
+    /** Background verification found no valid Firebase user / profile: sign the app out. */
+    sessionInvalidated(state) {
+      state.isAuthenticated = false
+      state.user = null
+      state.token = null
+      state.sessionVerified = false
+      state.isLoading = false
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -99,6 +127,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false
         state.isLoggingOut = false
+        state.sessionVerified = true
         state.isAuthenticated = true
         state.token = action.payload.token
         state.user = action.payload.user
@@ -115,6 +144,7 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false
         state.isLoggingOut = false
+        state.sessionVerified = true
         state.isAuthenticated = true
         state.token = action.payload.token
         state.user = action.payload.user
@@ -137,6 +167,7 @@ const authSlice = createSlice({
           state.isAuthenticated = true
           state.token = action.payload.token
           state.user = action.payload.user
+          state.sessionVerified = action.payload.verified
           return
         }
         // Do not wipe a session established while initAuth was in flight
@@ -176,4 +207,5 @@ const authSlice = createSlice({
 })
 
 export const { clearError } = authSlice.actions
+export const { sessionConfirmed, sessionInvalidated } = authSlice.actions
 export default authSlice.reducer

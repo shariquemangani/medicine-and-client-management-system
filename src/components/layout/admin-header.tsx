@@ -1,12 +1,15 @@
 'use client'
 
-import { useMemo, Fragment } from 'react'
+import { useEffect, useMemo, useState, Fragment } from 'react'
+import { readStoredAuthSession } from '@/lib/auth-session'
+import type { AdminUser } from '@/types'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/redux'
 import { toggleMobileSidebar } from '@/redux/slices'
 import { ModeToggle } from '@/components/mode-toggle'
+import { StockAlertsBell } from '@/components/layout/stock-alerts-bell'
 import { Button } from '@/components/ui/button'
 import {
   Breadcrumb,
@@ -21,7 +24,13 @@ import { t } from '@/lib/labels'
 
 export function AdminHeader() {
   const pathname = usePathname()
-  const { user } = useAppSelector((s) => s.auth)
+  const { user: sessionUser } = useAppSelector((s) => s.auth)
+  // Cached profile so the name/role do not pop in after the session check.
+  const [cachedUser, setCachedUser] = useState<AdminUser | null>(null)
+  useEffect(() => {
+    setCachedUser(readStoredAuthSession()?.user ?? null)
+  }, [])
+  const user = sessionUser ?? cachedUser
   const breadcrumbOverrides = useAppSelector((s) => s.ui.breadcrumbOverrides)
   const dispatch = useAppDispatch()
   const segments = useMemo(
@@ -78,6 +87,7 @@ export function AdminHeader() {
           </Breadcrumb>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <StockAlertsBell />
           <ModeToggle />
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">

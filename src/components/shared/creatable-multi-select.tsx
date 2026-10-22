@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Check, ChevronsUpDown, Loader2, Plus } from 'lucide-react'
+import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -159,11 +159,9 @@ export function CreatableMultiSelect({
                   onSelect={() => void handleCreate()}
                   className="cursor-pointer text-primary"
                 >
-                  {creating ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
+                  {!creating && (
                     <Plus className="mr-2 h-4 w-4" />
-                  )}
+)}
                   {createLabel(normalizedSearch)}
                 </CommandItem>
               ) : null}

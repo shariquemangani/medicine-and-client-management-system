@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/routes'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { ArrowLeft, FlaskConical, Loader2, Sparkles } from 'lucide-react'
+import { ArrowLeft, FlaskConical, Sparkles } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,11 +28,9 @@ import type { MedicineFormValues } from '@/types/medicine'
 import { useMedicineFlagOptions } from '@/hooks/use-medicine-flag-options'
 import { t } from '@/lib/labels'
 import { toast } from 'sonner'
-import { useAppSelector } from '@/redux'
 
 export default function NewMedicinePage() {
   const router = useRouter()
-  const { isLoading: authLoading } = useAppSelector((s) => s.auth)
   const [values, setValues] = useState<MedicineFormValues>(emptyMedicineFormValues)
   const [saving, setSaving] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -60,24 +58,11 @@ export default function NewMedicinePage() {
       toast.success(t('medicines.created'))
       setConfirmOpen(false)
       router.push(ROUTES.vaultMedicineDetail(medicine.id))
-    } catch {
-      toast.error(t('medicines.createFailed'))
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : t('medicines.createFailed'))
     } finally {
       setSaving(false)
     }
-  }
-
-  if (authLoading) {
-    return (
-      <div className="dashboard-shell space-y-4" aria-busy="true">
-        <div className="dashboard-skeleton h-28 rounded-2xl" />
-        <div className="grid grid-cols-1 gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="dashboard-skeleton h-48 rounded-2xl" />
-          ))}
-        </div>
-      </div>
-    )
   }
 
   const confirmMedicineName = values.name.trim() || 'Medicine'
@@ -151,7 +136,6 @@ export default function NewMedicinePage() {
               >
                 {saving ? (
                   <>
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                     {t('common.saving')}
                   </>
                 ) : (

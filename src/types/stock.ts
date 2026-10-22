@@ -55,6 +55,8 @@ export interface StockMovement {
   reference?: string
   notes?: string
   performedBy?: string
+  /** Firebase uid of the user who made the movement (audit trail). */
+  performedById?: string
   balanceAfter: number
   createdAt: string
 }
@@ -83,10 +85,19 @@ export interface StockReceiveInput {
   notes?: string
 }
 
+export type StockAdjustType = 'dispense' | 'adjustment' | 'return' | 'expired'
+
 export interface StockAdjustInput {
   stockItemId: string
-  type: 'dispense' | 'adjustment' | 'return' | 'expired'
+  type: StockAdjustType
+  /** Always a positive number; the direction is derived from `type` and `direction`. */
   quantity: number
+  /**
+   * Only for `adjustment` (count corrections): `in` adds to a batch, `out` removes.
+   * `dispense` and `expired` always remove stock, `return` always adds it back.
+   */
+  direction?: 'in' | 'out'
+  /** Required whenever stock is added (`return`, or `adjustment` with direction `in`). */
   batchId?: string
   reference?: string
   notes?: string
@@ -106,3 +117,24 @@ export interface StockAlert {
   batchNumber?: string
   severity: 'info' | 'warning' | 'critical'
 }
+
+/** Fields a user can set when creating or editing a stock item (SKU). */
+export interface StockItemInput {
+  medicineId: string
+  medicineName: string
+  commonName?: string
+  formType?: string
+  potency?: string
+  unit: StockUnit
+  reorderLevel: number
+  reorderQuantity: number
+  location: string
+  supplier?: string
+}
+
+export type StockItemUpdate = Partial<
+  Pick<
+    StockItemInput,
+    'unit' | 'reorderLevel' | 'reorderQuantity' | 'location' | 'supplier' | 'commonName' | 'formType'
+  >
+>

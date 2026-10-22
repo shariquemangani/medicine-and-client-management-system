@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Loader2,
   Trash2,
 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -18,6 +17,7 @@ import { formatPatientAmount } from '@/lib/patient-stats'
 import { PatientDiseaseCell } from '@/components/patients/patient-disease-cell'
 import { PatientsCompactSkeleton, PatientsTableSkeleton } from '@/components/patients/patients-skeleton'
 import { Button } from '@/components/ui/button'
+import { usePermission } from '@/hooks/use-permission'
 import { cn } from '@/lib/utils'
 
 interface PatientsDataTableProps {
@@ -96,6 +96,8 @@ function PatientRowActions({
   onDelete: (patient: Patient) => void
 }) {
   const fullName = getPatientDisplayName(patient)
+  const { hasPermission } = usePermission()
+  const canDelete = hasPermission('patients', 'delete')
 
   return (
     <div
@@ -112,15 +114,17 @@ function PatientRowActions({
       >
         <Eye className="h-3.5 w-3.5" />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="clinic-table-action clinic-table-action-delete h-7 w-7"
-        aria-label={`Delete ${fullName}`}
-        onClick={() => onDelete(patient)}
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </Button>
+      {canDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="clinic-table-action clinic-table-action-delete h-7 w-7"
+          aria-label={`Delete ${fullName}`}
+          onClick={() => onDelete(patient)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      )}
     </div>
   )
 }
@@ -346,7 +350,6 @@ function PatientsTableBusyOverlay() {
       aria-hidden
     >
       <div className="flex items-center gap-2 rounded-full border border-[hsl(var(--glass-border))] bg-background/90 px-4 py-2 shadow-sm">
-        <Loader2 className="h-4 w-4 animate-spin text-[hsl(var(--metric-patients))]" />
         <span className="text-xs font-medium text-foreground">Updating patients...</span>
       </div>
     </div>
@@ -368,6 +371,8 @@ function PatientsPagination({
   totalFiltered: number
   onPageChange: (page: number) => void
 }) {
+  const { hasPermission } = usePermission()
+  const canDelete = hasPermission('patients', 'delete')
   return (
     <div className="clinic-pagination flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
@@ -379,6 +384,7 @@ function PatientsPagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page <= 1}
+          aria-label="Previous page"
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -402,6 +408,7 @@ function PatientsPagination({
           size="sm"
           className="h-8 w-8 p-0"
           disabled={page >= totalPages}
+          aria-label="Next page"
           onClick={() => onPageChange(page + 1)}
         >
           <ChevronRight className="h-4 w-4" />
