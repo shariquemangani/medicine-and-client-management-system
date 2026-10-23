@@ -37,7 +37,6 @@ export const SIDEBAR_SECTION_PATHS = [
   ROUTES.patients,
   ROUTES.vaultMedicine,
   ROUTES.inventory,
-  ROUTES.prescriptions,
   ROUTES.billing,
   ROUTES.settings,
 ] as const

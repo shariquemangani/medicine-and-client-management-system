@@ -109,10 +109,14 @@ module.exports = {
 					'2xl': '6rem'
 				}
 			},
+			// Tight, professional scale: cards, panels and tables use 2xl (12px); controls use lg/xl.
 			borderRadius: {
+				sm: '4px',
+				md: '6px',
 				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				xl: '10px',
+				'2xl': '12px',
+				'3xl': '14px'
 			}
 		}
 	},

@@ -10,7 +10,6 @@ const PROTECTED = [
   '/vault/diseases/new',
   '/vault/flag-configurations',
   '/inventory',
-  '/prescriptions',
   '/billing',
   '/settings',
 ]

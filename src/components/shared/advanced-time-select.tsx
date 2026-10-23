@@ -99,7 +99,7 @@ export function AdvancedTimeSelect({
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md gap-0 overflow-hidden p-0 sm:rounded-[28px]">
+      <DialogContent className="max-w-md gap-0 overflow-hidden p-0 sm:rounded-2xl">
         <DialogHeader className="space-y-1 border-b border-border px-6 py-5 text-left">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[hsl(var(--metric-medicines)/0.12)]">
@@ -312,7 +312,7 @@ export function AdvancedTimeRangeSelect({
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg gap-0 overflow-hidden p-0 sm:rounded-[28px]">
+      <DialogContent className="max-w-lg gap-0 overflow-hidden p-0 sm:rounded-2xl">
         <DialogHeader className="space-y-1 border-b border-border px-6 py-5 text-left">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[hsl(var(--metric-medicines)/0.12)]">

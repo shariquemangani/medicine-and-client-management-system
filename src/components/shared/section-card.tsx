@@ -10,7 +10,7 @@ export function SectionCard({ className, ...props }: React.HTMLAttributes<HTMLDi
   return (
     <section
       className={cn(
-        'flex min-w-0 flex-col overflow-hidden rounded-[20px] border border-border bg-card/90 text-card-foreground',
+        'flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/90 text-card-foreground',
         'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06),0_1px_2px_hsl(0_0%_0%/0.12)]',
         className
       )}

@@ -602,7 +602,7 @@
   /* Standard table surface (shared by every list page): 20px radius, 1px border, soft highlight. */
   .clinic-table-shell {
     border-color: hsl(var(--border));
-    border-radius: 20px;
+    border-radius: 12px;
     background: hsl(var(--card) / 0.9);
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.06), 0 1px 2px hsl(0 0% 0% / 0.12);
     overflow: hidden;
@@ -685,7 +685,7 @@
   }
 
   .dark .clinic-table-patients .clinic-table-row:hover .clinic-table-actions-col {
-    background: hsl(var(--metric-patients) / 0.18);
+    background: hsl(var(--muted));
   }
 
   .clinic-table-head {
@@ -806,7 +806,7 @@
 
   .clinic-compact-card {
     border: 1px solid hsl(var(--sidebar-border));
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     background: hsl(var(--glass) / 0.5);
     padding: 1rem;
     transition: all 0.25s ease;
@@ -1659,7 +1659,7 @@
 
   .patient-detail-tabs {
     border: 1px solid hsl(var(--glass-border));
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     background: hsl(var(--glass) / 0.45);
     backdrop-filter: blur(12px);
     padding: 0.25rem;
@@ -2148,28 +2148,8 @@
   }
 
   .clinic-form-section-header-ornament {
-    position: relative;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--section-accent) / 0.2) 12%,
-      hsl(var(--section-accent) / 0.55) 50%,
-      hsl(var(--section-accent) / 0.2) 88%,
-      transparent
-    );
-  }
-
-  .clinic-form-section-header-ornament::before {
-    content: '';
-    position: absolute;
-    inset: -3px 0 auto;
-    left: 50%;
-    width: 7px;
-    height: 7px;
-    transform: translateX(-50%) rotate(45deg);
-    border: 1px solid hsl(var(--section-accent) / 0.45);
-    background: hsl(var(--card));
+    background: hsl(var(--border) / 0.7);
   }
 
   .clinic-phone-input {
@@ -2238,7 +2218,7 @@
 
   .patient-detail-tabs {
     border: 1px solid hsl(var(--glass-border));
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     background: hsl(var(--glass) / 0.45);
     backdrop-filter: blur(12px);
     padding: 0.25rem;
@@ -2628,7 +2608,7 @@
 
   .login-card-shell {
     padding: 1px;
-    border-radius: 1.35rem;
+    border-radius: 0.75rem;
     background: linear-gradient(
       145deg,
       hsl(var(--metric-patients) / 0.45) 0%,
@@ -2640,7 +2620,7 @@
   .login-card-inner {
     position: relative;
     overflow: hidden;
-    border-radius: calc(1.35rem - 1px);
+    border-radius: calc(0.75rem - 1px);
     background: hsl(var(--glass));
     border: 1px solid hsl(var(--glass-border));
     backdrop-filter: blur(28px) saturate(1.2);
@@ -2714,7 +2694,7 @@
   .login-card-icon-ring {
     position: absolute;
     inset: 0;
-    border-radius: 1rem;
+    border-radius: 0.75rem;
     border: 1px solid hsl(var(--glass-border));
   }
 

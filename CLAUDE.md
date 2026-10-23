@@ -210,7 +210,7 @@ TEST_USER_EMAIL= / TEST_USER_PASSWORD=   # Playwright, TEST project only
 
 ## Known Issues, Gaps & Technical Debt
 
-- **/prescriptions** is school-exam logic with renamed labels; Enter Marks/Results cannot work (reads a `patientIds` field medicines do not have). Rebuild as a prescription register or remove (plan section 2.3).
+- **/prescriptions** (school-exam logic) was retired: removed from the sidebar, the page and its components deleted, `/prescriptions` redirects to `/patients`. Prescriptions live on each patient. A real prescription register is still a possible feature.
 - **Flag taxonomy** is per clinic (`businesses/{b}/flagCategories`), seeded on first use from the read-only global template `flagCategories` (only the Admin SDK / migration script can change the template).
 - **Billing** has no UI for fee structures/categories or due dates, so Due is always 0 until data is seeded.
 - **Client-SDK writes**: billing/settings/medicine writes go straight from the browser; Firestore rules are the guard. API routes (`/api/v1/*`) check roles server-side.
@@ -268,3 +268,4 @@ Full audit: `docs/NEXTJS-CODE-REVIEW.md`; plan and status: `docs/FIX-PLAN.md`.
 - **Every card header is one of two components, both with the same accent icon tile:** `CardHeader` (`src/components/shared/card-header.tsx`, form-style, optional ornament line) or `SectionCardHeader` (table/panel cards, bottom border). Pass `accent`: patients, staff, medicines, fees, inventory, prescriptions (all defined in `globals.css` under `.clinic-form-section-header[data-accent]`; a new accent needs a rule there or the tile loses its colour). `PatientFormSectionHeader` is a thin wrapper kept for old call sites.
 - Stat tiles are one compact row (`metric-stat metric-stat-compact`: 36px icon tile, title over value). BentoCard padding is `p-4`. Do not wrap a form in an invisible BentoCard (the inner glass panel still draws); use a plain `div`.
 - Cards have no hover effect; only table rows and buttons keep hover states.
+- **Radius scale** (`tailwind.config.js`): `rounded-2xl` = 12px for cards, panels and tables; `xl` 10px, `lg` 8px for controls. Do not use arbitrary `rounded-[20px]`-style values. Patient detail opens with a summary strip (ID, phone, last visit, visits, fees); section headers use a plain hairline, not an ornament.

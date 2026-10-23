@@ -46,7 +46,7 @@ const primarySortableColumns: { field: PatientSortField; label: string; classNam
 ]
 
 const trailingSortableColumns: { field: PatientSortField; label: string; className?: string }[] = [
-  { field: 'address', label: 'Address' },
+  { field: 'address', label: 'Address', className: 'hidden xl:table-cell' },
   { field: 'fees', label: 'Total Amount' },
 ]
 
@@ -211,7 +211,7 @@ export function PatientsDataTable({
             ))
           )}
         </div>
-        <div className="clinic-table-shell relative overflow-hidden rounded-[20px] border">
+        <div className="clinic-table-shell relative overflow-hidden rounded-2xl border">
           {tableBusy ? <PatientsTableBusyOverlay /> : null}
           <PatientsPagination
             page={page}
@@ -229,7 +229,7 @@ export function PatientsDataTable({
   return (
     <div
       className={cn(
-        'clinic-table-shell clinic-table-shell-patients relative overflow-hidden rounded-[20px] border',
+        'clinic-table-shell clinic-table-shell-patients relative overflow-hidden rounded-2xl border',
         tableBusy && 'pointer-events-none'
       )}
       aria-busy={tableBusy || loading || undefined}
@@ -241,7 +241,7 @@ export function PatientsDataTable({
         aria-label="Patients table"
         tabIndex={0}
       >
-        <table className="clinic-table clinic-table-patients w-full min-w-[80rem]">
+        <table className="clinic-table clinic-table-patients w-full min-w-[48rem]">
           <caption className="sr-only">Patients</caption>
           <thead>
             <tr className="clinic-table-head clinic-table-head-sticky">
@@ -273,12 +273,12 @@ export function PatientsDataTable({
                 onClick={() => onView(patient)}
               >
                 <td>
-                  <MemberCell name={getPatientDisplayName(patient)} secondary={patient.rollNumber} />
+                  <MemberCell name={getPatientDisplayName(patient)} />
                 </td>
                 <td>
                   <span className="clinic-roll-badge font-mono text-xs">{patient.rollNumber}</span>
                 </td>
-                <td className="min-w-[11rem]">
+                <td className="min-w-[9rem]">
                   <PatientDiseaseCell patient={patient} />
                 </td>
                 <td className="min-w-[7rem]">
@@ -287,10 +287,10 @@ export function PatientsDataTable({
                 <td className="min-w-[9rem]">
                   <div className="text-xs">
                     <p className="truncate text-foreground">{patient.phone || '—'}</p>
-                    <p className="truncate text-muted-foreground">{patient.email || '—'}</p>
+                    {patient.email ? <p className="truncate text-muted-foreground">{patient.email}</p> : null}
                   </div>
                 </td>
-                <td className="min-w-[10rem]">
+                <td className="hidden min-w-[8rem] xl:table-cell">
                   <p className="max-w-[14rem] truncate text-xs text-foreground">
                     {patient.address || '—'}
                   </p>
