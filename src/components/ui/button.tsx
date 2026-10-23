@@ -20,9 +20,9 @@ const buttonVariants = cva('btn-premium [&_svg]:pointer-events-none [&_svg]:size
       'gradient-ghost': 'btn-premium-gradient-ghost',
     },
     size: {
-      default: 'h-9 px-4 py-2',
-      sm: 'h-8 px-3 text-xs',
-      lg: 'h-10 px-8 text-base',
+      default: 'h-9 px-3.5 py-2',
+      sm: 'h-8 px-3 text-[13px]',
+      lg: 'h-10 px-5 text-sm',
       icon: 'h-9 w-9 p-0',
     },
   },

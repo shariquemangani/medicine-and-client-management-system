@@ -263,6 +263,15 @@ Full audit: `docs/NEXTJS-CODE-REVIEW.md`; plan and status: `docs/FIX-PLAN.md`.
 - **Cleanup**: unused UI wrappers, test routes, mock notifications, legacy service functions, orphan packages and about half of `globals.css` were removed; pages were verified pixel-identical (24 screenshots, light/dark).
 - **Install** no longer needs `--legacy-peer-deps` (override for `@firebase/rules-unit-testing`).
 
+## Control standard (modelled on the LigaX organisation screens)
+
+- **Buttons** (`ui/button.tsx` + the `UI standard` block at the end of `globals.css`): 36px default (32px `sm`), 8px radius, 14px/500, 6px icon gap, flat (no glow, no lift on hover), 150 ms transitions on colour/border/shadow only, one 2px focus ring.
+- **Inputs, textareas, select triggers**: share the `ui-field` class: 8px radius, `muted/30` fill, 1px border, faint inset top highlight, blue focus border + 2px ring, hover `muted/50`.
+- **Dropdowns** (select, dropdown menu, popover, command list): `rounded-xl` panel with border and soft large shadow, 4px padding, 32px items at 13px/500 with 8px radius, hover `muted`, selected item in brand colour with a check on the right.
+- **Tabs**: muted track (`rounded-xl`, 4px padding) with 28px triggers; active trigger is raised on the page background.
+- **Tables**: 11px/700 uppercase headers on a muted band, 14px cells, hairline row borders, 12px shell radius.
+- Tailwind 3.3 has no `min-h-10`; use `min-h-[2.5rem]`.
+
 ## Page headers & cards
 - **Every page header, including inner pages (new / detail / edit), is `PageHero`** (`src/components/shared/page-hero.tsx`): two lines (icon + h1 + badge, then muted subtitle), actions on the right (`heroButtonClass` / `heroPrimaryClass`). Inner pages pass `back={{ href, label }}` for a round back button. Place it in a `<div className="col-span-full">`, never inside a BentoCard. Each page renders exactly one `<h1>` in every state (loading, loaded, edit, not-found).
 - **Every card header is one of two components, both with the same accent icon tile:** `CardHeader` (`src/components/shared/card-header.tsx`, form-style, optional ornament line) or `SectionCardHeader` (table/panel cards, bottom border). Pass `accent`: patients, staff, medicines, fees, inventory, prescriptions (all defined in `globals.css` under `.clinic-form-section-header[data-accent]`; a new accent needs a rule there or the tile loses its colour). `PatientFormSectionHeader` is a thin wrapper kept for old call sites.
