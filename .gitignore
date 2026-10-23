@@ -150,3 +150,24 @@ playwright-report/
 undefined/
 .claude/
 *state.json
+
+# Next.js generated (rewritten on every dev/build/typegen; path depends on NEXT_DIST_DIR)
+next-env.d.ts
+
+# Secrets: service-account keys, certificates and ad-hoc env files (.env.* above does not match "prod.env")
+*.env
+!.env.example
+*-firebase-adminsdk-*.json
+*service-account*.json
+serviceAccount*.json
+*.pem
+*.p12
+*.pfx
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+
+# Local scratch output (screenshots, scripts)
+tests/_shots/
