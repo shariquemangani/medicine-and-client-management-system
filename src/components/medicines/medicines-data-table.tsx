@@ -40,13 +40,6 @@ interface MedicinesDataTableProps {
   viewMode: 'table' | 'compact'
 }
 
-function handleRowKeyDown(event: React.KeyboardEvent, onActivate: () => void) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    onActivate()
-  }
-}
-
 function getMedicineListSubtitle(medicine: Medicine) {
   const info = getMedicineInformation(medicine)
   const parts = [medicine.commonName, info].map((part) => part?.trim()).filter(Boolean)
@@ -146,7 +139,7 @@ export function MedicinesDataTable({
               <MedicinesCompactSkeleton rows={pageSize} />
             </div>
           ) : medicines.length === 0 ? (
-            <div className="clinic-table-empty col-span-full">
+            <div role="status" className="clinic-table-empty col-span-full">
               {t('medicines.listEmpty')}
               <Link
                 href={ROUTES.vaultMedicineNew}
@@ -159,11 +152,8 @@ export function MedicinesDataTable({
             medicines.map((medicine) => (
               <div
                 key={medicine.id}
-                role="button"
-                tabIndex={0}
                 className="clinic-compact-card clinic-compact-card-clickable group cursor-pointer"
                 onClick={() => onView(medicine)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(medicine))}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -209,9 +199,10 @@ export function MedicinesDataTable({
       aria-busy={loading || undefined}
     >
       <table className="clinic-table w-full">
+          <caption className="sr-only">Medicines</caption>
         <thead>
           <tr className="clinic-table-head">
-            <th>
+            <th scope="col">
               <button
                 type="button"
                 className="clinic-table-sort-btn"
@@ -222,8 +213,8 @@ export function MedicinesDataTable({
                 <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
               </button>
             </th>
-            <th>{t('medicines.information')}</th>
-            <th className="w-[4.5rem] text-right">{t('common.actions')}</th>
+            <th scope="col">{t('medicines.information')}</th>
+            <th scope="col" className="w-[4.5rem] text-right">{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody key={page}>
@@ -231,7 +222,7 @@ export function MedicinesDataTable({
             <MedicinesTableSkeleton rows={pageSize} />
           ) : medicines.length === 0 ? (
             <tr>
-              <td colSpan={3} className="clinic-table-empty">
+              <td colSpan={3} role="status" className="clinic-table-empty">
                 {t('medicines.listEmpty')}
               <Link
                 href={ROUTES.vaultMedicineNew}
@@ -245,10 +236,8 @@ export function MedicinesDataTable({
             medicines.map((medicine) => (
               <tr
                 key={medicine.id}
-                tabIndex={0}
                 className="clinic-table-row clinic-table-row-clickable group cursor-pointer"
                 onClick={() => onView(medicine)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(medicine))}
               >
                 <td>
                   <div className="flex items-center gap-3">

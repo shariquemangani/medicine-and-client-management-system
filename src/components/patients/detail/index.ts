@@ -1,7 +1,0 @@
-export { PatientDetailHeader } from './clinic-detail-header'
-export { PatientDetailSkeleton } from './clinic-detail-skeleton'
-export { PatientDetailTabs } from './patient-detail-tabs'
-export type { PatientDetailTab } from './patient-detail-tabs'
-export { PatientDetailViewSections } from './patient-detail-view-sections'
-export { PatientVisitHistoryPanel } from './patient-visit-history-panel'
-export { PatientVisitDetailSheet } from './patient-visit-detail-sheet'

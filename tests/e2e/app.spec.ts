@@ -31,7 +31,9 @@ for (const route of PAGES) {
 
     await page.goto(route)
     await expect(page.locator('main h1:visible')).toHaveCount(1, { timeout: 30_000 })
-    await page.waitForTimeout(500)
+    // Wait for the data to land (skeletons carry aria-busy) instead of sleeping, so late failures are caught.
+    await expect.poll(() => page.locator('[aria-busy="true"]').count(), { timeout: 30_000 }).toBe(0)
+    await page.waitForLoadState('networkidle')
 
     expect(errors, 'console errors').toEqual([])
     expect(failed, 'failed requests').toEqual([])

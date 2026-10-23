@@ -138,10 +138,10 @@ export function AdvancedBlockSelect({
             >
               <button
                 type="button"
-                className="mb-3 flex w-full items-center gap-2 rounded-lg text-left transition-colors hover:text-[hsl(var(--metric-patients))]"
+                className="mb-3 flex w-full items-center gap-2 rounded-lg text-left transition-colors hover:text-[hsl(var(--metric-patients-text))]"
                 onClick={() => setShowCustom(false)}
               >
-                <PenLine className="h-4 w-4 text-[hsl(var(--metric-patients))]" aria-hidden />
+                <PenLine className="h-4 w-4 text-[hsl(var(--metric-patients-text))]" aria-hidden />
                 <span className="text-sm font-semibold text-foreground">
                   {'Custom block section'}
                 </span>
@@ -176,7 +176,7 @@ export function AdvancedBlockSelect({
               onClick={() => setShowCustom(true)}
             >
               <span className="flex items-center gap-2">
-                <PenLine className="h-4 w-4 text-[hsl(var(--metric-patients))]" aria-hidden />
+                <PenLine className="h-4 w-4 text-[hsl(var(--metric-patients-text))]" aria-hidden />
                 <span className="text-sm font-semibold text-foreground">
                   {'Custom block section'}
                 </span>

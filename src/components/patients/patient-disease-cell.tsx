@@ -1,5 +1,3 @@
-'use client'
-
 import type { Patient } from '@/types'
 import { getPatientDiseaseLabels } from '@/lib/patient-stats'
 import { cn } from '@/lib/utils'

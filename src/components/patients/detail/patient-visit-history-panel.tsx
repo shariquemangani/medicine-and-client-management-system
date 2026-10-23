@@ -119,7 +119,7 @@ function TimelineNode({
                 {visit.isCurrent ? 'Current visit' : 'Past visit'}
               </h3>
               {visit.isCurrent ? (
-                <span className="rounded-full bg-[hsl(var(--metric-patients)/0.15)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--metric-patients))]">
+                <span className="rounded-full bg-[hsl(var(--metric-patients)/0.15)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--metric-patients-text))]">
                   Active
                 </span>
               ) : null}
@@ -155,7 +155,7 @@ function TimelineNode({
                 <Stethoscope className="h-3.5 w-3.5 text-[hsl(var(--metric-prescriptions))]" />
                 {dietCount} diet item{dietCount === 1 ? '' : 's'}
               </span>
-              <span className="patient-timeline-stat-chip inline-flex items-center gap-1.5 text-[hsl(var(--metric-fees))]">
+              <span className="patient-timeline-stat-chip inline-flex items-center gap-1.5 text-[hsl(var(--metric-fees-text))]">
                 <IndianRupee className="h-3.5 w-3.5" />
                 {formatPatientAmount(visit.fees).replace('₹', '').trim()}
               </span>

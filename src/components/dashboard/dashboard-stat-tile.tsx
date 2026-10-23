@@ -1,5 +1,3 @@
-'use client'
-
 import type { LucideIcon } from 'lucide-react'
 import { metricAccents, type MetricAccentKey } from '@/utils/theme'
 import { CLINIC_CURRENCY_SYMBOL } from '@/lib/patient-stats'

@@ -127,7 +127,7 @@ export function PrescriptionMedicineRow({
                 <FormItem className="w-[5.25rem] shrink-0 space-y-0">
                   <Select value={field.value ?? 'ml'} onValueChange={field.onChange}>
                     <FormControl>
-                      <SelectTrigger className="clinic-form-input h-10 px-2">
+                      <SelectTrigger className="clinic-form-input h-10 px-2" aria-label="Quantity unit">
                         <SelectValue placeholder="Unit" />
                       </SelectTrigger>
                     </FormControl>
@@ -174,7 +174,7 @@ export function PrescriptionMedicineRow({
                 }}
               >
                 <FormControl>
-                  <SelectTrigger className="clinic-form-input h-10">
+                  <SelectTrigger className="clinic-form-input h-10" aria-label="Medicine form">
                     <SelectValue placeholder="Select form" />
                   </SelectTrigger>
                 </FormControl>

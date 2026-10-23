@@ -77,7 +77,7 @@ export function PatientVisitDetailSheet({
           <SheetHeader className="relative z-10 space-y-3 text-left">
             <div className="flex flex-wrap items-center gap-2">
               {isCurrent ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--metric-patients)/0.15)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--metric-patients))]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--metric-patients)/0.15)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--metric-patients-text))]">
                   <Sparkles className="h-3 w-3" />
                   Current visit
                 </span>
@@ -195,12 +195,12 @@ export function PatientVisitDetailSheet({
           >
             <div className="patient-fees-mesh pointer-events-none absolute inset-0" aria-hidden />
             <div className="relative z-10">
-              <h3 className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--metric-fees))]">
+              <h3 className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-[hsl(var(--metric-fees-text))]">
                 <Wallet className="h-3.5 w-3.5" />
                 Visit fees
               </h3>
               <div className="mt-2 flex items-end gap-2">
-                <IndianRupee className="mb-1 h-5 w-5 text-[hsl(var(--metric-fees))]" aria-hidden />
+                <IndianRupee className="mb-1 h-5 w-5 text-[hsl(var(--metric-fees-text))]" aria-hidden />
                 <p className="text-2xl font-bold tabular-nums text-foreground">
                   {formatPatientAmount(visit.fees).replace('₹', '').trim()}
                 </p>

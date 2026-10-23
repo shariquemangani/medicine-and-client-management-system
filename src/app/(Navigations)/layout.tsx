@@ -96,6 +96,12 @@ export default function NavigationsLayout({
 
   return (
     <div className="min-h-screen flex bg-muted/30 dark:bg-background">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow focus:ring-2 focus:ring-ring"
+      >
+        Skip to content
+      </a>
       <div className="hidden md:flex h-screen shrink-0 sticky top-0">
         <AdminSidebar />
       </div>
@@ -117,7 +123,7 @@ export default function NavigationsLayout({
         <Menu className="h-5 w-5" aria-hidden />
       </button>
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 overflow-auto p-4 pt-16 md:p-6">{pending ? <PageSkeleton label="Loading page" /> : children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto p-4 pt-16 md:p-6 focus:outline-none">{pending ? <PageSkeleton label="Loading page" /> : children}</main>
       </div>
     </div>
   )

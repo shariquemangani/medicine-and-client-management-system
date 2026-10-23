@@ -43,13 +43,6 @@ interface DiseasesDataTableProps {
   viewMode: 'table' | 'compact'
 }
 
-function handleRowKeyDown(event: React.KeyboardEvent, onActivate: () => void) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    onActivate()
-  }
-}
-
 function formatCure(cure?: string) {
   return cure?.trim() || '—'
 }
@@ -155,16 +148,13 @@ export function DiseasesDataTable({
               <DiseasesCompactSkeleton rows={pageSize} />
             </div>
           ) : diseases.length === 0 ? (
-            <div className="clinic-table-empty col-span-full">{t('diseases.listEmpty')}</div>
+            <div role="status" className="clinic-table-empty col-span-full">{t('diseases.listEmpty')}</div>
           ) : (
             diseases.map((disease) => (
               <div
                 key={disease.id}
-                role="button"
-                tabIndex={0}
                 className="clinic-compact-card clinic-compact-card-clickable group cursor-pointer"
                 onClick={() => onView(disease)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(disease))}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -210,9 +200,10 @@ export function DiseasesDataTable({
       aria-busy={loading || undefined}
     >
       <table className="clinic-table w-full">
+          <caption className="sr-only">Diseases</caption>
         <thead>
           <tr className="clinic-table-head">
-            <th>
+            <th scope="col">
               <button
                 type="button"
                 className="clinic-table-sort-btn"
@@ -223,7 +214,7 @@ export function DiseasesDataTable({
                 <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
               </button>
             </th>
-            <th>
+            <th scope="col">
               <button
                 type="button"
                 className="clinic-table-sort-btn"
@@ -234,7 +225,7 @@ export function DiseasesDataTable({
                 <SortIcon field="symptoms" sortField={sortField} sortDirection={sortDirection} />
               </button>
             </th>
-            <th>
+            <th scope="col">
               <button
                 type="button"
                 className="clinic-table-sort-btn"
@@ -245,7 +236,7 @@ export function DiseasesDataTable({
                 <SortIcon field="cure" sortField={sortField} sortDirection={sortDirection} />
               </button>
             </th>
-            <th className="w-[4.5rem] text-right">{t('common.actions')}</th>
+            <th scope="col" className="w-[4.5rem] text-right">{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody key={page}>
@@ -253,7 +244,7 @@ export function DiseasesDataTable({
             <DiseasesTableSkeleton rows={pageSize} />
           ) : diseases.length === 0 ? (
             <tr>
-              <td colSpan={4} className="clinic-table-empty">
+              <td colSpan={4} role="status" className="clinic-table-empty">
                 {t('diseases.listEmpty')}
               </td>
             </tr>
@@ -261,10 +252,8 @@ export function DiseasesDataTable({
             diseases.map((disease) => (
               <tr
                 key={disease.id}
-                tabIndex={0}
                 className="clinic-table-row clinic-table-row-clickable group cursor-pointer"
                 onClick={() => onView(disease)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(disease))}
               >
                 <td>
                   <div className="flex items-center gap-3">

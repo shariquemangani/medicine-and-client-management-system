@@ -31,6 +31,8 @@ interface ComboboxProps {
   emptyMessage?: string
   className?: string
   allowCustomValue?: boolean
+  /** Accessible name; defaults to the placeholder (a combobox is not named by its content). */
+  ariaLabel?: string
 }
 
 export function Combobox({
@@ -41,6 +43,7 @@ export function Combobox({
   emptyMessage = "No results found.",
   className,
   allowCustomValue = false,
+  ariaLabel,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -67,6 +70,7 @@ export function Combobox({
         <Button
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel ?? placeholder}
           aria-expanded={open}
           className={cn('clinic-form-control w-full justify-between text-left', className)}
         >

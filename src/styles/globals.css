@@ -50,6 +50,11 @@
     --metric-teachers: 262 83% 58%;
     --metric-classes: 160 84% 39%;
     --metric-fees: 38 92% 50%;
+    /* Accent colours for TEXT on light backgrounds (>= 4.5:1); backgrounds keep the brand hue. */
+    --metric-fees-text: 38 92% 30%;
+    --metric-patients-text: 217 91% 40%;
+    --metric-billing-text: 38 92% 30%;
+    --metric-classes-text: 160 84% 26%;
     --metric-attendance: 173 80% 40%;
     --metric-exams: 350 89% 60%;
     --metric-staff: 262 83% 58%;
@@ -64,6 +69,10 @@
   }
 
   .dark {
+    --metric-fees-text: 38 92% 50%;
+    --metric-patients-text: 217 91% 60%;
+    --metric-billing-text: 38 92% 50%;
+    --metric-classes-text: 160 84% 39%;
     /* Surfaces: ~#171717 · Borders: #3D3D3D */
     --background: 0 0% 9%;
     --foreground: 0 0% 96%;
@@ -223,12 +232,12 @@
   }
 
   .dialog-btn-primary {
-    background: hsl(var(--metric-patients));
+    background: hsl(217 91% 48%);
     color: hsl(0 0% 100%);
   }
 
   .dialog-btn-primary:hover {
-    background: hsl(var(--metric-patients) / 0.9);
+    background: hsl(217 91% 45%);
   }
 
   .dialog-icon-badge {
@@ -254,12 +263,6 @@
     color: hsl(var(--metric-patients));
   }
 
-  .dialog-icon-badge-teachers {
-    border-color: hsl(var(--metric-teachers) / 0.35);
-    background: hsl(var(--metric-teachers) / 0.12);
-    color: hsl(var(--metric-teachers));
-  }
-
   /* Premium buttons — glass theme */
   .btn-premium {
     @apply inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium;
@@ -280,13 +283,14 @@
 
   .btn-premium-default {
     border: 1px solid hsl(var(--metric-patients) / 0.35);
-    background: hsl(var(--metric-patients));
+    /* 48% lightness: white text is 5.3:1 (the base 60% blue was 3.6:1, below WCAG AA). */
+    background: hsl(217 91% 48%);
     color: hsl(0 0% 100%);
     box-shadow: 0 8px 24px -10px hsl(var(--metric-patients) / 0.45);
   }
 
   .btn-premium-default:hover:not(:disabled) {
-    background: hsl(var(--metric-patients) / 0.92);
+    background: hsl(217 91% 44%);
     transform: translateY(-1px);
     box-shadow: 0 12px 28px -10px hsl(var(--metric-patients) / 0.5);
   }
@@ -430,14 +434,6 @@
   .bento-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 auto-rows-min;
   }
-  .metric-glow {
-    @apply relative overflow-hidden;
-  }
-  .metric-glow::before {
-    content: '';
-    @apply absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 blur-2xl;
-    background: currentColor;
-  }
 
   /* Dashboard — premium bento glass */
   .dashboard-shell {
@@ -454,10 +450,6 @@
       radial-gradient(ellipse 60% 45% at 0% 0%, hsl(var(--metric-patients) / 0.07), transparent 55%),
       radial-gradient(ellipse 50% 40% at 100% 10%, hsl(var(--metric-teachers) / 0.06), transparent 50%),
       radial-gradient(ellipse 40% 35% at 50% 100%, hsl(var(--metric-classes) / 0.05), transparent 55%);
-  }
-
-  .dashboard-bento-enter {
-    animation: dashboard-fade-up 0.55s ease-out both;
   }
 
   .bento-card-premium {
@@ -522,31 +514,6 @@
     color: hsl(var(--foreground));
   }
 
-  .dashboard-hero-mesh {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background:
-      linear-gradient(
-        125deg,
-        hsl(var(--metric-patients) / 0.14) 0%,
-        hsl(var(--metric-patients) / 0.04) 28%,
-        transparent 45%,
-        hsl(var(--metric-teachers) / 0.05) 72%,
-        hsl(var(--metric-teachers) / 0.14) 100%
-      ),
-      radial-gradient(ellipse 90% 85% at 0% 0%, hsl(var(--metric-patients) / 0.2), transparent 68%),
-      radial-gradient(ellipse 80% 75% at 100% 0%, hsl(var(--metric-teachers) / 0.16), transparent 62%),
-      radial-gradient(ellipse 75% 70% at 100% 100%, hsl(var(--metric-exams) / 0.1), transparent 58%),
-      radial-gradient(ellipse 70% 65% at 0% 100%, hsl(var(--metric-classes) / 0.08), transparent 55%);
-  }
-
-  .dashboard-hero-date {
-    @apply border backdrop-blur-sm;
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.5);
-  }
-
   .dashboard-chart-tooltip {
     @apply border backdrop-blur-xl;
     border-color: hsl(var(--glass-border));
@@ -586,21 +553,9 @@
     filter: drop-shadow(0 0 6px hsl(var(--metric-attendance) / 0.4));
   }
 
-  @keyframes dashboard-fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .dashboard-bento-enter,
     .dashboard-gauge-ring {
-      animation: none !important;
       transition: none !important;
     }
   }
@@ -624,21 +579,6 @@
     );
   }
 
-  .clinic-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-patients) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-teachers) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .clinic-hero-badge {
-    border: 1px solid hsl(var(--metric-patients) / 0.25);
-    background: hsl(var(--metric-patients) / 0.1);
-    color: hsl(var(--metric-patients));
-  }
-
   .clinic-hero-btn {
     border-color: hsl(var(--glass-border));
     background: hsl(var(--glass) / 0.5);
@@ -651,96 +591,12 @@
   }
 
   .clinic-hero-primary {
-    background: hsl(var(--metric-patients));
+    background: hsl(217 91% 48%);
     color: hsl(0 0% 100%);
   }
 
   .clinic-hero-primary:hover {
-    background: hsl(var(--metric-patients) / 0.9);
-  }
-
-  .clinic-avatar {
-    background: linear-gradient(135deg, hsl(var(--metric-patients) / 0.2), hsl(var(--metric-teachers) / 0.15));
-    color: hsl(var(--metric-patients));
-    border: 1px solid hsl(var(--metric-patients) / 0.2);
-  }
-
-  .dark .clinic-avatar {
-    color: hsl(var(--foreground));
-  }
-
-  .clinic-search-input,
-  .clinic-filter-select {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.45);
-    backdrop-filter: blur(8px);
-  }
-
-  .clinic-search .clinic-search-input {
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-  }
-
-  .clinic-search-btn,
-  .clinic-search-clear {
-    cursor: pointer;
-  }
-
-  .clinic-search-input:focus-visible,
-  .clinic-filter-select:focus-visible {
-    border-color: hsl(var(--metric-patients) / 0.5);
-    box-shadow: 0 0 0 2px hsl(var(--metric-patients) / 0.15);
-  }
-
-  .clinic-filter-chip {
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.3);
-    color: hsl(var(--muted-foreground));
-  }
-
-  .clinic-filter-chip-patients.clinic-filter-chip-active {
-    border-color: hsl(var(--metric-patients) / 0.45);
-    background: hsl(var(--metric-patients) / 0.12);
-    color: hsl(var(--metric-patients));
-  }
-
-  .clinic-filter-chip-classes.clinic-filter-chip-active {
-    border-color: hsl(var(--metric-classes) / 0.45);
-    background: hsl(var(--metric-classes) / 0.12);
-    color: hsl(var(--metric-classes));
-  }
-
-  .clinic-filter-chip-exams.clinic-filter-chip-active {
-    border-color: hsl(var(--metric-exams) / 0.45);
-    background: hsl(var(--metric-exams) / 0.12);
-    color: hsl(var(--metric-exams));
-  }
-
-  .clinic-filter-chip-fees.clinic-filter-chip-active {
-    border-color: hsl(var(--metric-fees) / 0.45);
-    background: hsl(var(--metric-fees) / 0.12);
-    color: hsl(var(--metric-fees));
-  }
-
-  .clinic-filter-chip:hover {
-    border-color: hsl(var(--metric-patients) / 0.3);
-    color: hsl(var(--foreground));
-  }
-
-  .clinic-view-toggle {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.25);
-  }
-
-  .clinic-view-toggle-btn {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .clinic-view-toggle-btn-active {
-    background: hsl(var(--metric-patients) / 0.15);
-    color: hsl(var(--metric-patients));
+    background: hsl(217 91% 45%);
   }
 
   /* Standard table surface (shared by every list page): 20px radius, 1px border, soft highlight. */
@@ -772,6 +628,10 @@
     box-shadow: 0 1px 0 hsl(var(--border) / 0.7);
   }
 
+  .dark .clinic-disease-pill {
+    color: hsl(350 89% 68%);
+  }
+
   .clinic-disease-pill {
     display: inline-flex;
     max-width: 100%;
@@ -783,7 +643,7 @@
     font-size: 0.6875rem;
     font-weight: 500;
     line-height: 1.2;
-    color: hsl(var(--metric-exams));
+    color: hsl(350 75% 40%);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -883,21 +743,6 @@
     vertical-align: middle;
   }
 
-  .clinic-list-item-enter {
-    animation: clinic-list-arrive 0.48s ease-out both;
-  }
-
-  @keyframes clinic-list-arrive {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   .clinic-table-empty {
     padding: 3rem 1rem;
     text-align: center;
@@ -911,15 +756,6 @@
     background: hsl(var(--muted) / 0.35);
     padding: 0.125rem 0.5rem;
     color: hsl(var(--foreground));
-  }
-
-  .clinic-class-pill {
-    display: inline-block;
-    border-radius: 9999px;
-    background: hsl(var(--metric-classes) / 0.12);
-    color: hsl(var(--metric-classes));
-    padding: 0.125rem 0.625rem;
-    font-weight: 500;
   }
 
   .clinic-table-action:hover {
@@ -948,11 +784,6 @@
   .clinic-pagination {
     border-color: hsl(var(--glass-border));
     background: hsl(var(--muted) / 0.2);
-  }
-
-  .clinic-page-btn-active {
-    background: hsl(var(--metric-patients));
-    color: hsl(0 0% 100%);
   }
 
   .clinic-compact-grid {
@@ -1007,54 +838,6 @@
     );
   }
 
-  .vault-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 55% at 95% -10%, hsl(var(--metric-classes) / 0.28), transparent 55%),
-      radial-gradient(ellipse 55% 45% at 0% 110%, hsl(var(--metric-exams) / 0.16), transparent 52%),
-      linear-gradient(
-        rgba(255, 255, 255, 0.03) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.03) 1px,
-        transparent 1px
-      );
-    background-size: auto, auto, 28px 28px, 28px 28px;
-    pointer-events: none;
-  }
-
-  .dark .vault-hero-mesh {
-    background:
-      radial-gradient(ellipse 70% 55% at 95% -10%, hsl(var(--metric-classes) / 0.22), transparent 55%),
-      radial-gradient(ellipse 55% 45% at 0% 110%, hsl(var(--metric-fees) / 0.14), transparent 52%),
-      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: auto, auto, 28px 28px, 28px 28px;
-  }
-
-  .vault-hero-scanline {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--metric-classes) / 0.08) 50%,
-      transparent 100%
-    );
-    background-size: 100% 220%;
-    animation: vault-scan 7s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .vault-hero-badge {
-    border: 1px solid hsl(var(--metric-classes) / 0.3);
-    background: hsl(var(--metric-classes) / 0.12);
-    color: hsl(var(--metric-classes));
-  }
-
   .vault-hub-card {
     --vault-accent: var(--metric-classes);
     border: 1px solid hsl(var(--glass-border));
@@ -1068,7 +851,6 @@
     box-shadow:
       0 1px 0 hsl(var(--glass-border)),
       0 18px 40px -28px hsl(var(--vault-accent) / 0.45);
-    animation: vault-hub-arrive 0.55s ease-out both;
     transition:
       transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
       border-color 0.3s ease,
@@ -1128,7 +910,6 @@
     width: 10rem;
     height: 10rem;
     background: hsl(var(--vault-accent) / 0.35);
-    animation: vault-orb-drift 8s ease-in-out infinite;
   }
 
   .vault-hub-card-orb--secondary {
@@ -1137,7 +918,6 @@
     width: 8rem;
     height: 8rem;
     background: hsl(var(--vault-accent) / 0.18);
-    animation: vault-orb-drift 10s ease-in-out infinite reverse;
   }
 
 
@@ -1210,45 +990,7 @@
     transition: opacity 0.35s ease, transform 0.35s ease;
   }
 
-
-  @keyframes vault-hub-arrive {
-    from {
-      opacity: 0;
-      transform: translateY(14px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  @keyframes vault-orb-drift {
-    0%,
-    100% {
-      transform: translate(0, 0);
-    }
-    50% {
-      transform: translate(-8px, 10px);
-    }
-  }
-
-  @keyframes vault-scan {
-    0%,
-    100% {
-      background-position: 0% 0%;
-    }
-    50% {
-      background-position: 0% 100%;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .vault-hub-card,
-    .vault-hub-card-orb--primary,
-    .vault-hub-card-orb--secondary,
-    .vault-hero-scanline {
-      animation: none !important;
-    }
 
 
     .vault-hub-card-scan {
@@ -1277,36 +1019,6 @@
     );
   }
 
-  .flag-config-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 55% at 100% 0%, hsl(var(--metric-fees) / 0.28), transparent 55%),
-      radial-gradient(ellipse 50% 45% at 0% 100%, hsl(var(--metric-classes) / 0.14), transparent 50%),
-      linear-gradient(hsl(var(--metric-fees) / 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--metric-fees) / 0.06) 1px, transparent 1px);
-    background-size: auto, auto, 24px 24px, 24px 24px;
-  }
-
-  .flag-config-hero-scan {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--metric-fees) / 0.08) 50%,
-      transparent 100%
-    );
-    background-size: 100% 220%;
-    animation: vault-scan 8s ease-in-out infinite;
-  }
-
-  .flag-config-badge {
-    border: 1px solid hsl(var(--metric-fees) / 0.3);
-    background: hsl(var(--metric-fees) / 0.12);
-    color: hsl(var(--metric-fees));
-  }
-
   .flag-config-back {
     border-color: hsl(var(--glass-border));
     background: hsl(var(--glass) / 0.55);
@@ -1320,14 +1032,14 @@
   }
 
   .flag-config-primary {
-    background: hsl(var(--metric-classes));
+    background: hsl(160 84% 26%);
     color: hsl(0 0% 100%);
     box-shadow: 0 10px 24px -14px hsl(var(--metric-classes) / 0.8);
     transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   }
 
   .flag-config-primary:hover {
-    background: hsl(var(--metric-classes) / 0.9);
+    background: hsl(160 84% 23%);
     box-shadow: 0 14px 28px -12px hsl(var(--metric-classes) / 0.85);
   }
 
@@ -1361,12 +1073,6 @@
   .flag-config-sidebar,
   .flag-config-panel {
     background: transparent;
-  }
-
-  .flag-config-sidebar-icon {
-    border: 1px solid hsl(var(--metric-fees) / 0.28);
-    background: hsl(var(--metric-fees) / 0.12);
-    color: hsl(var(--metric-fees));
   }
 
   .flag-config-category {
@@ -1410,44 +1116,12 @@
     box-shadow: 0 0 18px -8px hsl(var(--metric-fees) / 0.8);
   }
 
-  .flag-config-search {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.45);
-    backdrop-filter: blur(8px);
-  }
-
-  .flag-config-search:focus-visible {
-    border-color: hsl(var(--metric-fees) / 0.45);
-    box-shadow: 0 0 0 3px hsl(var(--metric-fees) / 0.15);
-  }
-
-  .flag-config-table-head {
-    background: hsl(var(--muted) / 0.45);
-  }
-
-  .flag-config-table-head th {
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-  }
-
   .flag-config-table-row {
     transition: background 0.15s ease;
   }
 
   .flag-config-table-row:hover {
     background: hsl(var(--metric-fees) / 0.05);
-  }
-
-  .flag-config-value-chip {
-    border: 1px solid hsl(var(--metric-classes) / 0.22);
-    background: hsl(var(--metric-classes) / 0.08);
-    color: hsl(var(--metric-classes));
-  }
-
-  .dark .flag-config-value-chip {
-    color: hsl(var(--foreground));
   }
 
   .flag-config-action-edit {
@@ -1494,9 +1168,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .flag-config-hero-scan,
     .flag-config-primary {
-      animation: none !important;
       transition: none !important;
     }
   }
@@ -1520,39 +1192,13 @@
     );
   }
 
-  .classes-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-classes) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-teachers) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .classes-hero-badge {
-    border: 1px solid hsl(var(--metric-classes) / 0.25);
-    background: hsl(var(--metric-classes) / 0.1);
-    color: hsl(var(--metric-classes));
-  }
-
-  .classes-hero-btn {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.5);
-    backdrop-filter: blur(8px);
-  }
-
-  .classes-hero-btn:hover {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    background: hsl(var(--metric-classes) / 0.08);
-  }
-
   .classes-hero-primary {
-    background: hsl(var(--metric-classes));
+    background: hsl(160 84% 26%);
     color: hsl(0 0% 100%);
   }
 
   .classes-hero-primary:hover {
-    background: hsl(var(--metric-classes) / 0.9);
+    background: hsl(160 84% 23%);
   }
 
   .diseases-hero {
@@ -1600,12 +1246,12 @@
   }
 
   .diseases-hero-primary {
-    background: hsl(var(--metric-exams));
+    background: hsl(350 89% 46%);
     color: hsl(0 0% 100%);
   }
 
   .diseases-hero-primary:hover {
-    background: hsl(var(--metric-exams) / 0.9);
+    background: hsl(350 89% 43%);
   }
 
   .diseases-avatar {
@@ -1619,7 +1265,7 @@
   }
 
   .diseases-page-btn-active {
-    background: hsl(var(--metric-exams));
+    background: hsl(350 89% 46%);
     color: hsl(0 0% 100%);
   }
 
@@ -1633,122 +1279,7 @@
     color: hsl(var(--foreground));
   }
 
-  .classes-search-input,
-  .classes-filter-select {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.45);
-    backdrop-filter: blur(8px);
-  }
-
-  .classes-search-input:focus-visible,
-  .classes-filter-select:focus-visible {
-    border-color: hsl(var(--metric-classes) / 0.5);
-    box-shadow: 0 0 0 2px hsl(var(--metric-classes) / 0.15);
-  }
-
   /* Medicine search — clean glass send control */
-  .classes-search-send {
-    position: absolute;
-    right: 0.375rem;
-    top: 50%;
-    z-index: 1;
-    display: inline-flex;
-    height: 2rem;
-    width: 2rem;
-    transform: translateY(-50%);
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.75rem;
-    border: 1px solid hsl(var(--metric-classes) / 0.28);
-    background:
-      linear-gradient(
-        155deg,
-        hsl(var(--metric-classes) / 0.16) 0%,
-        hsl(var(--glass) / 0.55) 100%
-      );
-    color: hsl(var(--metric-classes));
-    backdrop-filter: blur(10px);
-    transition:
-      border-color 0.22s ease,
-      background 0.22s ease,
-      color 0.22s ease,
-      box-shadow 0.22s ease,
-      transform 0.18s ease;
-  }
-
-  .classes-search-send:hover {
-    border-color: hsl(var(--metric-classes) / 0.5);
-    background:
-      linear-gradient(
-        155deg,
-        hsl(var(--metric-classes) / 0.24) 0%,
-        hsl(var(--glass) / 0.7) 100%
-      );
-    box-shadow: 0 0 20px -8px hsl(var(--metric-classes) / 0.65);
-    color: hsl(var(--metric-classes));
-  }
-
-  .classes-search-send:active {
-    transform: translateY(-50%) scale(0.95);
-  }
-
-  .classes-search-send:focus-visible {
-    outline: none;
-    border-color: hsl(var(--metric-classes) / 0.55);
-    box-shadow:
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--metric-classes) / 0.35);
-  }
-
-  .dark .classes-search-send {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    background:
-      linear-gradient(
-        145deg,
-        hsl(var(--metric-classes) / 0.22) 0%,
-        hsl(0 0% 14% / 0.8) 100%
-      );
-    color: hsl(160 84% 55%);
-  }
-
-  .dark .classes-search-send:hover {
-    border-color: hsl(var(--metric-classes) / 0.55);
-    box-shadow: 0 0 24px -8px hsl(var(--metric-classes) / 0.75);
-  }
-
-  .classes-view-toggle {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.25);
-  }
-
-  .classes-view-toggle-btn {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .classes-view-toggle-btn-active {
-    background: hsl(var(--metric-classes) / 0.15);
-    color: hsl(var(--metric-classes));
-  }
-
-  .classes-count-pill {
-    border-radius: 9999px;
-    border: 1px solid hsl(var(--metric-classes) / 0.25);
-    background: hsl(var(--metric-classes) / 0.1);
-    color: hsl(var(--metric-classes));
-    padding: 0.125rem 0.5rem;
-  }
-
-  .classes-accent-pill {
-    border-radius: 9999px;
-    border: 1px solid hsl(var(--metric-classes) / 0.25);
-    background: hsl(var(--metric-classes) / 0.1);
-    color: hsl(var(--metric-classes));
-    padding: 0.125rem 0.625rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
 
   .classes-dialog-icon-badge {
     display: inline-flex;
@@ -1772,7 +1303,7 @@
   }
 
   .classes-page-btn-active {
-    background: hsl(var(--metric-classes));
+    background: hsl(160 84% 26%);
     color: hsl(0 0% 100%);
   }
 
@@ -1799,402 +1330,7 @@
     background: hsl(var(--metric-classes) / 0.1);
   }
 
-  .class-detail-header {
-    border-color: hsl(var(--glass-border));
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-classes) / 0.08) 0%,
-      hsl(var(--glass) / 0.4) 50%,
-      hsl(var(--glass) / 0.2) 100%
-    );
-  }
-
-  .dark .class-detail-header {
-    background: linear-gradient(135deg, hsl(var(--metric-classes) / 0.12) 0%, hsl(0 0% 11%) 60%);
-  }
-
-  .class-detail-header-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 60% at 90% 10%, hsl(var(--metric-classes) / 0.18), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 10% 90%, hsl(var(--metric-teachers) / 0.1), transparent 50%);
-    pointer-events: none;
-  }
-
-  .class-detail-tabs {
-    border: 1px solid hsl(var(--glass-border));
-    border-radius: 0.75rem;
-    background: hsl(var(--muted) / 0.2);
-    backdrop-filter: blur(8px);
-  }
-
-  .dark .class-detail-tabs {
-    background: hsl(var(--muted) / 0.12);
-  }
-
-  .class-detail-tabs-list {
-    min-height: 2.75rem;
-  }
-
-  .class-detail-tab-trigger {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .class-detail-tab-trigger:hover {
-    color: hsl(var(--foreground));
-    background: hsl(var(--muted) / 0.35);
-  }
-
-  .class-detail-tab-trigger-active {
-    background: hsl(var(--metric-classes) / 0.15);
-    color: hsl(var(--metric-classes));
-    box-shadow: inset 0 0 0 1px hsl(var(--metric-classes) / 0.2);
-  }
-
-  .dark .class-detail-tab-trigger-active {
-    background: hsl(var(--metric-classes) / 0.2);
-  }
-
-  .class-detail-tab-panel {
-    animation: fadeSlideIn 0.35s ease forwards;
-  }
-
   /* Teachers page — bento + advanced table */
-  .teachers-hero,
-  .teachers-create-hero {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-teachers) / 0.08) 0%,
-      hsl(var(--glass) / 0.4) 45%,
-      hsl(var(--metric-classes) / 0.06) 100%
-    );
-  }
-
-  .dark .teachers-hero,
-  .dark .teachers-create-hero {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-teachers) / 0.14) 0%,
-      hsl(0 0% 11%) 50%,
-      hsl(var(--metric-patients) / 0.08) 100%
-    );
-  }
-
-  .teachers-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-teachers) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-classes) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .teachers-hero-badge {
-    border: 1px solid hsl(var(--metric-teachers) / 0.25);
-    background: hsl(var(--metric-teachers) / 0.1);
-    color: hsl(var(--metric-teachers));
-  }
-
-  .teachers-hero-btn {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.5);
-    backdrop-filter: blur(8px);
-  }
-
-  .teachers-hero-btn:hover {
-    border-color: hsl(var(--metric-teachers) / 0.35);
-    background: hsl(var(--metric-teachers) / 0.08);
-  }
-
-  .teachers-hero-primary {
-    background: hsl(var(--metric-teachers));
-    color: hsl(0 0% 100%);
-  }
-
-  .teachers-hero-primary:hover {
-    background: hsl(var(--metric-teachers) / 0.9);
-  }
-
-  .teachers-avatar {
-    background: linear-gradient(135deg, hsl(var(--metric-teachers) / 0.2), hsl(var(--metric-classes) / 0.15));
-    color: hsl(var(--metric-teachers));
-    border: 1px solid hsl(var(--metric-teachers) / 0.2);
-  }
-
-  .dark .teachers-avatar {
-    color: hsl(var(--foreground));
-  }
-
-  .teachers-search-input,
-  .teachers-filter-select,
-  .teachers-form-input {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.45);
-    backdrop-filter: blur(8px);
-  }
-
-  .teachers-search-input:focus-visible,
-  .teachers-filter-select:focus-visible,
-  .teachers-form-input:focus-visible {
-    border-color: hsl(var(--metric-teachers) / 0.5);
-    box-shadow: 0 0 0 2px hsl(var(--metric-teachers) / 0.15);
-  }
-
-  .teachers-filter-chip {
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.3);
-    color: hsl(var(--muted-foreground));
-  }
-
-  .teachers-filter-chip-teachers.teachers-filter-chip-active {
-    border-color: hsl(var(--metric-teachers) / 0.45);
-    background: hsl(var(--metric-teachers) / 0.12);
-    color: hsl(var(--metric-teachers));
-  }
-
-  .teachers-filter-chip-classes.teachers-filter-chip-active {
-    border-color: hsl(var(--metric-classes) / 0.45);
-    background: hsl(var(--metric-classes) / 0.12);
-    color: hsl(var(--metric-classes));
-  }
-
-  .teachers-filter-chip-exams.teachers-filter-chip-active {
-    border-color: hsl(var(--metric-exams) / 0.45);
-    background: hsl(var(--metric-exams) / 0.12);
-    color: hsl(var(--metric-exams));
-  }
-
-  .teachers-filter-chip-fees.teachers-filter-chip-active {
-    border-color: hsl(var(--metric-fees) / 0.45);
-    background: hsl(var(--metric-fees) / 0.12);
-    color: hsl(var(--metric-fees));
-  }
-
-  .teachers-filter-chip:hover {
-    border-color: hsl(var(--metric-teachers) / 0.3);
-    color: hsl(var(--foreground));
-  }
-
-  .teachers-view-toggle {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.25);
-  }
-
-  .teachers-view-toggle-btn {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .teachers-view-toggle-btn-active {
-    background: hsl(var(--metric-teachers) / 0.15);
-    color: hsl(var(--metric-teachers));
-  }
-
-  .teachers-table-shell {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.35);
-    backdrop-filter: blur(12px);
-    overflow: hidden;
-  }
-
-  .dark .teachers-table-shell {
-    background: hsl(var(--muted) / 0.12);
-  }
-
-  .teachers-table-head {
-    background: hsl(var(--muted) / 0.45);
-    border-bottom: 1px solid hsl(var(--glass-border));
-  }
-
-  .dark .teachers-table-head {
-    background: hsl(var(--muted) / 0.25);
-  }
-
-  .teachers-table-head th {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: hsl(var(--muted-foreground));
-  }
-
-  .teachers-table-sort-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font: inherit;
-    color: inherit;
-    transition: color 0.2s ease;
-  }
-
-  .teachers-table-sort-btn:hover {
-    color: hsl(var(--foreground));
-  }
-
-  .teachers-table-row {
-    border-bottom: 1px solid hsl(var(--glass-border) / 0.6);
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .teachers-table-row:hover,
-  .teachers-table-row:focus-visible {
-    background: hsl(var(--metric-teachers) / 0.06);
-    box-shadow: inset 3px 0 0 hsl(var(--metric-teachers));
-    outline: none;
-  }
-
-  .dark .teachers-table-row:hover,
-  .dark .teachers-table-row:focus-visible {
-    background: hsl(var(--metric-teachers) / 0.08);
-  }
-
-  .teachers-table-row td {
-    padding: 0.75rem 1rem;
-    vertical-align: middle;
-  }
-
-  .teachers-table-empty {
-    padding: 2.5rem 1rem;
-    text-align: center;
-    font-size: 0.875rem;
-    color: hsl(var(--muted-foreground));
-  }
-
-  .teachers-id-badge {
-    border-radius: 0.375rem;
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.35);
-    padding: 0.125rem 0.5rem;
-  }
-
-  .teachers-dept-pill {
-    border-radius: 9999px;
-    border: 1px solid hsl(var(--metric-classes) / 0.25);
-    background: hsl(var(--metric-classes) / 0.1);
-    color: hsl(var(--metric-classes));
-    padding: 0.125rem 0.5rem;
-  }
-
-  .teachers-table-action:hover {
-    color: hsl(var(--metric-teachers));
-    background: hsl(var(--metric-teachers) / 0.1);
-  }
-
-  .teachers-table-action-delete:hover {
-    color: hsl(var(--warning));
-    background: hsl(var(--warning) / 0.12);
-  }
-
-  .teachers-delete-confirm-btn {
-    background: hsl(var(--warning));
-    color: hsl(var(--warning-foreground));
-  }
-
-  .teachers-delete-confirm-btn:hover {
-    background: hsl(var(--warning) / 0.9);
-  }
-
-  .teachers-pagination {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.2);
-  }
-
-  .teachers-page-btn-active {
-    background: hsl(var(--metric-teachers));
-    color: hsl(0 0% 100%);
-  }
-
-  .teachers-compact-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  @media (min-width: 640px) {
-    .teachers-compact-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .teachers-compact-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .teachers-compact-card {
-    border: 1px solid hsl(var(--sidebar-border));
-    border-radius: 0.875rem;
-    background: hsl(var(--glass) / 0.5);
-    padding: 1rem;
-    transition: all 0.25s ease;
-  }
-
-  .dark .teachers-compact-card {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.4);
-  }
-
-
-
-  .teachers-form-section-title {
-    @apply text-sm font-semibold text-foreground;
-  }
-
-  .teachers-create-breadcrumb a:hover {
-    color: hsl(var(--foreground));
-  }
-
-  .teacher-detail-header {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.55);
-    backdrop-filter: blur(20px) saturate(1.15);
-  }
-
-  .dark .teacher-detail-header {
-    background: hsl(var(--card) / 0.88);
-  }
-
-  .teacher-detail-header-mesh {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 70% 60% at 100% 0%, hsl(var(--metric-teachers) / 0.16), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-classes) / 0.1), transparent 50%);
-  }
-
-  .teachers-accent-pill-teachers {
-    border: 1px solid hsl(var(--metric-teachers) / 0.25);
-    background: hsl(var(--metric-teachers) / 0.12);
-    color: hsl(var(--metric-teachers));
-  }
-
-  .teachers-accent-pill {
-    border-radius: 9999px;
-    padding: 0.125rem 0.5rem;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .teacher-detail-info-item {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.2);
-  }
-
-  .teachers-list-item-enter {
-    animation: clinic-list-item-enter 0.45s ease both;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .teachers-list-item-enter {
-      animation: none !important;
-    }
-  }
 
   /* Settings page — bento + glass forms */
   .settings-hero {
@@ -2213,32 +1349,6 @@
       hsl(0 0% 11%) 50%,
       hsl(var(--metric-attendance) / 0.08) 100%
     );
-  }
-
-  .settings-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-classes) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-attendance) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .settings-hero-badge {
-    border: 1px solid hsl(var(--metric-classes) / 0.25);
-    background: hsl(var(--metric-classes) / 0.1);
-    color: hsl(var(--metric-classes));
-  }
-
-  .settings-hero-btn {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.5);
-    backdrop-filter: blur(8px);
-  }
-
-  .settings-hero-btn:hover {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    background: hsl(var(--metric-classes) / 0.08);
   }
 
   .settings-form-input {
@@ -2280,18 +1390,12 @@
   }
 
   .settings-primary-btn {
-    background: hsl(var(--metric-classes));
+    background: hsl(160 84% 26%);
     color: hsl(0 0% 100%);
   }
 
   .settings-primary-btn:hover {
-    background: hsl(var(--metric-classes) / 0.9);
-  }
-
-  .settings-enable-btn:hover {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    background: hsl(var(--metric-classes) / 0.08);
-    color: hsl(var(--metric-classes));
+    background: hsl(160 84% 23%);
   }
 
   /* Attendance page — bento + glass table (attendance accent) */
@@ -2313,21 +1417,6 @@
     );
   }
 
-  .attendance-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-attendance) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-classes) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .attendance-hero-badge {
-    border: 1px solid hsl(var(--metric-attendance) / 0.25);
-    background: hsl(var(--metric-attendance) / 0.1);
-    color: hsl(var(--metric-attendance));
-  }
-
   .attendance-hero-btn {
     border-color: hsl(var(--glass-border));
     background: hsl(var(--glass) / 0.5);
@@ -2340,12 +1429,12 @@
   }
 
   .attendance-hero-primary {
-    background: hsl(var(--metric-attendance));
+    background: hsl(173 80% 26%);
     color: hsl(0 0% 100%);
   }
 
   .attendance-hero-primary:hover {
-    background: hsl(var(--metric-attendance) / 0.9);
+    background: hsl(173 80% 23%);
   }
 
   .attendance-input {
@@ -2381,43 +1470,6 @@
     box-shadow: none;
   }
 
-  .attendance-page .clinic-table-row:hover {
-    background: hsl(var(--metric-attendance) / 0.06);
-    box-shadow: inset 3px 0 0 hsl(var(--metric-attendance));
-  }
-
-  .dark .attendance-page .clinic-table-row:hover {
-    background: hsl(var(--metric-attendance) / 0.08);
-  }
-
-  .attendance-status-chip {
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.3);
-    color: hsl(var(--muted-foreground));
-  }
-
-  .attendance-status-chip-present.attendance-status-chip-active {
-    border-color: hsl(var(--metric-classes) / 0.45);
-    background: hsl(var(--metric-classes) / 0.12);
-    color: hsl(var(--metric-classes));
-  }
-
-  .attendance-status-chip-absent.attendance-status-chip-active {
-    border-color: hsl(var(--metric-fees) / 0.45);
-    background: hsl(var(--metric-fees) / 0.12);
-    color: hsl(var(--metric-fees));
-  }
-
-  .attendance-status-chip-late.attendance-status-chip-active {
-    border-color: hsl(var(--metric-exams) / 0.45);
-    background: hsl(var(--metric-exams) / 0.12);
-    color: hsl(var(--metric-exams));
-  }
-
-  .attendance-status-chip:hover {
-    color: hsl(var(--foreground));
-  }
-
   /* Record tab — card grid + session toolbar */
   .attendance-record-toolbar {
     border-color: hsl(var(--glass-border));
@@ -2441,203 +1493,12 @@
     background: hsl(var(--muted) / 0.45);
   }
 
-  .attendance-record-progress-fill {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--metric-classes)),
-      hsl(var(--metric-attendance))
-    );
-  }
-
-  .attendance-record-legend-present {
-    color: hsl(var(--metric-classes));
-  }
-
-  .attendance-record-legend-absent {
-    color: hsl(var(--metric-fees));
-  }
-
-  .attendance-record-legend-late {
-    color: hsl(var(--metric-exams));
-  }
-
-  .attendance-bulk-btn {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.4);
-  }
-
-  .attendance-bulk-present:hover {
-    border-color: hsl(var(--metric-classes) / 0.45);
-    background: hsl(var(--metric-classes) / 0.1);
-    color: hsl(var(--metric-classes));
-  }
-
-  .attendance-bulk-absent:hover {
-    border-color: hsl(var(--metric-fees) / 0.45);
-    background: hsl(var(--metric-fees) / 0.1);
-    color: hsl(var(--metric-fees));
-  }
-
-  .attendance-record-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  @media (min-width: 640px) {
-    .attendance-record-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .attendance-record-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .attendance-record-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
-
-  .attendance-record-card {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.4);
-    backdrop-filter: blur(10px);
-  }
-
-  .attendance-record-card-present {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    box-shadow: inset 3px 0 0 hsl(var(--metric-classes));
-  }
-
-  .attendance-record-card-absent {
-    border-color: hsl(var(--metric-fees) / 0.35);
-    box-shadow: inset 3px 0 0 hsl(var(--metric-fees));
-  }
-
-  .attendance-record-card-late {
-    border-color: hsl(var(--metric-exams) / 0.35);
-    box-shadow: inset 3px 0 0 hsl(var(--metric-exams));
-  }
-
-
-
-  .attendance-record-avatar {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-attendance) / 0.2),
-      hsl(var(--metric-classes) / 0.15)
-    );
-    color: hsl(var(--metric-attendance));
-    border: 1px solid hsl(var(--metric-attendance) / 0.2);
-  }
-
-  .dark .attendance-record-avatar {
-    color: hsl(var(--foreground));
-  }
-
-  .attendance-record-status-btn {
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.25);
-    color: hsl(var(--muted-foreground));
-  }
-
-  .attendance-record-status-btn-present.attendance-record-status-btn-active {
-    border-color: hsl(var(--metric-classes) / 0.5);
-    background: hsl(var(--metric-classes) / 0.15);
-    color: hsl(var(--metric-classes));
-  }
-
-  .attendance-record-status-btn-absent.attendance-record-status-btn-active {
-    border-color: hsl(var(--metric-fees) / 0.5);
-    background: hsl(var(--metric-fees) / 0.15);
-    color: hsl(var(--metric-fees));
-  }
-
-  .attendance-record-status-btn-late.attendance-record-status-btn-active {
-    border-color: hsl(var(--metric-exams) / 0.5);
-    background: hsl(var(--metric-exams) / 0.15);
-    color: hsl(var(--metric-exams));
-  }
-
-  .attendance-record-status-btn:hover {
-    color: hsl(var(--foreground));
-  }
-
   .attendance-record-empty {
     border-color: hsl(var(--glass-border));
     background: hsl(var(--muted) / 0.2);
   }
 
   /* History tab — sidebar filters + analytics rows */
-  .attendance-history-filters {
-    border-color: hsl(var(--glass-border));
-    background: linear-gradient(
-      180deg,
-      hsl(var(--metric-teachers) / 0.06) 0%,
-      hsl(var(--glass) / 0.35) 100%
-    );
-    backdrop-filter: blur(12px);
-  }
-
-  .dark .attendance-history-filters {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--metric-teachers) / 0.12) 0%,
-      hsl(var(--muted) / 0.12) 100%
-    );
-  }
-
-  .attendance-history-filter-icon {
-    background: hsl(var(--metric-teachers) / 0.12);
-    color: hsl(var(--metric-teachers));
-  }
-
-  .attendance-history-input {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.45);
-    backdrop-filter: blur(8px);
-  }
-
-  .attendance-history-input:focus-visible {
-    border-color: hsl(var(--metric-teachers) / 0.5);
-    box-shadow: 0 0 0 2px hsl(var(--metric-teachers) / 0.15);
-  }
-
-  .attendance-history-load {
-    background: hsl(var(--metric-teachers));
-    color: hsl(0 0% 100%);
-  }
-
-  .attendance-history-load:hover {
-    background: hsl(var(--metric-teachers) / 0.9);
-  }
-
-  .attendance-history-stat-card {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.35);
-    backdrop-filter: blur(10px);
-  }
-
-  .attendance-history-stat-rate {
-    border-color: hsl(var(--metric-attendance) / 0.3);
-    background: hsl(var(--metric-attendance) / 0.08);
-  }
-
-  .attendance-history-stat-present {
-    border-color: hsl(var(--metric-classes) / 0.3);
-  }
-
-  .attendance-history-stat-absent {
-    border-color: hsl(var(--metric-fees) / 0.3);
-  }
-
-  .attendance-history-stat-late {
-    border-color: hsl(var(--metric-exams) / 0.3);
-  }
 
   .attendance-history-empty {
     border-color: hsl(var(--glass-border));
@@ -2647,59 +1508,6 @@
   .attendance-history-empty-icon {
     background: hsl(var(--metric-teachers) / 0.12);
     color: hsl(var(--metric-teachers));
-  }
-
-  .attendance-history-row {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.3);
-    backdrop-filter: blur(10px);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .attendance-history-row:hover {
-    border-color: hsl(var(--metric-teachers) / 0.35);
-  }
-
-  .dark .attendance-history-row:hover {
-    box-shadow: 0 8px 24px -12px hsl(var(--metric-teachers) / 0.25);
-  }
-
-  .attendance-history-row-good {
-    border-color: hsl(var(--metric-classes) / 0.25);
-  }
-
-  .attendance-history-row-warn {
-    border-color: hsl(var(--metric-fees) / 0.3);
-  }
-
-  .attendance-history-rate-ring {
-    border: 2px solid hsl(var(--metric-attendance) / 0.35);
-    background: hsl(var(--metric-attendance) / 0.1);
-    color: hsl(var(--metric-attendance));
-  }
-
-  .attendance-history-bar-present {
-    background: hsl(var(--metric-classes));
-  }
-
-  .attendance-history-bar-absent {
-    background: hsl(var(--metric-fees));
-  }
-
-  .attendance-history-bar-late {
-    background: hsl(var(--metric-exams));
-  }
-
-  .attendance-history-legend-present {
-    color: hsl(var(--metric-classes));
-  }
-
-  .attendance-history-legend-absent {
-    color: hsl(var(--metric-fees));
-  }
-
-  .attendance-history-legend-late {
-    color: hsl(var(--metric-exams));
   }
 
   /* Fees page — bento + glass table (fees accent) */
@@ -2721,39 +1529,13 @@
     );
   }
 
-  .fees-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-fees) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-classes) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .fees-hero-badge {
-    border: 1px solid hsl(var(--metric-fees) / 0.25);
-    background: hsl(var(--metric-fees) / 0.1);
-    color: hsl(var(--metric-fees));
-  }
-
-  .fees-hero-btn {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.5);
-    backdrop-filter: blur(8px);
-  }
-
-  .fees-hero-btn:hover {
-    border-color: hsl(var(--metric-fees) / 0.35);
-    background: hsl(var(--metric-fees) / 0.08);
-  }
-
   .fees-hero-primary {
-    background: hsl(var(--metric-fees));
+    background: hsl(38 92% 30%);
     color: hsl(0 0% 100%);
   }
 
   .fees-hero-primary:hover {
-    background: hsl(var(--metric-fees) / 0.9);
+    background: hsl(38 92% 26%);
   }
 
   .fees-input {
@@ -2798,23 +1580,6 @@
     background: hsl(var(--metric-fees) / 0.08);
   }
 
-  .fees-filter-chip {
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.3);
-    color: hsl(var(--muted-foreground));
-  }
-
-  .fees-filter-chip-active {
-    border-color: hsl(var(--metric-fees) / 0.45);
-    background: hsl(var(--metric-fees) / 0.12);
-    color: hsl(var(--metric-fees));
-  }
-
-  .fees-filter-chip:hover {
-    border-color: hsl(var(--metric-fees) / 0.3);
-    color: hsl(var(--foreground));
-  }
-
   .fees-table-row-overdue {
     background: hsl(var(--metric-fees) / 0.04);
   }
@@ -2824,12 +1589,12 @@
   }
 
   .fees-pay-btn {
-    background: hsl(var(--metric-fees));
+    background: hsl(38 92% 30%);
     color: hsl(0 0% 100%);
   }
 
   .fees-pay-btn:hover:not(:disabled) {
-    background: hsl(var(--metric-fees) / 0.9);
+    background: hsl(38 92% 26%);
   }
 
   .fees-pay-btn:disabled {
@@ -2892,10 +1657,6 @@
       0 14px 40px -28px hsl(var(--metric-patients) / 0.35);
   }
 
-  .patient-visit-timeline-line {
-    opacity: 0.85;
-  }
-
   .patient-detail-tabs {
     border: 1px solid hsl(var(--glass-border));
     border-radius: 0.875rem;
@@ -2936,7 +1697,6 @@
     display: flex;
     gap: 0.75rem;
     padding-bottom: 1.25rem;
-    animation: dashboard-list-enter 0.45s ease backwards;
   }
 
   .patient-timeline-node:last-child {
@@ -2977,21 +1737,6 @@
     box-shadow:
       0 0 0 4px hsl(var(--metric-patients) / 0.12),
       0 0 20px -4px hsl(var(--metric-patients) / 0.55);
-    animation: patient-timeline-pulse 2.4s ease-in-out infinite;
-  }
-
-  @keyframes patient-timeline-pulse {
-    0%,
-    100% {
-      box-shadow:
-        0 0 0 4px hsl(var(--metric-patients) / 0.12),
-        0 0 16px -4px hsl(var(--metric-patients) / 0.45);
-    }
-    50% {
-      box-shadow:
-        0 0 0 6px hsl(var(--metric-patients) / 0.18),
-        0 0 24px -2px hsl(var(--metric-patients) / 0.65);
-    }
   }
 
   .patient-timeline-connector {
@@ -3040,10 +1785,6 @@
     color: hsl(var(--muted-foreground));
   }
 
-  .fees-list-item-enter {
-    animation: dashboard-list-enter 0.35s ease backwards;
-  }
-
   /* Exams page — bento + glass table (exams accent) */
   .exams-hero {
     background: linear-gradient(
@@ -3063,21 +1804,6 @@
     );
   }
 
-  .exams-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 100% 0%, hsl(var(--metric-exams) / 0.2), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-classes) / 0.12), transparent 50%);
-    pointer-events: none;
-  }
-
-  .exams-hero-badge {
-    border: 1px solid hsl(var(--metric-exams) / 0.25);
-    background: hsl(var(--metric-exams) / 0.1);
-    color: hsl(var(--metric-exams));
-  }
-
   .exams-hero-btn {
     border-color: hsl(var(--glass-border));
     background: hsl(var(--glass) / 0.5);
@@ -3090,12 +1816,12 @@
   }
 
   .exams-hero-primary {
-    background: hsl(var(--metric-exams));
+    background: hsl(350 89% 46%);
     color: hsl(0 0% 100%);
   }
 
   .exams-hero-primary:hover {
-    background: hsl(var(--metric-exams) / 0.9);
+    background: hsl(350 89% 43%);
   }
 
   .exams-input {
@@ -3109,28 +1835,6 @@
     box-shadow: 0 0 0 2px hsl(var(--metric-exams) / 0.15);
   }
 
-  .exams-tabs-list {
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.25);
-    padding: 0.25rem;
-    height: auto;
-  }
-
-  .exams-tab-trigger {
-    color: hsl(var(--muted-foreground));
-    border-radius: 0.5rem;
-    padding: 0.375rem 0.875rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    transition: color 0.2s ease, background 0.2s ease;
-  }
-
-  .exams-tab-trigger[data-state='active'] {
-    background: hsl(var(--metric-exams) / 0.15);
-    color: hsl(var(--metric-exams));
-    box-shadow: none;
-  }
-
   .exams-page .clinic-table-row:hover {
     background: hsl(var(--metric-exams) / 0.06);
     box-shadow: inset 3px 0 0 hsl(var(--metric-exams));
@@ -3140,36 +1844,6 @@
     background: hsl(var(--metric-exams) / 0.08);
   }
 
-  .exams-list-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-  }
-
-  .exams-list-card {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.35);
-    backdrop-filter: blur(12px);
-  }
-
-  .dark .exams-list-card {
-    background: hsl(var(--muted) / 0.12);
-  }
-
-
-
-  .exams-list-icon {
-    background: hsl(var(--metric-exams) / 0.12);
-    color: hsl(var(--metric-exams));
-  }
-
-  .exams-list-subject {
-    border: 1px solid hsl(var(--metric-exams) / 0.2);
-    background: hsl(var(--metric-exams) / 0.08);
-    color: hsl(var(--metric-exams));
-  }
-
-  .exams-list-empty,
   .exams-marks-empty,
   .exams-results-empty {
     border-color: hsl(var(--glass-border));
@@ -3196,39 +1870,12 @@
   }
 
   .exams-marks-save {
-    background: hsl(var(--metric-exams));
+    background: hsl(350 89% 46%);
     color: hsl(0 0% 100%);
   }
 
   .exams-marks-save:hover {
-    background: hsl(var(--metric-exams) / 0.9);
-  }
-
-  .exams-search-input,
-  .exams-filter-select {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.45);
-    backdrop-filter: blur(8px);
-  }
-
-  .exams-search-input:focus-visible,
-  .exams-filter-select:focus-visible {
-    border-color: hsl(var(--metric-exams) / 0.5);
-    box-shadow: 0 0 0 2px hsl(var(--metric-exams) / 0.15);
-  }
-
-  .exams-view-toggle {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.25);
-  }
-
-  .exams-view-toggle-btn {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .exams-view-toggle-btn-active {
-    background: hsl(var(--metric-exams) / 0.15);
-    color: hsl(var(--metric-exams));
+    background: hsl(350 89% 43%);
   }
 
   .exams-avatar {
@@ -3256,7 +1903,7 @@
   }
 
   .exams-page-btn-active {
-    background: hsl(var(--metric-exams));
+    background: hsl(350 89% 46%);
     color: hsl(0 0% 100%);
   }
 
@@ -3352,28 +1999,28 @@
   }
 
   .clinic-form-control--active {
-    border-color: hsl(var(--metric-classes)) !important;
-    background: hsl(var(--metric-classes)) !important;
+    border-color: hsl(160 84% 26%) !important;
+    background: hsl(160 84% 26%) !important;
     color: hsl(0 0% 100%) !important;
   }
 
   .clinic-form-control--active:hover:not(:disabled) {
-    border-color: hsl(var(--metric-classes)) !important;
-    background: hsl(var(--metric-classes) / 0.9) !important;
+    border-color: hsl(160 84% 24%) !important;
+    background: hsl(160 84% 24%) !important;
     color: hsl(0 0% 100%) !important;
   }
 
   button.clinic-form-control.clinic-form-control--active,
   button.clinic-form-input.clinic-form-control--active {
     border-color: hsl(var(--metric-classes)) !important;
-    background: hsl(var(--metric-classes)) !important;
+    background: hsl(160 84% 26%) !important;
     color: hsl(0 0% 100%) !important;
   }
 
   button.clinic-form-control.clinic-form-control--active:hover:not(:disabled),
   button.clinic-form-input.clinic-form-control--active:hover:not(:disabled) {
-    border-color: hsl(var(--metric-classes)) !important;
-    background: hsl(var(--metric-classes) / 0.9) !important;
+    border-color: hsl(160 84% 24%) !important;
+    background: hsl(160 84% 24%) !important;
     color: hsl(0 0% 100%) !important;
   }
 
@@ -3400,15 +2047,15 @@
   button.clinic-form-control.btn-premium-outline.clinic-form-control--active,
   button.clinic-form-input.btn-premium-outline.clinic-form-control--active {
     border-color: hsl(var(--metric-classes)) !important;
-    background: hsl(var(--metric-classes)) !important;
+    background: hsl(160 84% 26%) !important;
     color: hsl(0 0% 100%) !important;
     box-shadow: 0 1px 2px 0 hsl(var(--metric-classes) / 0.2);
   }
 
   button.clinic-form-control.btn-premium-outline.clinic-form-control--active:hover:not(:disabled),
   button.clinic-form-input.btn-premium-outline.clinic-form-control--active:hover:not(:disabled) {
-    border-color: hsl(var(--metric-classes)) !important;
-    background: hsl(var(--metric-classes) / 0.9) !important;
+    border-color: hsl(160 84% 24%) !important;
+    background: hsl(160 84% 24%) !important;
     color: hsl(0 0% 100%) !important;
   }
 
@@ -3426,32 +2073,6 @@
   .clinic-dob-picker:focus-visible {
     border-color: hsl(var(--metric-patients) / 0.5);
     box-shadow: 0 0 0 2px hsl(var(--metric-patients) / 0.12);
-  }
-
-  .clinic-create-hero {
-    border-color: hsl(var(--glass-border));
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-patients) / 0.08) 0%,
-      hsl(var(--glass) / 0.4) 45%,
-      hsl(var(--glass) / 0.2) 100%
-    );
-  }
-
-  .dark .clinic-create-hero {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-patients) / 0.12) 0%,
-      hsl(var(--card) / 0.85) 100%
-    );
-  }
-
-  .clinic-create-breadcrumb a {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .clinic-create-breadcrumb a:hover {
-    color: hsl(var(--foreground));
   }
 
   .clinic-form-section-title {
@@ -3524,19 +2145,6 @@
     right: 0.3rem;
     bottom: 0.3rem;
     opacity: 0.92;
-  }
-
-  .clinic-form-section-header-arabic {
-    font-size: 0.9375rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: hsl(var(--section-accent));
-  }
-
-  .clinic-form-section-header-subtitle {
-    font-size: 0.75rem;
-    line-height: 1.45;
-    color: hsl(var(--muted-foreground));
   }
 
   .clinic-form-section-header-ornament {
@@ -3617,38 +2225,7 @@
     color: hsl(var(--popover-foreground));
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .clinic-list-item-enter {
-      animation: none !important;
-    }
-  }
-
   /* Patient detail page */
-  .patient-detail-header {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.55);
-    backdrop-filter: blur(20px) saturate(1.15);
-  }
-
-  .dark .patient-detail-header {
-    background: hsl(var(--card) / 0.88);
-  }
-
-  .patient-detail-header-mesh {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 70% 60% at 100% 0%, hsl(var(--metric-patients) / 0.16), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 0% 100%, hsl(var(--metric-teachers) / 0.1), transparent 50%);
-  }
-
-  .patient-detail-meta-chip {
-    border: 1px solid hsl(var(--glass-border));
-    border-radius: 9999px;
-    background: hsl(var(--muted) / 0.3);
-    padding: 0.375rem 0.75rem;
-  }
 
   .clinic-accent-pill {
     border-radius: 9999px;
@@ -3657,12 +2234,6 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-  }
-
-  .clinic-accent-pill-patients {
-    border: 1px solid hsl(var(--metric-patients) / 0.25);
-    background: hsl(var(--metric-patients) / 0.12);
-    color: hsl(var(--metric-patients));
   }
 
   .patient-detail-tabs {
@@ -3699,27 +2270,6 @@
 
   .dark .patient-detail-tab-trigger-active {
     color: hsl(var(--foreground));
-  }
-
-  .patient-detail-info-item {
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--muted) / 0.2);
-  }
-
-  .patient-detail-link-chip {
-    border: 1px solid hsl(var(--metric-patients) / 0.3);
-    background: hsl(var(--metric-patients) / 0.1);
-    color: hsl(var(--metric-patients));
-    transition: all 0.2s ease;
-  }
-
-  .patient-detail-link-chip:hover {
-    background: hsl(var(--metric-patients) / 0.16);
-    transform: translateY(-1px);
-  }
-
-  .patient-detail-tab-panel {
-    animation: dashboard-fade-up 0.4s ease-out both;
   }
 
   /* Admin sidebar — lightweight unified nav */
@@ -3789,7 +2339,7 @@
   }
 
   .admin-sidebar-group-label {
-    color: hsl(var(--muted-foreground) / 0.75);
+    color: hsl(var(--muted-foreground));
   }
 
   .admin-sidebar-nav-item {
@@ -3877,33 +2427,6 @@
     box-shadow: none;
   }
 
-  .admin-sidebar-user {
-    background: hsl(var(--muted) / 0.3);
-    border: 1px solid hsl(var(--glass-border));
-  }
-
-  .admin-sidebar-online-dot {
-    height: 8px;
-    width: 8px;
-    shrink: 0;
-    border-radius: 9999px;
-    background: hsl(142 76% 45%);
-  }
-
-  .admin-sidebar-logout {
-    color: hsl(var(--muted-foreground));
-    transition: color 0.15s ease, background-color 0.15s ease;
-  }
-
-  .admin-sidebar-logout:hover {
-    color: hsl(var(--destructive));
-    background: hsl(var(--destructive) / 0.08);
-  }
-
-  .admin-sidebar-logout:hover span:first-child {
-    background: hsl(var(--destructive) / 0.12);
-  }
-
   /* Vault dropdown — same nav tokens, minimal extras */
   .admin-sidebar-vault-group {
     position: relative;
@@ -3944,136 +2467,6 @@
   }
 
   /* Immersive login — video + 3D glass */
-  .login-glass-v2 {
-    @apply relative overflow-hidden backdrop-blur-xl;
-    background: hsl(var(--glass) / 0.55);
-    border: 1px solid hsl(var(--glass-border));
-    box-shadow:
-      0 8px 32px hsl(var(--foreground) / 0.08),
-      inset 0 1px 0 hsl(var(--glass-border));
-  }
-
-  .dark .login-glass-v2 {
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.35),
-      inset 0 1px 0 hsl(var(--glass-border));
-  }
-
-  .login-glass-v2::after {
-    content: '';
-    @apply absolute inset-0 pointer-events-none;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--metric-patients) / 0.08) 0%,
-      transparent 50%
-    );
-  }
-
-  .login-video-grain {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  .login-3d-stage {
-    transform-style: preserve-3d;
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
-  }
-
-  .login-card-3d {
-    transform-style: preserve-3d;
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
-  }
-
-
-  .login-text-glow {
-    text-shadow: 0 0 40px hsl(var(--metric-patients) / 0.35);
-  }
-
-  .login-orb {
-    animation: login-float 8s ease-in-out infinite;
-    will-change: transform;
-  }
-
-  .login-orb-2 {
-    animation-delay: -2s;
-    animation-duration: 10s;
-  }
-
-  .login-orb-3 {
-    animation-delay: -4s;
-    animation-duration: 12s;
-  }
-
-  .login-float-card {
-    animation: login-float 6s ease-in-out infinite;
-  }
-
-  .login-float-delay-1 {
-    animation-delay: -1s;
-  }
-
-  .login-float-delay-2 {
-    animation-delay: -3s;
-  }
-
-  .login-emblem-ring {
-    animation: login-spin 20s linear infinite;
-  }
-
-  .login-emblem-ring-delay {
-    animation: login-spin 14s linear infinite reverse;
-  }
-
-  .login-3d-emblem {
-    transform-style: preserve-3d;
-    animation: login-emblem-float 5s ease-in-out infinite;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .login-orb,
-    .login-float-card,
-    .login-3d-emblem,
-    .login-emblem-ring,
-    .login-emblem-ring-delay,
-    .login-video-bg,
-    .login-video-mesh,
-    .login-card-icon-ring,
-    .login-card-enter,
-    .login-panel-arrive-left,
-    .login-panel-arrive-right {
-      animation: none !important;
-    }
-
-    .login-3d-stage,
-    .login-card-3d {
-      transition: none !important;
-    }
-  }
-
-  .login-video-bg {
-    animation: login-ken-burns 28s ease-in-out infinite alternate;
-  }
-
-  .login-video-mesh {
-    background:
-      radial-gradient(ellipse 80% 60% at 15% 20%, hsl(var(--metric-patients) / 0.28), transparent 55%),
-      radial-gradient(ellipse 70% 50% at 85% 75%, hsl(var(--metric-teachers) / 0.22), transparent 50%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, hsl(var(--metric-attendance) / 0.1), transparent 60%);
-    animation: login-mesh-shift 18s ease-in-out infinite alternate;
-  }
-
-  .login-card-shine::before {
-    content: '';
-    @apply absolute inset-0 rounded-3xl pointer-events-none;
-    background: linear-gradient(
-      105deg,
-      transparent 40%,
-      rgba(255, 255, 255, 0.08) 50%,
-      transparent 60%
-    );
-    background-size: 200% 100%;
-    animation: login-shine 6s ease-in-out infinite;
-  }
 
   /* Login page — theme-aware shell (aligned with dashboard bento glass) */
   .login-page-shell {
@@ -4097,7 +2490,6 @@
       linear-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px),
       linear-gradient(90deg, hsl(var(--foreground) / 0.07) 1px, transparent 1px);
     background-size: 64px 64px;
-    animation: login-lines-grid-drift 56s linear infinite;
   }
 
   .dark .login-lines-grid {
@@ -4113,7 +2505,6 @@
       linear-gradient(90deg, hsl(var(--foreground) / 0.045) 1px, transparent 1px);
     background-size: 16px 16px;
     opacity: 0.38;
-    animation: login-lines-grid-drift-reverse 64s linear infinite;
   }
 
   .dark .login-lines-grid-fine {
@@ -4133,7 +2524,6 @@
       hsl(var(--foreground) / 0.028) 48px
     );
     opacity: 0.55;
-    animation: login-lines-diagonal-drift 36s linear infinite;
   }
 
   .dark .login-lines-diagonal {
@@ -4176,798 +2566,9 @@
     opacity: 0.045;
   }
 
-  @keyframes login-lines-grid-drift {
-    from {
-      background-position: 0 0, 0 0;
-    }
-    to {
-      background-position: 64px 64px, 64px 64px;
-    }
-  }
-
-  @keyframes login-lines-grid-drift-reverse {
-    from {
-      background-position: 0 0, 0 0;
-    }
-    to {
-      background-position: -14px -14px, -14px -14px;
-    }
-  }
-
-  @keyframes login-lines-diagonal-drift {
-    from {
-      background-position: 0 0;
-    }
-    to {
-      background-position: 96px 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .login-lines-grid,
-    .login-lines-grid-fine,
-    .login-lines-diagonal {
-      animation: none !important;
-    }
-  }
-
   /* Login — ScholarFlow 3D carousel (left panel) */
-  .login-saas-3d {
-    @apply relative min-h-[480px] w-full py-2;
-  }
-
-  .login-saas-3d-placeholder {
-    @apply w-full;
-  }
 
   /* Login — initial panel arrival (left showcase + right form card) */
-  @keyframes login-panel-arrive-left {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes login-panel-arrive-right {
-    from {
-      opacity: 0;
-      transform: translateX(32px) translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0) translateY(0);
-    }
-  }
-
-  .login-panel-arrive-left {
-    animation: login-panel-arrive-left 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
-  }
-
-  .login-panel-arrive-right {
-    animation: login-panel-arrive-right 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .login-panel-arrive-left,
-    .login-panel-arrive-right {
-      animation: none !important;
-    }
-  }
-
-  .login-saas-3d-viewport {
-    position: relative;
-    width: min(100%, 420px);
-    height: 360px;
-    margin-bottom: 0.75rem;
-    overflow: hidden;
-    perspective: 1200px;
-    perspective-origin: 50% 50%;
-  }
-
-  .login-saas-3d-stage {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 220px;
-    height: 268px;
-    margin: -134px 0 0 -110px;
-    transform-style: preserve-3d;
-  }
-
-  .login-saas-3d-orbit-track {
-    position: absolute;
-    top: 78%;
-    left: 50%;
-    width: 280px;
-    height: 280px;
-    margin: -140px 0 0 -140px;
-    border: 1px solid hsl(var(--foreground) / 0.1);
-    border-radius: 50%;
-    transform: rotateX(82deg);
-    transform-style: preserve-3d;
-    pointer-events: none;
-  }
-
-  .login-saas-3d-orbit-track-inner {
-    width: 240px;
-    height: 240px;
-    margin: -120px 0 0 -120px;
-    border-style: dashed;
-    opacity: 0.55;
-  }
-
-  .login-saas-3d-carousel {
-    position: absolute;
-    inset: 0;
-    width: 220px;
-    height: 268px;
-    transform-style: preserve-3d;
-    transform: rotateY(var(--carousel-rotate, 0deg));
-    transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .login-saas-3d-slide {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    transform: rotateY(var(--slide-angle)) translateZ(240px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.45s ease;
-  }
-
-  .login-saas-3d-slide-active {
-    opacity: 1;
-    pointer-events: auto;
-    z-index: 2;
-  }
-
-  .login-saas-3d-slide-card {
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-  }
-
-  .login-saas-3d-slide-card-depth {
-    position: relative;
-    width: 100%;
-    min-height: 268px;
-    transform-style: preserve-3d;
-  }
-
-  .login-saas-3d-slide-card-layer {
-    position: absolute;
-    border-radius: 1rem;
-    backface-visibility: hidden;
-  }
-
-  .login-saas-3d-slide-card-back {
-    inset: 0;
-    transform: translateZ(-10px);
-    background: hsl(var(--muted) / 0.55);
-    border: 1px solid hsl(var(--border));
-  }
-
-  .login-saas-3d-slide-card-edge {
-    background: hsl(var(--muted) / 0.72);
-    border: 1px solid hsl(var(--border) / 0.8);
-  }
-
-  .login-saas-3d-slide-card-edge-right {
-    top: 0;
-    right: 0;
-    width: 10px;
-    height: 100%;
-    transform-origin: right center;
-    transform: rotateY(-90deg) translateX(5px);
-  }
-
-  .login-saas-3d-slide-card-edge-left {
-    top: 0;
-    left: 0;
-    width: 10px;
-    height: 100%;
-    transform-origin: left center;
-    transform: rotateY(90deg) translateX(-5px);
-  }
-
-  .login-saas-3d-slide-card-edge-bottom {
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 10px;
-    transform-origin: center bottom;
-    transform: rotateX(-90deg) translateY(5px);
-  }
-
-  .login-saas-3d-slide-card-face {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: 268px;
-    padding: 0.8rem;
-    border-radius: 0.875rem;
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 16px 40px hsl(var(--foreground) / 0.08);
-    transform: translateZ(10px);
-    overflow: hidden;
-    backface-visibility: hidden;
-  }
-
-  :root:not(.dark) .login-saas-3d-slide-card-face {
-    background: hsl(0 0% 100% / 0.82);
-    border-color: hsl(222 47% 11% / 0.1);
-    box-shadow:
-      0 16px 40px hsl(222 47% 11% / 0.1),
-      inset 0 1px 0 hsl(0 0% 100% / 0.9);
-  }
-
-  .dark .login-saas-3d-slide-card-face {
-    box-shadow:
-      0 20px 52px rgba(0, 0, 0, 0.42),
-      0 1px 0 hsl(var(--foreground) / 0.06) inset;
-  }
-
-  .login-saas-3d-slide-accent {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 96px;
-    height: 96px;
-    border-radius: 999px;
-    transform: translate(28%, -28%);
-    background: hsl(var(--foreground) / 0.05);
-    pointer-events: none;
-  }
-
-  .login-saas-3d-slide-accent-patients {
-    background: hsl(var(--metric-patients) / 0.14);
-  }
-
-  .login-saas-3d-slide-accent-attendance {
-    background: hsl(var(--metric-attendance) / 0.14);
-  }
-
-  .login-saas-3d-slide-accent-exams {
-    background: hsl(var(--metric-exams) / 0.14);
-  }
-
-  .login-saas-3d-slide-accent-fees {
-    background: hsl(var(--metric-fees) / 0.14);
-  }
-
-  .login-saas-3d-slide-head {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .login-saas-3d-slide-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.15rem;
-    height: 2.15rem;
-    border-radius: 0.65rem;
-    border: 1px solid hsl(var(--border));
-    color: hsl(var(--foreground));
-    background: hsl(var(--muted) / 0.35);
-  }
-
-  .login-saas-3d-slide-icon-dashboard {
-    color: hsl(var(--foreground));
-    background: hsl(var(--muted) / 0.45);
-  }
-
-  .login-saas-3d-slide-icon-patients {
-    color: hsl(var(--metric-patients));
-    background: hsl(var(--metric-patients) / 0.12);
-    border-color: hsl(var(--metric-patients) / 0.22);
-  }
-
-  .login-saas-3d-slide-icon-attendance {
-    color: hsl(var(--metric-attendance));
-    background: hsl(var(--metric-attendance) / 0.12);
-    border-color: hsl(var(--metric-attendance) / 0.22);
-  }
-
-  .login-saas-3d-slide-icon-exams {
-    color: hsl(var(--metric-exams));
-    background: hsl(var(--metric-exams) / 0.12);
-    border-color: hsl(var(--metric-exams) / 0.22);
-  }
-
-  .login-saas-3d-slide-icon-fees {
-    color: hsl(var(--metric-fees));
-    background: hsl(var(--metric-fees) / 0.12);
-    border-color: hsl(var(--metric-fees) / 0.22);
-  }
-
-  .login-saas-3d-slide-eyebrow {
-    @apply text-[10px] font-semibold uppercase tracking-[0.14em];
-    color: hsl(var(--muted-foreground));
-  }
-
-  .login-saas-3d-slide-title {
-    @apply mt-0.5 text-sm font-semibold leading-tight;
-    color: hsl(var(--foreground));
-  }
-
-  .login-saas-3d-slide-body {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    margin-top: 0.75rem;
-    padding: 0.65rem;
-    border-radius: 0.75rem;
-    border: 1px solid hsl(var(--border) / 0.65);
-    background: hsl(var(--background) / 0.45);
-  }
-
-  .login-saas-3d-slide-foot {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.65rem;
-    color: hsl(var(--muted-foreground));
-  }
-
-  .login-saas-3d-slide-index {
-    @apply text-xs font-semibold tabular-nums;
-    color: hsl(var(--foreground));
-  }
-
-  .login-saas-3d-slide-divider {
-    flex: 1;
-    height: 1px;
-    background: hsl(var(--border));
-  }
-
-  .login-saas-3d-slide-total {
-    @apply text-xs font-medium tabular-nums;
-  }
-
-  .login-saas-3d-preview-dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    height: 100%;
-  }
-
-  .login-saas-3d-preview-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.4rem;
-    height: 4.25rem;
-  }
-
-  .login-saas-3d-preview-stat {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 0.35rem;
-    padding: 0.35rem;
-    border-radius: 0.45rem;
-    background: hsl(var(--muted) / 0.35);
-  }
-
-  .login-saas-3d-preview-stat-bar {
-    display: block;
-    width: 100%;
-    border-radius: 2px;
-    background: linear-gradient(
-      to top,
-      hsl(var(--foreground) / 0.55),
-      hsl(var(--foreground) / 0.16)
-    );
-    animation: login-saas-3d-bar-pulse 2.4s ease-in-out infinite;
-  }
-
-  .login-saas-3d-preview-stat-line {
-    display: block;
-    height: 4px;
-    border-radius: 999px;
-    background: hsl(var(--foreground) / 0.12);
-  }
-
-  .login-saas-3d-preview-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-
-  .login-saas-3d-preview-row {
-    display: block;
-    height: 6px;
-    border-radius: 999px;
-    background: hsl(var(--foreground) / 0.1);
-    animation: login-saas-3d-row-shimmer 2.8s ease-in-out infinite;
-  }
-
-  .login-saas-3d-preview-rows .login-saas-3d-preview-row:nth-child(2) {
-    width: 88%;
-  }
-
-  .login-saas-3d-preview-rows .login-saas-3d-preview-row:nth-child(3) {
-    width: 72%;
-  }
-
-  .login-saas-3d-preview-rows .login-saas-3d-preview-row:nth-child(4) {
-    width: 58%;
-  }
-
-  .login-saas-3d-preview-patients {
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-  }
-
-  .login-saas-3d-preview-patient-row {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-  }
-
-  .login-saas-3d-preview-avatar {
-    width: 1.35rem;
-    height: 1.35rem;
-    border-radius: 999px;
-    background: hsl(var(--metric-patients) / 0.18);
-    border: 1px solid hsl(var(--metric-patients) / 0.28);
-    animation: login-saas-3d-avatar-pulse 2.6s ease-in-out infinite;
-  }
-
-  .login-saas-3d-preview-patient-row .login-saas-3d-preview-row {
-    flex: 1;
-  }
-
-  .login-saas-3d-preview-attendance {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    height: 100%;
-    justify-content: center;
-  }
-
-  .login-saas-3d-preview-bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.35rem;
-    height: 4.25rem;
-  }
-
-  .login-saas-3d-preview-bars span {
-    flex: 1;
-    border-radius: 3px;
-    background: hsl(var(--metric-attendance) / 0.55);
-    animation: login-saas-3d-bar-pulse 2.2s ease-in-out infinite;
-  }
-
-  .login-saas-3d-preview-bars span:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  .login-saas-3d-preview-bars span:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-
-  .login-saas-3d-preview-bars span:nth-child(4) {
-    animation-delay: 0.6s;
-  }
-
-  .login-saas-3d-preview-bars span:nth-child(5) {
-    animation-delay: 0.8s;
-  }
-
-  .login-saas-3d-preview-attendance-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-  }
-
-  .login-saas-3d-preview-pill {
-    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold;
-    color: hsl(var(--metric-attendance));
-    background: hsl(var(--metric-attendance) / 0.12);
-    border: 1px solid hsl(var(--metric-attendance) / 0.22);
-  }
-
-  .login-saas-3d-preview-pill-fees {
-    color: hsl(var(--metric-fees));
-    background: hsl(var(--metric-fees) / 0.12);
-    border-color: hsl(var(--metric-fees) / 0.22);
-  }
-
-  .login-saas-3d-preview-caption-line {
-    display: block;
-    flex: 1;
-    height: 5px;
-    border-radius: 999px;
-    background: hsl(var(--foreground) / 0.1);
-  }
-
-  .login-saas-3d-preview-caption-line-short {
-    width: 42%;
-  }
-
-  .login-saas-3d-preview-exams {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-  }
-
-  .login-saas-3d-preview-exam-row {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-  }
-
-  .login-saas-3d-preview-grade {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.35rem;
-    height: 1.35rem;
-    border-radius: 0.35rem;
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: hsl(var(--metric-exams));
-    background: hsl(var(--metric-exams) / 0.14);
-    border: 1px solid hsl(var(--metric-exams) / 0.25);
-  }
-
-  .login-saas-3d-preview-score-track {
-    flex: 1;
-    height: 5px;
-    border-radius: 999px;
-    background: hsl(var(--muted) / 0.55);
-    overflow: hidden;
-  }
-
-  .login-saas-3d-preview-score-fill {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: hsl(var(--metric-exams));
-    animation: login-saas-3d-score-grow 2.8s ease-in-out infinite alternate;
-  }
-
-  .login-saas-3d-preview-fees {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    justify-content: center;
-    height: 100%;
-  }
-
-  .login-saas-3d-preview-fee-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .login-saas-3d-preview-fee-amount {
-    display: block;
-    width: 58%;
-    height: 8px;
-    border-radius: 999px;
-    background: hsl(var(--foreground) / 0.12);
-  }
-
-  .login-saas-3d-preview-fee-bar {
-    display: block;
-    height: 7px;
-    border-radius: 999px;
-    background: hsl(var(--muted) / 0.55);
-    overflow: hidden;
-    position: relative;
-  }
-
-  .login-saas-3d-preview-fee-bar::after {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 72%;
-    border-radius: inherit;
-    background: hsl(var(--metric-fees));
-    animation: login-saas-3d-fee-fill 3s ease-in-out infinite alternate;
-  }
-
-  .login-saas-3d-scroll {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    width: min(100%, 420px);
-  }
-
-  .login-saas-3d-dots {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-  }
-
-  .login-saas-3d-dot {
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 999px;
-    border: none;
-    padding: 0;
-    background: hsl(var(--foreground) / 0.18);
-    transition:
-      width 0.25s ease,
-      background 0.25s ease;
-    cursor: default;
-  }
-
-  .login-saas-3d-dot-active {
-    width: 1.35rem;
-    background: hsl(var(--foreground) / 0.72);
-  }
-
-  .login-saas-3d-scroll-label {
-    @apply text-center text-xs font-medium;
-    color: hsl(var(--muted-foreground));
-  }
-
-  .login-saas-3d-caption {
-    @apply relative z-10 mt-2 text-center;
-  }
-
-  .login-saas-3d-caption-title {
-    @apply text-lg font-semibold tracking-tight;
-    color: hsl(var(--foreground));
-  }
-
-  .login-saas-3d-caption-sub {
-    @apply mt-1 text-sm font-medium;
-    color: hsl(var(--muted-foreground));
-    transition: opacity 0.35s ease;
-  }
-
-  @keyframes login-saas-3d-bar-pulse {
-    0%,
-    100% {
-      opacity: 0.65;
-      transform: scaleY(0.92);
-    }
-    50% {
-      opacity: 1;
-      transform: scaleY(1);
-    }
-  }
-
-  @keyframes login-saas-3d-row-shimmer {
-    0%,
-    100% {
-      opacity: 0.55;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-
-  @keyframes login-saas-3d-avatar-pulse {
-    0%,
-    100% {
-      background: hsl(var(--metric-patients) / 0.14);
-    }
-    50% {
-      background: hsl(var(--metric-patients) / 0.28);
-    }
-  }
-
-  @keyframes login-saas-3d-score-grow {
-    from {
-      opacity: 0.75;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes login-saas-3d-fee-fill {
-    from {
-      width: 58%;
-    }
-    to {
-      width: 82%;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .login-saas-3d-carousel,
-    .login-saas-3d-slide,
-    .login-saas-3d-caption-sub {
-      transition: none !important;
-    }
-
-    .login-saas-3d-preview-stat-bar,
-    .login-saas-3d-preview-row,
-    .login-saas-3d-preview-avatar,
-    .login-saas-3d-preview-bars span,
-    .login-saas-3d-preview-score-fill,
-    .login-saas-3d-preview-fee-bar::after {
-      animation: none !important;
-    }
-
-    .login-saas-3d-slide {
-      opacity: 0;
-    }
-
-    .login-saas-3d-slide-active {
-      opacity: 1;
-    }
-
-    .login-saas-3d-preview-fee-bar::after {
-      width: 72%;
-    }
-  }
-
-  .login-video-fallback {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--background)) 0%,
-      hsl(var(--muted)) 45%,
-      hsl(var(--metric-patients) / 0.12) 100%
-    );
-  }
-
-  .login-video-scrim {
-    background: linear-gradient(
-      to bottom right,
-      hsl(var(--background) / 0.9),
-      hsl(var(--background) / 0.78),
-      hsl(var(--metric-patients) / 0.08)
-    );
-  }
-
-  .dark .login-video-scrim {
-    background: linear-gradient(
-      to bottom right,
-      hsl(var(--background) / 0.92),
-      hsl(var(--background) / 0.82),
-      hsl(var(--metric-teachers) / 0.1)
-    );
-  }
-
-  .login-video-scrim-accent-1 {
-    background: radial-gradient(
-      ellipse at 20% 20%,
-      hsl(var(--metric-patients) / 0.2),
-      transparent 52%
-    );
-  }
-
-  .login-video-scrim-accent-2 {
-    background: radial-gradient(
-      ellipse at 80% 80%,
-      hsl(var(--metric-teachers) / 0.16),
-      transparent 48%
-    );
-  }
-
-  .login-video-scrim-vignette {
-    background: hsl(var(--foreground) / 0.03);
-  }
-
-  .dark .login-video-scrim-vignette {
-    background: hsl(var(--background) / 0.28);
-  }
 
   .login-header-brand-icon {
     @apply flex h-9 w-9 items-center justify-center rounded-xl backdrop-blur-md;
@@ -5013,11 +2614,6 @@
 
   .login-footer-text {
     color: hsl(var(--muted-foreground));
-  }
-
-  .login-card-enter,
-  .login-panel-arrive-right {
-    animation: login-panel-arrive-right 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
   }
 
   /* Login card — premium bento glass slab */
@@ -5120,7 +2716,6 @@
     inset: 0;
     border-radius: 1rem;
     border: 1px solid hsl(var(--glass-border));
-    animation: login-spin 18s linear infinite;
   }
 
   .login-card-icon-core {
@@ -5163,21 +2758,6 @@
 
   .login-card-link:hover {
     color: hsl(var(--metric-teachers));
-  }
-
-  .login-card-checkbox {
-    border-color: hsl(var(--border));
-  }
-
-  .login-card-checkbox[data-state='checked'] {
-    border-color: hsl(var(--metric-patients));
-    background: hsl(var(--metric-patients));
-    color: hsl(var(--primary-foreground));
-  }
-
-  .login-card-checkbox-label {
-    @apply cursor-pointer text-sm font-normal;
-    color: hsl(var(--foreground));
   }
 
   .login-card-alert {
@@ -5304,118 +2884,25 @@
     transform: scale(0.985);
   }
 
-  .login-card-or-divider {
-    @apply relative flex items-center justify-center py-1;
-  }
-
-  .login-card-or-divider::before {
-    content: '';
-    @apply absolute inset-x-0 top-1/2 h-px -translate-y-1/2;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--glass-border)),
-      transparent
-    );
-  }
-
-  .login-card-or-divider span {
-    @apply relative z-10 px-3 text-[11px] font-medium uppercase tracking-[0.12em];
-    color: hsl(var(--muted-foreground));
-    background: hsl(var(--glass));
-  }
-
-  .login-card-demo-chip {
-    @apply flex items-center gap-2.5 rounded-xl border px-3 py-3 transition-all duration-200;
-    background: hsl(var(--muted) / 0.25);
-    border-color: hsl(var(--glass-border));
-  }
-
-  .login-card-demo-chip:hover {
-    border-color: hsl(var(--metric-patients) / 0.35);
-    background: hsl(var(--metric-patients) / 0.08);
-    transform: translateY(-1px);
-  }
-
-  .login-card-demo-chip:focus-visible {
-    outline: 2px solid hsl(var(--metric-patients) / 0.45);
-    outline-offset: 2px;
-  }
-
-  .login-card-demo-chip-title {
-    @apply block text-xs font-semibold;
-    color: hsl(var(--foreground));
-  }
-
-  .login-card-demo-chip-subtitle {
-    @apply block text-[11px];
-    color: hsl(var(--muted-foreground));
-  }
-
-  .login-card-demo-dot {
-    @apply h-2 w-2 shrink-0 rounded-full;
-  }
-
-  .login-card-demo-dot-admin {
-    background: hsl(var(--metric-patients));
-    box-shadow: 0 0 8px hsl(var(--metric-patients) / 0.55);
-  }
-
-  .login-card-demo-dot-staff {
-    background: hsl(var(--metric-teachers));
-    box-shadow: 0 0 8px hsl(var(--metric-teachers) / 0.55);
-  }
-
   .btn {
     @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-primary {
     @apply bg-primary text-primary-foreground hover:bg-primary/90;
   }
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
-  }
   .btn-outline {
     @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
   }
-  .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
-  }
-  .btn-lg {
-    @apply h-11 px-8 text-base;
-  }
-  .btn-md {
-    @apply h-10 px-6;
-  }
-  .btn-sm {
-    @apply h-9 px-4;
-  }
-  .btn-xs {
-    @apply h-8 px-3 text-xs;
-  }
   
   /* Card styles */
-  .card-hover {
-    @apply transition-all duration-200 hover:shadow-md;
-  }
   
   /* Form styles */
-  .form-group {
-    @apply mb-4;
-  }
-  
-  .form-label {
-    @apply block mb-2 text-sm font-medium;
-  }
   
   .form-input {
     @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
   
   /* Layout styles */
-  .main-container {
-    @apply container mx-auto px-4 py-6 md:px-6 lg:px-8;
-  }
   
   .section {
     @apply mb-8;
@@ -5426,33 +2913,10 @@
   }
   
   /* Table styles */
-  .table-container {
-    @apply w-full overflow-x-auto rounded-md border;
-  }
   
   /* Status badge styles */
   .status-badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
-  }
-  
-  .status-pending {
-    @apply bg-yellow-100 text-yellow-800;
-  }
-  
-  .status-processing {
-    @apply bg-blue-100 text-blue-800;
-  }
-  
-  .status-shipped {
-    @apply bg-purple-100 text-purple-800;
-  }
-  
-  .status-delivered {
-    @apply bg-green-100 text-green-800;
-  }
-  
-  .status-cancelled {
-    @apply bg-red-100 text-red-800;
   }
   
   /* Sidebar styles */
@@ -5460,22 +2924,7 @@
     @apply fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 ease-in-out bg-background text-foreground border-r border-border;
   }
   
-  .sidebar-collapsed {
-    @apply -translate-x-full md:translate-x-0 md:w-20;
-  }
-  
-  .sidebar-item {
-    @apply flex items-center px-4 py-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground;
-  }
-  
-  .sidebar-item-active {
-    @apply bg-primary text-primary-foreground;
-  }
-  
   /* Dashboard card styles */
-  .dashboard-card {
-    @apply rounded-lg border bg-card p-4 transition-all;
-  }
   
   .dashboard-stat {
     @apply text-2xl font-bold;
@@ -5483,80 +2932,28 @@
 
   /* Sub-cards — no shadow in light mode (must come after page-specific hover rules) */
   :root:not(.dark) .clinic-compact-card,
-  :root:not(.dark) .teachers-compact-card,
   :root:not(.dark) .clinic-table-shell,
-  :root:not(.dark) .teachers-table-shell,
-  :root:not(.dark) .patient-detail-info-item,
-  :root:not(.dark) .teacher-detail-info-item,
   :root:not(.dark) .patient-detail-tabs,
-  :root:not(.dark) .class-detail-tabs,
-  :root:not(.dark) .patient-detail-tab-panel,
-  :root:not(.dark) .class-detail-tab-panel,
-  :root:not(.dark) .attendance-record-card,
   :root:not(.dark) .attendance-record-toolbar,
-  :root:not(.dark) .attendance-history-filters,
-  :root:not(.dark) .attendance-history-stat-card,
-  :root:not(.dark) .attendance-history-row,
   :root:not(.dark) .attendance-history-empty,
-  :root:not(.dark) .exams-list-card,
   :root:not(.dark) .exams-marks-toolbar,
   :root:not(.dark) .exams-marks-empty,
   :root:not(.dark) .exams-results-stat-card,
   :root:not(.dark) .exams-results-empty,
   :root:not(.dark) .settings-tabs-list,
-  :root:not(.dark) .settings-add-user,
   :root:not(.dark) .dashboard-shell .rounded-2xl.border,
   :root:not(.dark) .dashboard-shell .rounded-xl.border,
   :root:not(.dark) .clinic-compact-card:hover,
-  :root:not(.dark) .teachers-compact-card:hover,
   :root:not(.dark) .classes-page .clinic-compact-card:hover,
-  :root:not(.dark) .exams-page .clinic-compact-card:hover,
-  :root:not(.dark) .attendance-record-card:hover,
-  :root:not(.dark) .attendance-history-row:hover,
-  :root:not(.dark) .teachers-compact-card:hover {
+  :root:not(.dark) .exams-page .clinic-compact-card:hover {
     box-shadow: none !important;
   }
 }
 
 /* Custom utilities */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
   
   /* Custom calendar styling */
-  input[type="date"].calendar-input {
-    appearance: none;
-    -webkit-appearance: none;
-    position: relative;
-    background-image: none;
-  }
-  
-  input[type="date"].calendar-input::-webkit-calendar-picker-indicator {
-    background: transparent;
-    color: transparent;
-    cursor: pointer;
-    height: 100%;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 100%;
-    z-index: 1;
-  }
-  
-  input[type="date"].calendar-input:focus {
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
 
   /* Global scrollbar theming */
   * {
@@ -5587,318 +2984,11 @@
   *::-webkit-scrollbar-corner {
     background: hsl(var(--muted) / 0.2);
   }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
 
   /* Advanced Auth Page Animations */
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-float-complex {
-    animation: float-complex 12s ease-in-out infinite;
-  }
-
-  .animate-float-complex-delayed {
-    animation: float-complex-delayed 14s ease-in-out infinite;
-  }
-
-  .animate-float-reverse {
-    animation: float-reverse 8s ease-in-out infinite;
-  }
-
-  .animate-float-complex-reverse {
-    animation: float-complex-reverse 13s ease-in-out infinite;
-  }
-
-  .animate-float-complex-reverse-delayed {
-    animation: float-complex-reverse-delayed 15s ease-in-out infinite;
-  }
-
-  .animate-fade-in-up {
-    animation: fade-in-up 0.8s ease-out;
-  }
-
-  .animate-slide-in-from-top {
-    animation: slide-in-from-top 0.6s ease-out 0.2s both;
-  }
-
-  .animate-slide-in-from-left {
-    animation: slide-in-from-left 0.6s ease-out 0.4s both;
-  }
-
-  .animate-slide-in-from-right {
-    animation: slide-in-from-right 0.6s ease-out 0.6s both;
-  }
-
-  .animate-slide-in-from-bottom {
-    animation: slide-in-from-bottom 0.8s ease-out 0.3s both;
-  }
-
-  .animate-slide-in-from-bottom-delayed {
-    animation: slide-in-from-bottom-delayed 0.8s ease-out 0.6s both;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out 0.8s both;
-  }
-
-  .animate-fade-in-delayed {
-    animation: fade-in-delayed 0.6s ease-out 1s both;
-  }
-
-  .animate-fade-in-up-delayed {
-    animation: fade-in-up-delayed 0.6s ease-out 1.2s both;
-  }
-
-  .animate-fade-in-stagger {
-    animation: fade-in-stagger 0.6s ease-out 1.4s both;
-  }
-
-  .animate-fade-in-stagger-delayed {
-    animation: fade-in-stagger-delayed 0.6s ease-out 1.6s both;
-  }
-
-  .animate-fade-in-stagger-delayed-2 {
-    animation: fade-in-stagger-delayed-2 0.6s ease-out 1.8s both;
-  }
-
-  .animate-fade-in-stagger-delayed-3 {
-    animation: fade-in-stagger-delayed-3 0.6s ease-out 2s both;
-  }
-
-  .animate-scale-in {
-    animation: scale-in 0.5s ease-out;
-  }
-
-  .animate-spin-slow {
-    animation: spin-slow 8s linear infinite;
-  }
-
-  .animate-spin-reverse {
-    animation: spin-reverse 10s linear infinite;
-  }
 
   .hover\:shadow-3xl:hover {
     box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
-  }
-
-  @keyframes float-complex {
-    0%, 100% {
-      transform: translateY(0px) translateX(0px) rotate(0deg) scale(1);
-    }
-    25% {
-      transform: translateY(-15px) translateX(10px) rotate(90deg) scale(1.1);
-    }
-    50% {
-      transform: translateY(-30px) translateX(-5px) rotate(180deg) scale(0.9);
-    }
-    75% {
-      transform: translateY(-15px) translateX(-10px) rotate(270deg) scale(1.05);
-    }
-  }
-
-  @keyframes float-complex-delayed {
-    0%, 100% {
-      transform: translateY(0px) translateX(0px) rotate(0deg) scale(1);
-    }
-    25% {
-      transform: translateY(-20px) translateX(-15px) rotate(-90deg) scale(1.1);
-    }
-    50% {
-      transform: translateY(-35px) translateX(10px) rotate(-180deg) scale(0.9);
-    }
-    75% {
-      transform: translateY(-20px) translateX(5px) rotate(-270deg) scale(1.05);
-    }
-  }
-
-  @keyframes float-reverse {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(25px) rotate(-180deg); }
-  }
-
-  @keyframes float-complex-reverse {
-    0%, 100% {
-      transform: translateY(0px) translateX(0px) rotate(0deg) scale(1);
-    }
-    25% {
-      transform: translateY(18px) translateX(-12px) rotate(-90deg) scale(1.1);
-    }
-    50% {
-      transform: translateY(35px) translateX(8px) rotate(-180deg) scale(0.9);
-    }
-    75% {
-      transform: translateY(18px) translateX(12px) rotate(-270deg) scale(1.05);
-    }
-  }
-
-  @keyframes float-complex-reverse-delayed {
-    0%, 100% {
-      transform: translateY(0px) translateX(0px) rotate(0deg) scale(1);
-    }
-    25% {
-      transform: translateY(22px) translateX(15px) rotate(90deg) scale(1.1);
-    }
-    50% {
-      transform: translateY(40px) translateX(-10px) rotate(180deg) scale(0.9);
-    }
-    75% {
-      transform: translateY(22px) translateX(-8px) rotate(270deg) scale(1.05);
-    }
-  }
-
-  @keyframes fade-in-up {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slide-in-from-top {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slide-in-from-left {
-    from {
-      opacity: 0;
-      transform: translateX(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slide-in-from-right {
-    from {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slide-in-from-bottom {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slide-in-from-bottom-delayed {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fade-in-delayed {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fade-in-up-delayed {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fade-in-stagger {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fade-in-stagger-delayed {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fade-in-stagger-delayed-2 {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fade-in-stagger-delayed-3 {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  @keyframes spin-reverse {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
-  }
-
-  @keyframes scale-in {
-    from { transform: scale(0); }
-    to { transform: scale(1); }
-  }
-  
-  .animate-slide-in {
-    animation: slideIn 0.3s ease-in-out;
-  }
-  
-  @keyframes slideIn {
-    from {
-      transform: translateY(10px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
   }
 
   @keyframes breathing {
@@ -5910,133 +3000,7 @@
     }
   }
 
-  .animate-breathing {
-    animation: breathing 2s ease-in-out infinite;
-  }
-
-  @keyframes login-float {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(0, -16px, 20px); }
-  }
-
-  @keyframes login-spin {
-    from { transform: rotateZ(0deg); }
-    to { transform: rotateZ(360deg); }
-  }
-
-  @keyframes login-emblem-float {
-    0%, 100% { transform: translateY(0) rotateX(0deg); }
-    50% { transform: translateY(-8px) rotateX(6deg); }
-  }
-
-  @keyframes login-ken-burns {
-    0% { transform: scale(1.05) translate3d(0, 0, 0); }
-    100% { transform: scale(1.12) translate3d(-1%, -1%, 0); }
-  }
-
-  @keyframes login-mesh-shift {
-    0% { opacity: 0.5; transform: scale(1); }
-    100% { opacity: 0.75; transform: scale(1.05); }
-  }
-
-  @keyframes login-shine {
-    0%, 100% { background-position: 200% 0; }
-    50% { background-position: -100% 0; }
-  }
-
   /* ── Medicine vault create / detail ─────────────────────────────────── */
-
-  .medicine-create-hero {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--metric-classes) / 0.1) 0%,
-        hsl(var(--card) / 0.9) 42%,
-        hsl(var(--metric-classes) / 0.06) 100%
-      );
-  }
-
-  .dark .medicine-create-hero {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--metric-classes) / 0.16) 0%,
-        hsl(var(--card) / 0.75) 45%,
-        hsl(var(--metric-classes) / 0.1) 100%
-      );
-  }
-
-  .medicine-create-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 65% 55% at 100% -10%, hsl(var(--metric-classes) / 0.32), transparent 55%),
-      radial-gradient(ellipse 45% 40% at 0% 110%, hsl(var(--metric-classes) / 0.14), transparent 50%),
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: auto, auto, 28px 28px, 28px 28px;
-    opacity: 0.9;
-  }
-
-  .dark .medicine-create-hero-mesh {
-    background:
-      radial-gradient(ellipse 65% 55% at 100% -10%, hsl(var(--metric-classes) / 0.28), transparent 55%),
-      radial-gradient(ellipse 45% 40% at 0% 110%, hsl(var(--metric-classes) / 0.12), transparent 50%),
-      linear-gradient(hsl(var(--metric-classes) / 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--metric-classes) / 0.06) 1px, transparent 1px);
-    background-size: auto, auto, 28px 28px, 28px 28px;
-  }
-
-  .medicine-create-hero-scan {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--metric-classes) / 0.07) 50%,
-      transparent 100%
-    );
-    background-size: 100% 220%;
-    animation: vault-scan 8s ease-in-out infinite;
-    opacity: 0.7;
-  }
-
-  .medicine-vault-section {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid hsl(var(--glass-border));
-    background:
-      linear-gradient(
-        160deg,
-        hsl(var(--card) / 0.92) 0%,
-        hsl(var(--metric-classes) / 0.04) 100%
-      );
-    box-shadow: 0 18px 40px -32px hsl(var(--metric-classes) / 0.45);
-    animation: medicine-vault-arrive 0.55s ease-out both;
-  }
-
-  .dark .medicine-vault-section {
-    background:
-      linear-gradient(
-        160deg,
-        hsl(var(--card) / 0.7) 0%,
-        hsl(var(--metric-classes) / 0.08) 100%
-      );
-    box-shadow: 0 22px 48px -30px hsl(var(--metric-classes) / 0.55);
-  }
-
-  .medicine-vault-section-glow {
-    position: absolute;
-    top: -40%;
-    right: -10%;
-    width: 55%;
-    height: 70%;
-    border-radius: 50%;
-    background: radial-gradient(circle, hsl(var(--metric-classes) / 0.18), transparent 70%);
-    pointer-events: none;
-  }
 
   .medicine-potency-chip {
     display: inline-flex;
@@ -6101,267 +3065,7 @@
     cursor: default;
   }
 
-  .medicine-symptom-chip-remove {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    padding: 0.125rem;
-    color: hsl(var(--muted-foreground));
-    transition: color 0.15s ease, background 0.15s ease;
-  }
-
-  .medicine-symptom-chip-remove:hover:not(:disabled) {
-    color: hsl(var(--foreground));
-    background: hsl(var(--metric-patients) / 0.16);
-  }
-
-  .medicine-symptom-chip-remove:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px hsl(var(--metric-patients) / 0.25);
-  }
-
-  .medicine-symptom-chip-remove:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .medicine-detail-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1.25rem;
-    border: 1px solid hsl(var(--glass-border));
-    background:
-      linear-gradient(
-        145deg,
-        hsl(var(--metric-classes) / 0.14) 0%,
-        hsl(var(--card) / 0.95) 38%,
-        hsl(var(--metric-classes) / 0.06) 100%
-      );
-    box-shadow: 0 24px 60px -36px hsl(var(--metric-classes) / 0.55);
-  }
-
-  .dark .medicine-detail-hero {
-    background:
-      linear-gradient(
-        145deg,
-        hsl(var(--metric-classes) / 0.2) 0%,
-        hsl(var(--card) / 0.75) 42%,
-        hsl(var(--metric-classes) / 0.1) 100%
-      );
-  }
-
-  .medicine-detail-hero-orbit {
-    position: absolute;
-    right: -8%;
-    top: -30%;
-    width: min(420px, 55vw);
-    height: min(420px, 55vw);
-    border-radius: 50%;
-    border: 1px solid hsl(var(--metric-classes) / 0.22);
-    box-shadow:
-      inset 0 0 60px hsl(var(--metric-classes) / 0.12),
-      0 0 80px hsl(var(--metric-classes) / 0.1);
-    animation: medicine-orbit-pulse 10s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .medicine-detail-hero-orbit::before {
-    content: '';
-    position: absolute;
-    inset: 18%;
-    border-radius: 50%;
-    border: 1px dashed hsl(var(--metric-classes) / 0.28);
-    animation: spin-slow 28s linear infinite;
-  }
-
-  .medicine-detail-hero-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(hsl(var(--metric-classes) / 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--metric-classes) / 0.07) 1px, transparent 1px);
-    background-size: 32px 32px;
-    mask-image: radial-gradient(ellipse 70% 70% at 70% 30%, black, transparent 75%);
-    pointer-events: none;
-    opacity: 0.7;
-  }
-
-  .medicine-detail-stat {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    min-width: 8.5rem;
-    border-radius: 0.9rem;
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--background) / 0.45);
-    padding: 0.65rem 0.85rem;
-    backdrop-filter: blur(10px);
-  }
-
-  .medicine-detail-block {
-    border-radius: 1rem;
-    border: 1px solid hsl(var(--glass-border));
-    background: hsl(var(--card) / 0.72);
-    padding: 1rem 1.1rem;
-    transition:
-      border-color 0.2s ease,
-      box-shadow 0.2s ease,
-      transform 0.2s ease;
-  }
-
-  .medicine-detail-block:hover {
-    border-color: hsl(var(--metric-classes) / 0.35);
-    box-shadow: 0 16px 36px -28px hsl(var(--metric-classes) / 0.55);
-    transform: translateY(-1px);
-  }
-
-  .medicine-detail-block-icon {
-    display: inline-flex;
-    height: 1.65rem;
-    width: 1.65rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.55rem;
-    background: hsl(var(--metric-classes) / 0.14);
-    color: hsl(var(--metric-classes));
-  }
-
-  .medicine-detail-block-mint .medicine-detail-block-icon {
-    background: hsl(160 84% 39% / 0.14);
-    color: hsl(160 84% 39%);
-  }
-
-  .medicine-detail-block-rose .medicine-detail-block-icon {
-    background: hsl(350 89% 60% / 0.14);
-    color: hsl(350 89% 60%);
-  }
-
-  .medicine-detail-block-amber .medicine-detail-block-icon {
-    background: hsl(38 92% 50% / 0.16);
-    color: hsl(38 92% 45%);
-  }
-
-  .dark .medicine-detail-block-amber .medicine-detail-block-icon {
-    color: hsl(38 92% 55%);
-  }
-
-  @keyframes medicine-vault-arrive {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   /* ── Disease vault create / detail ──────────────────────────────────── */
-
-  .disease-create-hero {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--metric-exams) / 0.1) 0%,
-        hsl(var(--card) / 0.9) 42%,
-        hsl(var(--metric-exams) / 0.06) 100%
-      );
-  }
-
-  .dark .disease-create-hero {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--metric-exams) / 0.16) 0%,
-        hsl(var(--card) / 0.75) 45%,
-        hsl(var(--metric-exams) / 0.1) 100%
-      );
-  }
-
-  .disease-create-hero-mesh {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 65% 55% at 100% -10%, hsl(var(--metric-exams) / 0.32), transparent 55%),
-      radial-gradient(ellipse 45% 40% at 0% 110%, hsl(var(--metric-exams) / 0.14), transparent 50%),
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: auto, auto, 28px 28px, 28px 28px;
-    opacity: 0.9;
-  }
-
-  .dark .disease-create-hero-mesh {
-    background:
-      radial-gradient(ellipse 65% 55% at 100% -10%, hsl(var(--metric-exams) / 0.28), transparent 55%),
-      radial-gradient(ellipse 45% 40% at 0% 110%, hsl(var(--metric-exams) / 0.12), transparent 50%),
-      linear-gradient(hsl(var(--metric-exams) / 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--metric-exams) / 0.06) 1px, transparent 1px);
-    background-size: auto, auto, 28px 28px, 28px 28px;
-  }
-
-  .disease-create-hero-scan {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--metric-exams) / 0.07) 50%,
-      transparent 100%
-    );
-    background-size: 100% 220%;
-    animation: vault-scan 8s ease-in-out infinite;
-    opacity: 0.7;
-  }
-
-  .disease-vault-section {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid hsl(var(--glass-border));
-    background:
-      linear-gradient(
-        160deg,
-        hsl(var(--card) / 0.92) 0%,
-        hsl(var(--metric-exams) / 0.04) 100%
-      );
-    box-shadow: 0 18px 40px -32px hsl(var(--metric-exams) / 0.45);
-    animation: medicine-vault-arrive 0.55s ease-out both;
-  }
-
-  .dark .disease-vault-section {
-    background:
-      linear-gradient(
-        160deg,
-        hsl(var(--card) / 0.7) 0%,
-        hsl(var(--metric-exams) / 0.08) 100%
-      );
-    box-shadow: 0 22px 48px -30px hsl(var(--metric-exams) / 0.55);
-  }
-
-  .disease-vault-section-glow {
-    position: absolute;
-    top: -40%;
-    right: -10%;
-    width: 55%;
-    height: 70%;
-    border-radius: 50%;
-    background: radial-gradient(circle, hsl(var(--metric-exams) / 0.18), transparent 70%);
-    pointer-events: none;
-  }
-
-  @keyframes medicine-orbit-pulse {
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 0.85;
-    }
-    50% {
-      transform: scale(1.04);
-      opacity: 1;
-    }
-  }
 }
 
 /* Modal overlay — identical blur in light & dark; only scrim color differs */
@@ -6376,11 +3080,6 @@
    Pages paint static content immediately. There are no entrance, looping or loader animations
    anywhere in the app; only skeleton placeholders (data still loading) may pulse.
    --------------------------------------------------------------------------- */
-*:not(.animate-pulse):not(.dashboard-skeleton):not(.animate-breathing):not([data-skeleton]),
-*:not(.animate-pulse):not(.dashboard-skeleton):not(.animate-breathing):not([data-skeleton])::before,
-*:not(.animate-pulse):not(.dashboard-skeleton):not(.animate-breathing):not([data-skeleton])::after {
-  animation: none !important;
-}
 
 /* Safety net: any leftover spinner is hidden rather than spinning. */
 .animate-spin {
@@ -6431,6 +3130,11 @@
 .page-hero-badge {
   border: 1px solid hsl(var(--metric-fees) / 0.3);
   background: hsl(var(--metric-fees) / 0.12);
+  /* Darker amber in light mode: 4.9:1 on the tint (the base amber was 1.9:1, below WCAG AA). */
+  color: hsl(38 92% 30%);
+}
+
+.dark .page-hero-badge {
   color: hsl(var(--metric-fees));
 }
 
@@ -6446,12 +3150,24 @@
 }
 
 .page-hero-primary {
-  background: hsl(var(--metric-classes));
+  /* Same emerald hue, darker (26% lightness): white text is 5.3:1 (it was 2.6:1, below WCAG AA). */
+  background: hsl(160 84% 26%);
   color: hsl(0 0% 100%);
-  box-shadow: 0 10px 24px -14px hsl(var(--metric-classes) / 0.8);
+  box-shadow: 0 10px 24px -14px hsl(160 84% 26% / 0.8);
   transition: background-color 0.15s ease, filter 0.15s ease;
 }
 
 .page-hero-primary:hover {
   filter: brightness(1.06);
+}
+
+/* Skeletons are the only animated elements; honour the user's reduced-motion setting. */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .dashboard-skeleton,
+  .animate-breathing,
+  [data-skeleton] {
+    animation: none;
+  }
 }

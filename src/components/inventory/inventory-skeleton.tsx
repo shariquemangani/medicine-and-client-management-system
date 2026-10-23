@@ -1,5 +1,3 @@
-'use client'
-
 import type { LucideIcon } from 'lucide-react'
 import { AlertTriangle, Boxes, IndianRupee, Timer } from 'lucide-react'
 import { BentoCard } from '@/components/shared'

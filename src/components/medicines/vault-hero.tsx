@@ -1,5 +1,3 @@
-'use client'
-
 import { Library } from 'lucide-react'
 import { PageHero } from '@/components/shared/page-hero'
 

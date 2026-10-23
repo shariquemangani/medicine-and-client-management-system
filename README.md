@@ -16,7 +16,7 @@ Multi-tenant stock, medicine vault and patient management for homeopathy clinics
 
 ```bash
 cp .env.example .env.local          # fill in a Firebase TEST project
-npm ci --legacy-peer-deps
+npm ci
 npm run dev                         # http://localhost:3000
 ```
 

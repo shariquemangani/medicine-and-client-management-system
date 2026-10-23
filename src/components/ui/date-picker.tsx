@@ -338,7 +338,7 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
               ) : (
                 <span>{placeholder}</span>
               )}
-              <CalendarIcon className="h-4 w-4 shrink-0 text-[hsl(var(--metric-patients))]" />
+              <CalendarIcon className="h-4 w-4 shrink-0 text-[hsl(var(--metric-patients-text))]" />
             </Button>
           </PopoverTrigger>
           <PopoverContent

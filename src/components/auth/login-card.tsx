@@ -1,5 +1,3 @@
-'use client'
-
 import { Stethoscope, ShieldCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { mainCardShadow } from '@/utils/theme'

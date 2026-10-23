@@ -1,5 +1,3 @@
-'use client'
-
 export function MedicineDetailSkeleton() {
   return (
     <div className="medicine-vault-page dashboard-shell space-y-4" aria-busy="true">

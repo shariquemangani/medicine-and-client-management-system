@@ -45,7 +45,7 @@ export function FlagConfigCategories({
             <p className="text-sm text-muted-foreground">{'No categories yet. Add one to get started.'}</p>
           </div>
         ) : (
-          <ul className="space-y-1 p-2.5" role="listbox" aria-label={'Categories'}>
+          <ul className="space-y-1 p-2.5" aria-label={'Categories'}>
             {categories.map((category) => {
               const active = category.id === selectedId
               const count = category.flagCount
@@ -60,8 +60,7 @@ export function FlagConfigCategories({
                     {active ? <span className="flag-config-category-bar" aria-hidden /> : null}
                     <button
                       type="button"
-                      role="option"
-                      aria-selected={active}
+                      aria-current={active ? 'true' : undefined}
                       onClick={() => onSelect(category.id)}
                       className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-left"
                       disabled={disabled}

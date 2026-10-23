@@ -1,5 +1,3 @@
-'use client'
-
 import { BookOpen } from 'lucide-react'
 import type { Medicine } from '@/types'
 import { PageHero } from '@/components/shared/page-hero'

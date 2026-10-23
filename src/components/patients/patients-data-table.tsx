@@ -60,7 +60,12 @@ function renderSortableHeader(
   loading?: boolean
 ) {
   return (
-    <th key={col.field} className={col.className}>
+    <th
+      scope="col"
+      key={col.field}
+      className={col.className}
+      aria-sort={sortField === col.field ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+    >
       <button
         type="button"
         className="clinic-table-sort-btn"
@@ -78,13 +83,6 @@ function formatCreatedDate(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '—'
   return format(date, 'MMM d, yyyy')
-}
-
-function handleRowKeyDown(event: React.KeyboardEvent, onActivate: () => void) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    onActivate()
-  }
 }
 
 function PatientRowActions({
@@ -141,9 +139,9 @@ function SortIcon({
 }) {
   if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />
   return sortDirection === 'asc' ? (
-    <ArrowUp className="h-3.5 w-3.5 text-[hsl(var(--metric-patients))]" />
+    <ArrowUp className="h-3.5 w-3.5 text-[hsl(var(--metric-patients-text))]" />
   ) : (
-    <ArrowDown className="h-3.5 w-3.5 text-[hsl(var(--metric-patients))]" />
+    <ArrowDown className="h-3.5 w-3.5 text-[hsl(var(--metric-patients-text))]" />
   )
 }
 
@@ -183,17 +181,14 @@ export function PatientsDataTable({
               <PatientsCompactSkeleton rows={pageSize} />
             </div>
           ) : patients.length === 0 ? (
-            <div className="clinic-table-empty col-span-full">No patients match your filters</div>
+            <div role="status" className="clinic-table-empty col-span-full">No patients match your filters</div>
           ) : (
             patients.map((patient, index) => (
               <div
                 key={patient.id}
-                role="button"
-                tabIndex={0}
                 className="clinic-compact-card clinic-compact-card-clickable clinic-list-item-enter group cursor-pointer"
                 style={{ animationDelay: `${index * 55}ms` }}
                 onClick={() => onView(patient)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(patient))}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -247,16 +242,17 @@ export function PatientsDataTable({
         tabIndex={0}
       >
         <table className="clinic-table clinic-table-patients w-full min-w-[80rem]">
+          <caption className="sr-only">Patients</caption>
           <thead>
             <tr className="clinic-table-head clinic-table-head-sticky">
               {primarySortableColumns.map((col) =>
                 renderSortableHeader(col, sortField, sortDirection, onSort, loading)
               )}
-              <th className="min-w-[9rem]">Contact</th>
+              <th scope="col" className="min-w-[9rem]">Contact</th>
               {trailingSortableColumns.map((col) =>
                 renderSortableHeader(col, sortField, sortDirection, onSort, loading)
               )}
-              <th className={cn(ACTION_COLUMN_CLASS, 'text-right')}>Actions</th>
+              <th scope="col" className={cn(ACTION_COLUMN_CLASS, 'text-right')}>Actions</th>
             </tr>
           </thead>
           <tbody key={page}>
@@ -264,7 +260,7 @@ export function PatientsDataTable({
             <PatientsTableSkeleton rows={pageSize} />
           ) : patients.length === 0 ? (
             <tr>
-              <td colSpan={columnCount} className="clinic-table-empty">
+              <td colSpan={columnCount} role="status" className="clinic-table-empty">
                 No patients match your filters
               </td>
             </tr>
@@ -272,11 +268,9 @@ export function PatientsDataTable({
             patients.map((patient, index) => (
               <tr
                 key={patient.id}
-                tabIndex={0}
                 className="clinic-table-row clinic-table-row-clickable clinic-list-item-enter group cursor-pointer"
                 style={{ animationDelay: `${index * 55}ms` }}
                 onClick={() => onView(patient)}
-                onKeyDown={(e) => handleRowKeyDown(e, () => onView(patient))}
               >
                 <td>
                   <MemberCell name={getPatientDisplayName(patient)} secondary={patient.rollNumber} />

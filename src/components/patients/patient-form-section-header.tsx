@@ -1,5 +1,3 @@
-'use client'
-
 import type { LucideIcon } from 'lucide-react'
 import type { MetricAccentKey } from '@/utils/theme'
 import { CardHeader } from '@/components/shared/card-header'

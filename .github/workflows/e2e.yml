@@ -1,0 +1,55 @@
+name: E2E (test site)
+
+# Runs the Playwright suite against the deployed TEST site (never production), nightly and on demand.
+# It is not part of every pull request on purpose: each run reads Firestore, and the test project
+# lives on the free quota.
+#
+# Required (Settings -> Secrets and variables -> Actions):
+#   variable E2E_BASE_URL           e.g. https://mediflow-test.vercel.app  (the TEST site)
+#   secret   TEST_USER_EMAIL        a test account on the TEST Firebase project
+#   secret   TEST_USER_PASSWORD
+# Without them the job exits with a warning instead of failing.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ vars.E2E_BASE_URL }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      E2E_PROD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "$PLAYWRIGHT_BASE_URL" ] || [ -z "$TEST_USER_EMAIL" ] || [ -z "$TEST_USER_PASSWORD" ]; then
+            echo "::warning::E2E_BASE_URL, TEST_USER_EMAIL or TEST_USER_PASSWORD is not set; skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            case "$PLAYWRIGHT_BASE_URL" in
+              *prod*) echo "::error::E2E_BASE_URL looks like production; refusing to run."; exit 1 ;;
+            esac
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.config.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.config.outputs.ready == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.config.outputs.ready == 'true'
+        run: npx playwright test
+      - if: always() && steps.config.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore

@@ -113,65 +113,11 @@ module.exports = {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
-			},
-			keyframes: {
-				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
-				},
-				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
-				},
-				'count-up': {
-					from: { opacity: '0', transform: 'translateY(8px)' },
-					to: { opacity: '1', transform: 'translateY(0)' },
-				},
-				'fade-in': {
-					from: { opacity: '0' },
-					to: { opacity: '1' },
-				},
-				'glow-pulse': {
-					'0%, 100%': { opacity: '0.6' },
-					'50%': { opacity: '1' },
-				},
-				'login-float': {
-					'0%, 100%': { transform: 'translate3d(0, 0, 0)' },
-					'50%': { transform: 'translate3d(0, -16px, 20px)' },
-				},
-				'login-spin': {
-					from: { transform: 'rotateZ(0deg)' },
-					to: { transform: 'rotateZ(360deg)' },
-				},
-				'login-emblem-float': {
-					'0%, 100%': { transform: 'translateY(0) rotateX(0deg)' },
-					'50%': { transform: 'translateY(-8px) rotateX(6deg)' },
-				},
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
-				'count-up': 'count-up 0.6s ease-out forwards',
-				'fade-in': 'fade-in 0.4s ease-out forwards',
-				'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
-				'login-float': 'login-float 6s ease-in-out infinite',
-				'login-spin': 'login-spin 20s linear infinite',
-				'login-emblem-float': 'login-emblem-float 5s ease-in-out infinite',
 			}
 		}
 	},
 	plugins: [
 		require('@tailwindcss/typography'),
 		require('@tailwindcss/forms'),
-		require('@tailwindcss/aspect-ratio'),
-		require("tailwindcss-animate")
 	],
 }

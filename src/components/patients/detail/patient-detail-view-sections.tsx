@@ -1,5 +1,3 @@
-'use client'
-
 import type { ReactNode } from 'react'
 import {
   CalendarDays,
@@ -248,7 +246,7 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
           <div className="patient-fees-mesh pointer-events-none absolute inset-0" aria-hidden />
           <div className="relative z-10 flex items-end gap-2">
             <IndianRupee
-              className="mb-1 h-6 w-6 shrink-0 text-[hsl(var(--metric-fees))]"
+              className="mb-1 h-6 w-6 shrink-0 text-[hsl(var(--metric-fees-text))]"
               aria-hidden
             />
             {loading ? (
