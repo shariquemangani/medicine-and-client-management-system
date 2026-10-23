@@ -1,7 +1,7 @@
 # End-to-end setup: GitHub CI/CD + Vercel + Firebase (test and prod)
 
 A reusable guide to wire this app to **any** pair of Firebase projects and Vercel projects. Replace the
-`<placeholders>`; nothing here is specific to one clinic. Never paste real keys into the repo, chat or tickets.
+`<placeholders>`; nothing here is specific to one organisation or project. Never paste real keys into the repo, chat or tickets.
 
 ```
 feature branch ──PR──► dev ──PR──► main
@@ -185,4 +185,4 @@ With no secret set the workflow only logs a warning and skips.
 - [ ] Owner account created, then `NEXT_PUBLIC_ALLOW_REGISTRATION=false` on prod and redeploy
 - [ ] Old or exposed keys deleted; downloaded JSON files removed
 
-See also: `docs/DEPLOYMENT.md` (original deployment notes) and `CLAUDE.md` (architecture and conventions).
+This guide uses only the app's own workflow, script and config files (`.github/workflows/*`, `scripts/deploy-firestore-rules.ts`, `firestore.rules`, `vercel.json`, `.firebaserc`). Project-specific notes (names, accounts, history) belong in separate files, not here.
