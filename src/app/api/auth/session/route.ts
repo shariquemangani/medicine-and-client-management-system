@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb, SESSION_COOKIE_NAME, SESSION_EXPIRES_MS } from '@/lib/firebase/admin'
 import { SESSION_FLAG_COOKIE_NAME } from '@/lib/firebase/session'
+import { assertSameOrigin } from '@/lib/api/same-origin'
 
 export async function POST(request: NextRequest) {
   try {
+    assertSameOrigin(request)
     const { idToken } = (await request.json()) as { idToken?: string }
     if (!idToken) {
       return NextResponse.json({ success: false, message: 'Missing idToken' }, { status: 400 })

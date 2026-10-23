@@ -1,18 +1,21 @@
-/** Shared flag configuration — top-level Firestore paths (not scoped to a business). */
-export const FLAG_CATEGORIES_COLLECTION = 'flagCategories'
+/**
+ * Flag taxonomy paths. Each clinic owns its taxonomy at `businesses/{businessId}/flagCategories`.
+ * The top-level `flagCategories` collection is a read-only template that seeds new clinics.
+ */
+export const GLOBAL_FLAG_CATEGORIES_COLLECTION = 'flagCategories'
 
-export function flagCategoriesPath() {
-  return FLAG_CATEGORIES_COLLECTION
+export function tenantFlagBase(businessId: string) {
+  return `businesses/${businessId}/flagCategories`
 }
 
-export function flagCategoryPath(categoryId: string) {
-  return `${flagCategoriesPath()}/${categoryId}`
+export function flagCategoryPath(base: string, categoryId: string) {
+  return `${base}/${categoryId}`
 }
 
-export function categoryFlagsPath(categoryId: string) {
-  return `${flagCategoryPath(categoryId)}/flags`
+export function categoryFlagsPath(base: string, categoryId: string) {
+  return `${flagCategoryPath(base, categoryId)}/flags`
 }
 
-export function categoryFlagPath(categoryId: string, flagId: string) {
-  return `${categoryFlagsPath(categoryId)}/${flagId}`
+export function categoryFlagPath(base: string, categoryId: string, flagId: string) {
+  return `${categoryFlagsPath(base, categoryId)}/${flagId}`
 }

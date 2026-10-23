@@ -38,6 +38,8 @@ export interface StockItem {
   supplier?: string
   batches: StockBatch[]
   lastMovementAt?: string
+  /** Ledger entry written together with the latest change of totalQuantity (enforced by firestore.rules). */
+  lastMovementId?: string
   createdAt: string
   updatedAt: string
 }

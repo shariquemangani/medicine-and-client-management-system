@@ -1,12 +1,14 @@
+import { DomainError } from '@/lib/api/api-error'
 import {
   createFirestoreDocument,
   deleteFirestoreDocument,
-  fetchFirestoreCollection,
   fetchPatientRecord,
+  queryFirestoreEquals,
+  queryLastWithPrefix,
   patchFirestoreDocument,
 } from '@/lib/firebase/firestore-rest'
 import { generateId } from '@/lib/list-utils'
-import { buildPatientRollNumber } from '@/lib/patients/patient-roll-number'
+import { buildPatientRollNumber, getPatientRollMonthStamp } from '@/lib/patients/patient-roll-number'
 import { getMedicineCategoryName } from '@/data/medicine-categories'
 import { buildPatientProfileDetail } from '@/lib/patients/patient-profile-detail'
 import type {
@@ -45,6 +47,35 @@ function buildFeeSummary(
   }
 }
 
+/** Fields a clinic user may change on a patient. Anything else in the request body is dropped. */
+const EDITABLE_PATIENT_FIELDS = [
+  'firstName', 'lastName', 'firstNameUr', 'lastNameUr', 'email', 'phone', 'classId', 'classSection',
+  'year', 'status', 'dateOfBirth', 'aadharNumber', 'admissionDate', 'madrasaName', 'madrasaLocation',
+  'address', 'bedNumber', 'schoolName', 'schoolLocation', 'schoolTiming', 'fees', 'guardian', 'parents',
+  'notes', 'diseases', 'diseaseLabels', 'disease', 'prescription', 'prescribedMedicines', 'dietPlan',
+  'additionalNotes', 'visitHistory',
+] as const
+
+const MAX_FIELD_TEXT = 5000
+
+/** Whitelists editable fields, keeps the roll number and timestamps immutable, bounds text size. */
+export function sanitizePatientUpdate(data: PatientUpdateInput, current: Pick<Patient, 'rollNumber'>): PatientUpdateInput {
+  const input = data as Record<string, unknown>
+  if (input.rollNumber !== undefined && input.rollNumber !== current.rollNumber) {
+    throw new DomainError('The patient ID cannot be changed')
+  }
+  const clean: Record<string, unknown> = {}
+  for (const key of EDITABLE_PATIENT_FIELDS) {
+    const value = input[key]
+    if (value === undefined) continue
+    if (typeof value === 'string' && value.length > MAX_FIELD_TEXT) {
+      throw new DomainError(`${key} is too long`)
+    }
+    clean[key] = value
+  }
+  return clean as PatientUpdateInput
+}
+
 async function addBusinessActivity(
   idToken: string,
   businessId: string,
@@ -73,15 +104,20 @@ export async function createPatientRecord(
   const id = generateId('pat')
   const now = new Date().toISOString()
   const visitDate = data.admissionDate?.trim() || data.dateOfBirth?.trim() || now.slice(0, 10)
-  const existingPatients = await fetchFirestoreCollection<Patient>(
+  // Highest serial on a patient this month: one indexed read instead of listing everyone. Numbers
+  // reserved by deleted patients are skipped by the collision loop below.
+  const monthStamp = getPatientRollMonthStamp(visitDate)
+  const lastOnPatient = await queryLastWithPrefix(
     `businesses/${businessId}/${PATIENTS_COLLECTION}`,
-    idToken
+    idToken,
+    'rollNumber',
+    monthStamp
   )
   // Reserve the roll number by creating `rollNumbers/{roll}`: Firestore refuses a second create of
   // the same id, so two concurrent registrations can never end up with the same number.
-  const taken = existingPatients.map((patient) => patient.rollNumber)
+  const taken = lastOnPatient ? [lastOnPatient] : []
   let rollNumber = ''
-  for (let attempt = 0; attempt < 10 && !rollNumber; attempt++) {
+  for (let attempt = 0; attempt < 25 && !rollNumber; attempt++) {
     const candidate = buildPatientRollNumber(visitDate, taken)
     try {
       await createFirestoreDocument(`businesses/${businessId}/rollNumbers/${candidate}`, idToken, {
@@ -94,7 +130,7 @@ export async function createPatientRecord(
       taken.push(candidate)
     }
   }
-  if (!rollNumber) throw new Error('Could not allocate a patient ID. Please try again')
+  if (!rollNumber) throw new DomainError('Could not allocate a patient ID. Please try again', 409)
   const className = getMedicineCategoryName(data.classId) ?? 'General'
   const patient: Patient = {
     ...data,
@@ -109,7 +145,7 @@ export async function createPatientRecord(
   await createFirestoreDocument(
     `businesses/${businessId}/${PATIENTS_COLLECTION}/${id}`,
     idToken,
-    patient as unknown as Record<string, unknown>
+    patient
   )
 
   await addBusinessActivity(
@@ -129,17 +165,19 @@ export async function fetchPatientProfileDetail(
 ): Promise<PatientProfileData> {
   const patient = await fetchPatientRecord(idToken, businessId, patientId)
   if (!patient) {
-    throw new Error('Patient not found')
+    throw new DomainError('Patient not found', 404)
   }
 
   // Only collections that exist in the clinic data model and in firestore.rules are read.
   // (The old school `attendance` / `examResults` collections have no rules and carry no clinical data.)
   const [feeStructures, payments] = await Promise.all([
-    fetchFirestoreCollection<{ id: string; patientId: string; amount: number }>(
+    queryFirestoreEquals<{ id: string; patientId: string; amount: number }>(
       `businesses/${businessId}/feeStructures`,
-      idToken
+      idToken,
+      'patientId',
+      patientId
     ),
-    fetchFirestoreCollection<Payment>(`businesses/${businessId}/payments`, idToken),
+    queryFirestoreEquals<Payment>(`businesses/${businessId}/payments`, idToken, 'patientId', patientId),
   ])
 
   const feeSummary = buildFeeSummary(patient, feeStructures, payments)
@@ -161,7 +199,7 @@ export async function updatePatientRecord(
 ): Promise<Patient> {
   const current = await fetchPatientRecord(idToken, businessId, patientId)
   if (!current) {
-    throw new Error('Patient not found')
+    throw new DomainError('Patient not found', 404)
   }
 
   const now = new Date().toISOString()
@@ -173,7 +211,7 @@ export async function updatePatientRecord(
 
   const updated: Patient = {
     ...current,
-    ...data,
+    ...sanitizePatientUpdate(data, current),
     id: patientId,
     className,
     updatedAt: now,
@@ -202,7 +240,7 @@ export async function deletePatientRecord(
 ): Promise<void> {
   const patient = await fetchPatientRecord(idToken, businessId, patientId)
   if (!patient) {
-    throw new Error('Patient not found')
+    throw new DomainError('Patient not found', 404)
   }
 
   await deleteFirestoreDocument(`businesses/${businessId}/${PATIENTS_COLLECTION}/${patientId}`, idToken)

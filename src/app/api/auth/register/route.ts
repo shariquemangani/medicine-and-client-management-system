@@ -1,39 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase/admin'
+import { checkRateLimit, clientIp } from '@/lib/api/rate-limit'
+import { assertSameOrigin } from '@/lib/api/same-origin'
+import { DomainError } from '@/lib/api/api-error'
+import { isRegistrationOpen } from '@/lib/registration'
 
 /**
  * Creates a new clinic owner (Auth user + users/{uid} + businesses/{uid}) with the Admin SDK.
  *
  * Firestore rules deny client-side creation of `users` and `businesses` documents, so nobody can
  * mint themselves a `super_admin` profile by calling Firebase Auth directly. Registration is only
- * possible through this route, and it can be switched off with NEXT_PUBLIC_ALLOW_REGISTRATION=false.
+ * possible through this route, and it is closed unless ALLOW_REGISTRATION=true (see lib/registration.ts).
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Best-effort per-instance throttle (serverless instances are short-lived; this only slows bursts).
-const attempts = new Map<string, { count: number; resetAt: number }>()
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_ATTEMPTS = 5
 
-function tooManyAttempts(key: string): boolean {
-  const now = Date.now()
-  const entry = attempts.get(key)
-  if (!entry || entry.resetAt < now) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS })
-    return false
-  }
-  entry.count += 1
-  return entry.count > MAX_ATTEMPTS
-}
-
 export async function POST(request: NextRequest) {
-  if (process.env.NEXT_PUBLIC_ALLOW_REGISTRATION === 'false') {
+  try {
+    assertSameOrigin(request)
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return NextResponse.json({ success: false, message: error.message }, { status: error.status })
+    }
+    throw error
+  }
+
+  if (!isRegistrationOpen()) {
     return NextResponse.json({ success: false, message: 'Registration is closed' }, { status: 403 })
   }
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
-  if (tooManyAttempts(ip)) {
+  const withinLimit = await checkRateLimit({
+    scope: 'register',
+    key: clientIp(request),
+    max: MAX_ATTEMPTS,
+    windowMs: WINDOW_MS,
+  })
+  if (!withinLimit) {
     return NextResponse.json(
       { success: false, message: 'Too many attempts. Try again in a few minutes' },
       { status: 429 }

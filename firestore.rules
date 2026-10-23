@@ -90,14 +90,16 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ---------- global flag taxonomy ----------
+    // ---------- flag taxonomy template (read-only) ----------
+    // Seeds the per-clinic taxonomy (businesses/{b}/flagCategories). Only the Admin SDK (migration
+    // script) can change it, so no clinic can alter what other clinics see.
     match /flagCategories/{categoryId} {
       allow read: if isActiveUser();
-      allow write: if isSuperAdmin();
+      allow write: if false;
 
       match /flags/{flagId} {
         allow read: if isActiveUser();
-        allow write: if isSuperAdmin();
+        allow write: if false;
       }
     }
 
@@ -111,31 +113,72 @@ service cloud.firestore {
       allow update: if isBusinessAdmin(businessId);
       allow delete: if false;
 
+      // Per-clinic flag taxonomy: members read, the clinic's admin writes.
+      match /flagCategories/{categoryId} {
+        allow read: if isMember(businessId);
+        allow write: if isBusinessAdmin(businessId);
+
+        match /flags/{flagId} {
+          allow read: if isMember(businessId);
+          allow write: if isBusinessAdmin(businessId);
+        }
+      }
+
       // Admin-managed configuration, readable by members.
       match /{coll}/{docId}
         {
         allow read: if isMember(businessId) &&
-          coll in ['medicines', 'diseases', 'feeStructures', 'billingCategories', 'staff', 'classes'];
+          coll in ['medicines', 'diseases', 'feeStructures', 'billingCategories'];
         allow write: if isBusinessAdmin(businessId) &&
-          coll in ['medicines', 'diseases', 'feeStructures', 'billingCategories', 'staff', 'classes'];
+          coll in ['medicines', 'diseases', 'feeStructures', 'billingCategories'];
       }
 
       // Operational data. Staff may read and create/update clinical records; destructive operations
       // and financial corrections are admin-only (matches src/lib/permissions.ts).
       match /patients/{id} {
-        allow read, create, update: if isMember(businessId);
+        function validPatient(d) {
+          return shortString(d.get('firstName', ''), 200) &&
+            shortString(d.get('rollNumber', ''), 40) &&
+            (!('lastName' in d) || (d.lastName is string && d.lastName.size() <= 200)) &&
+            optionalString(d, 'phone', 40) &&
+            optionalString(d, 'email', 320) &&
+            optionalString(d, 'address', 2000) &&
+            optionalString(d, 'notes', 10000) &&
+            optionalString(d, 'additionalNotes', 10000);
+        }
+
+        allow read: if isMember(businessId);
+        allow create: if isMember(businessId) && validPatient(request.resource.data);
+        // The patient ID and creation time never change after registration.
+        allow update: if isMember(businessId) && validPatient(request.resource.data) &&
+          request.resource.data.rollNumber == resource.data.get('rollNumber', request.resource.data.rollNumber) &&
+          request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null);
         allow delete: if isBusinessAdmin(businessId);
       }
       match /payments/{id} {
-        allow read, create: if isMember(businessId);
-        allow update, delete: if isBusinessAdmin(businessId);
+        function validPayment(d) {
+          return d.amount is number && d.amount > 0 && d.amount <= 10000000 &&
+            shortString(d.get('patientId', ''), 128) &&
+            optionalString(d, 'patientName', 300) &&
+            optionalString(d, 'method', 40) &&
+            shortString(d.get('date', ''), 40) &&
+            optionalString(d, 'notes', 2000);
+        }
+
+        allow read: if isMember(businessId);
+        // A new payment must belong to a patient of this clinic (later corrections may outlive the patient).
+        allow create: if isMember(businessId) && validPayment(request.resource.data) &&
+          exists(/databases/$(database)/documents/businesses/$(businessId)/patients/$(request.resource.data.patientId));
+        allow update: if isBusinessAdmin(businessId) && validPayment(request.resource.data);
+        allow delete: if isBusinessAdmin(businessId);
       }
       match /prescriptions/{id} {
         allow read, create, update: if isMember(businessId);
         allow delete: if isBusinessAdmin(businessId);
       }
       match /prescriptionItems/{id} {
-        allow read, write: if isMember(businessId);
+        allow read, create, update: if isMember(businessId);
+        allow delete: if isBusinessAdmin(businessId);
       }
       // Roll-number reservations: create-only, so a number can never be issued twice.
       match /rollNumbers/{id} {
@@ -146,9 +189,6 @@ service cloud.firestore {
       match /activities/{id} {
         allow read, create: if isMember(businessId);
         allow update, delete: if false;
-      }
-      match /inventory/{id} {
-        allow read, write: if isMember(businessId);
       }
 
       // ---------- stock ----------
@@ -165,8 +205,26 @@ service cloud.firestore {
             optionalString(d, 'supplier', 200);
         }
 
+        // A change of totalQuantity must come with a ledger entry written in the same transaction:
+        // the item's lastMovementId points at a movement that did not exist before this write, belongs
+        // to this item, and carries the same resulting balance and the same delta.
+        function pairedMovement(d) {
+          return d.get('lastMovementId', '') is string && d.get('lastMovementId', '') != '' &&
+            !exists(/databases/$(database)/documents/businesses/$(businessId)/stockMovements/$(d.lastMovementId)) &&
+            existsAfter(/databases/$(database)/documents/businesses/$(businessId)/stockMovements/$(d.lastMovementId)) &&
+            getAfter(/databases/$(database)/documents/businesses/$(businessId)/stockMovements/$(d.lastMovementId)).data.stockItemId == id &&
+            getAfter(/databases/$(database)/documents/businesses/$(businessId)/stockMovements/$(d.lastMovementId)).data.balanceAfter == d.totalQuantity &&
+            math.abs(getAfter(/databases/$(database)/documents/businesses/$(businessId)/stockMovements/$(d.lastMovementId)).data.quantity -
+              (d.totalQuantity - resource.data.totalQuantity)) < 0.0001;
+        }
+
         allow read: if isMember(businessId);
-        allow create, update: if isMember(businessId) && validItem(request.resource.data);
+        // New items start empty; stock only arrives through a received movement.
+        allow create: if isMember(businessId) && validItem(request.resource.data) &&
+          request.resource.data.totalQuantity == 0;
+        allow update: if isMember(businessId) && validItem(request.resource.data) &&
+          (request.resource.data.totalQuantity == resource.data.totalQuantity ||
+           pairedMovement(request.resource.data));
         allow delete: if isBusinessAdmin(businessId) && resource.data.totalQuantity == 0;
       }
 

@@ -7,7 +7,7 @@ import {
   assertSucceeds,
 } from '@firebase/rules-unit-testing'
 import {
-  doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, orderBy, limit,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, orderBy, limit, writeBatch,
 } from 'firebase/firestore'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -44,6 +44,9 @@ const movement = (uid, o = {}) => ({
   quantity: 5, balanceAfter: 5, performedBy: 'x', performedById: uid, createdAt: now, ...o,
 })
 
+const patient = (o = {}) => ({ firstName: 'Seed', lastName: 'Patient', rollNumber: '202601001', createdAt: now, ...o })
+const payment = (o = {}) => ({ patientId: 'x1', patientName: 'Seed Patient', amount: 5, method: 'cash', date: '2026-01-01', createdAt: now, ...o })
+
 async function seed() {
   await env.clearFirestore()
   await env.withSecurityRulesDisabled(async (ctx) => {
@@ -60,6 +63,8 @@ async function seed() {
       for (const c of ['patients', 'medicines', 'diseases', 'payments', 'feeStructures', 'billingCategories', 'prescriptions', 'activities']) {
         await setDoc(doc(db, 'businesses', b, c, 'x1'), { name: 'seed' })
       }
+      await setDoc(doc(db, 'businesses', b, 'patients', 'x1'), patient())
+      await setDoc(doc(db, 'businesses', b, 'payments', 'x1'), payment())
       await setDoc(doc(db, 'businesses', b, 'stockItems', 'empty'), item({ totalQuantity: 0 }))
       await setDoc(doc(db, 'businesses', b, 'stockItems', 'full'), item({ totalQuantity: 5 }))
       await setDoc(doc(db, 'businesses', b, 'stockMovements', 'm1'), movement(b))
@@ -82,6 +87,8 @@ console.log('1. deny by default / auth')
 await t('unauthenticated cannot read patients', () => assertFails(getDoc(bd(anon(), A, 'patients', 'x1'))))
 await t('unauthenticated cannot read users', () => assertFails(getDoc(doc(anon(), 'users', A))))
 await t('unauthenticated cannot write flagCategories', () => assertFails(setDoc(doc(anon(), 'flagCategories', 'z'), { a: 1 })))
+await t('browsers cannot read rate limit counters', () => assertFails(getDoc(doc(as(A), 'rateLimits', 'register_x'))))
+await t('browsers cannot write rate limit counters', () => assertFails(setDoc(doc(as(A), 'rateLimits', 'register_x'), { count: 0 })))
 await t('unknown root collection denied', () => assertFails(getDoc(doc(as(A), 'secrets', 's1'))))
 await t('unknown business subcollection denied', () => assertFails(getDoc(bd(as(A), A, 'mystery', 'x'))))
 await t('signed-in user without profile cannot read business data', () => assertFails(getDoc(bd(as('ghost'), A, 'patients', 'x1'))))
@@ -141,9 +148,31 @@ await t('staff cannot update business profile', () => assertFails(updateDoc(bd(a
 await t('nobody can delete business doc', () => assertFails(deleteDoc(bd(as(A), A))))
 
 console.log('6. role matrix')
-for (const c of ['patients', 'payments', 'prescriptions', 'prescriptionItems', 'activities']) {
+for (const c of ['prescriptions', 'prescriptionItems', 'activities']) {
   await t(`staff writes ${c}`, () => assertSucceeds(setDoc(bd(as(SA), A, c, 'new1'), { any: 'shape' })))
 }
+await t('staff writes a valid patient', () => assertSucceeds(setDoc(bd(as(SA), A, 'patients', 'new1'), patient({ rollNumber: '202601002' }))))
+await t('staff writes a valid payment', () => assertSucceeds(setDoc(bd(as(SA), A, 'payments', 'new1'), payment())))
+await t('staff cannot delete prescriptionItems', () => assertFails(deleteDoc(bd(as(SA), A, 'prescriptionItems', 'new1'))))
+await t('admin deletes prescriptionItems', () => assertSucceeds(deleteDoc(bd(as(A), A, 'prescriptionItems', 'new1'))))
+await t('legacy inventory collection is denied', () => assertFails(getDoc(bd(as(A), A, 'inventory', 'x1'))))
+await t('legacy staff collection is denied', () => assertFails(getDoc(bd(as(A), A, 'staff', 'x1'))))
+
+console.log('6a. patient and payment integrity')
+await t('patient without a name denied', () => assertFails(setDoc(bd(as(SA), A, 'patients', 'bad'), patient({ firstName: '' }))))
+await t('patient without a roll number denied', () => assertFails(setDoc(bd(as(SA), A, 'patients', 'bad'), patient({ rollNumber: '' }))))
+await t('patient with a non-string phone denied', () => assertFails(setDoc(bd(as(SA), A, 'patients', 'bad'), patient({ phone: 12345 }))))
+await t('patient with an oversized note denied', () => assertFails(setDoc(bd(as(SA), A, 'patients', 'bad'), patient({ notes: 'a'.repeat(10001) }))))
+await t('staff edits a patient address', () => assertSucceeds(updateDoc(bd(as(SA), A, 'patients', 'x1'), { address: 'New street' })))
+await t('patient roll number cannot change', () => assertFails(updateDoc(bd(as(SA), A, 'patients', 'x1'), { rollNumber: '999' })))
+await t('patient createdAt cannot change', () => assertFails(updateDoc(bd(as(SA), A, 'patients', 'x1'), { createdAt: '2000-01-01' })))
+await t('payment with negative amount denied', () => assertFails(setDoc(bd(as(SA), A, 'payments', 'bad'), payment({ amount: -50 }))))
+await t('payment with zero amount denied', () => assertFails(setDoc(bd(as(SA), A, 'payments', 'bad'), payment({ amount: 0 }))))
+await t('payment with an absurd amount denied', () => assertFails(setDoc(bd(as(SA), A, 'payments', 'bad'), payment({ amount: 1e12 }))))
+await t('payment with a string amount denied', () => assertFails(setDoc(bd(as(SA), A, 'payments', 'bad'), payment({ amount: '10' }))))
+await t('payment for an unknown patient denied', () => assertFails(setDoc(bd(as(SA), A, 'payments', 'bad'), payment({ patientId: 'ghost' }))))
+await t('payment without a date denied', () => assertFails(setDoc(bd(as(SA), A, 'payments', 'bad'), payment({ date: '' }))))
+await t('admin cannot correct a payment into a negative amount', () => assertFails(updateDoc(bd(as(A), A, 'payments', 'x1'), { amount: -1 })))
 await t('staff reads medicines', () => assertSucceeds(getDoc(bd(as(SA), A, 'medicines', 'x1'))))
 await t('staff reads diseases', () => assertSucceeds(getDoc(bd(as(SA), A, 'diseases', 'x1'))))
 await t('staff reads feeStructures', () => assertSucceeds(getDoc(bd(as(SA), A, 'feeStructures', 'x1'))))
@@ -156,15 +185,25 @@ await t('staff reads flagCategories', () => assertSucceeds(getDoc(doc(as(SA), 'f
 await t('staff reads flags', () => assertSucceeds(getDoc(doc(as(SA), 'flagCategories', 'potency', 'flags', 'f1'))))
 await t('staff cannot write flagCategories', () => assertFails(setDoc(doc(as(SA), 'flagCategories', 'n'), { a: 1 })))
 await t('staff cannot write flags', () => assertFails(setDoc(doc(as(SA), 'flagCategories', 'potency', 'flags', 'n'), { a: 1 })))
-await t('admin writes flagCategories', () => assertSucceeds(setDoc(doc(as(A), 'flagCategories', 'n'), { a: 1 })))
-await t('admin writes flags', () => assertSucceeds(setDoc(doc(as(A), 'flagCategories', 'potency', 'flags', 'n'), { a: 1 })))
+await t('admin cannot write the global flag template', () => assertFails(setDoc(doc(as(A), 'flagCategories', 'n'), { a: 1 })))
+await t('admin cannot write global template flags', () => assertFails(setDoc(doc(as(A), 'flagCategories', 'potency', 'flags', 'n'), { a: 1 })))
+await t('admin of A cannot delete the global template', () => assertFails(deleteDoc(doc(as(A), 'flagCategories', 'potency'))))
+await t('admin writes own flag categories', () => assertSucceeds(setDoc(bd(as(A), A, 'flagCategories', 'c1'), { name: 'Potency' })))
+await t('admin writes own flags', () => assertSucceeds(setDoc(bd(as(A), A, 'flagCategories', 'c1', 'flags', 'f1'), { label: '30C' })))
+await t('staff reads own flag categories', () => assertSucceeds(getDoc(bd(as(SA), A, 'flagCategories', 'c1'))))
+await t('staff reads own flags', () => assertSucceeds(getDoc(bd(as(SA), A, 'flagCategories', 'c1', 'flags', 'f1'))))
+await t('staff cannot write own flag categories', () => assertFails(setDoc(bd(as(SA), A, 'flagCategories', 'n'), { name: 'x' })))
+await t('staff cannot write own flags', () => assertFails(setDoc(bd(as(SA), A, 'flagCategories', 'c1', 'flags', 'n'), { label: 'x' })))
+await t('admin of A cannot read tenant B flag categories', () => assertFails(getDoc(bd(as(A), B, 'flagCategories', 'c1'))))
+await t('admin of A cannot write tenant B flag categories', () => assertFails(setDoc(bd(as(A), B, 'flagCategories', 'pwn'), { name: 'pwn' })))
+await t('admin of A cannot write tenant B flags', () => assertFails(setDoc(bd(as(A), B, 'flagCategories', 'c1', 'flags', 'pwn'), { label: 'pwn' })))
 
 
 console.log('6b. destructive operations are admin-only')
 await t('staff cannot delete patients', () => assertFails(deleteDoc(bd(as(SA), A, 'patients', 'x1'))))
 await t('admin deletes patients', () => assertSucceeds(deleteDoc(bd(as(A), A, 'patients', 'x1'))))
 await t('staff cannot delete prescriptions', () => assertFails(deleteDoc(bd(as(SA), A, 'prescriptions', 'x1'))))
-await t('staff creates a payment', () => assertSucceeds(setDoc(bd(as(SA), A, 'payments', 'pay-new'), { amount: 10 })))
+await t('staff creates a payment', () => assertSucceeds(setDoc(bd(as(SA), A, 'payments', 'pay-new'), payment({ patientId: 'new1', amount: 10 }))))
 await t('staff cannot edit a payment', () => assertFails(updateDoc(bd(as(SA), A, 'payments', 'x1'), { amount: 1 })))
 await t('staff cannot delete a payment', () => assertFails(deleteDoc(bd(as(SA), A, 'payments', 'x1'))))
 await t('admin can correct a payment', () => assertSucceeds(updateDoc(bd(as(A), A, 'payments', 'x1'), { amount: 1 })))
@@ -181,7 +220,7 @@ await t('other tenant cannot reserve in this business', () => assertFails(setDoc
 console.log('7. stockItems validation')
 const S = () => as(SA)
 await t('staff creates valid stock item', () => assertSucceeds(setDoc(bd(S(), A, 'stockItems', 'ok'), item())))
-await t('admin creates valid item with batches', () => assertSucceeds(setDoc(bd(as(A), A, 'stockItems', 'ok2'), item({ totalQuantity: 3, batches: [{ id: 'b', quantity: 3 }] }))))
+await t('item cannot be created with stock already in it', () => assertFails(setDoc(bd(as(A), A, 'stockItems', 'ok2'), item({ totalQuantity: 3, batches: [{ id: 'b', quantity: 3 }] }))))
 await t('negative totalQuantity denied', () => assertFails(setDoc(bd(S(), A, 'stockItems', 'bad'), item({ totalQuantity: -1 }))))
 await t('string totalQuantity denied', () => assertFails(setDoc(bd(S(), A, 'stockItems', 'bad'), item({ totalQuantity: '5' }))))
 await t('negative reorderLevel denied', () => assertFails(setDoc(bd(S(), A, 'stockItems', 'bad'), item({ reorderLevel: -1 }))))
@@ -191,7 +230,20 @@ await t('batches not a list denied', () => assertFails(setDoc(bd(S(), A, 'stockI
 await t('empty medicineName denied', () => assertFails(setDoc(bd(S(), A, 'stockItems', 'bad'), item({ medicineName: '' }))))
 await t('overlong medicineName denied', () => assertFails(setDoc(bd(S(), A, 'stockItems', 'bad'), item({ medicineName: 'a'.repeat(201) }))))
 await t('update to negative quantity denied', () => assertFails(updateDoc(bd(S(), A, 'stockItems', 'full'), { totalQuantity: -2 })))
-await t('valid update succeeds', () => assertSucceeds(updateDoc(bd(S(), A, 'stockItems', 'full'), { totalQuantity: 9 })))
+await t('settings update (same quantity) succeeds', () => assertSucceeds(updateDoc(bd(S(), A, 'stockItems', 'full'), { reorderLevel: 9 })))
+await t('quantity change without a ledger entry denied', () => assertFails(updateDoc(bd(S(), A, 'stockItems', 'full'), { totalQuantity: 9 })))
+const pairedWrite = async (ctx, { itemId = 'full', movementId = 'mv-new', total = 9, mov = {} }) => {
+  const b = writeBatch(ctx)
+  b.update(bd(ctx, A, 'stockItems', itemId), { totalQuantity: total, lastMovementId: movementId })
+  b.set(bd(ctx, A, 'stockMovements', movementId), movement(SA, { stockItemId: itemId, quantity: total - 5, balanceAfter: total, ...mov }))
+  await b.commit()
+}
+await t('quantity change with a matching ledger entry succeeds', () => assertSucceeds(pairedWrite(S(), {})))
+await t('ledger entry with the wrong balance denied', () => assertFails(pairedWrite(S(), { mov: { balanceAfter: 8 } })))
+await t('ledger entry with the wrong delta denied', () => assertFails(pairedWrite(S(), { mov: { quantity: 1 } })))
+await t('ledger entry for another item denied', () => assertFails(pairedWrite(S(), { mov: { stockItemId: 'empty' } })))
+await t('an existing ledger entry cannot be reused', () => assertFails(pairedWrite(S(), { movementId: 'm1' })))
+await t('quantity change pointing at a missing ledger entry denied', () => assertFails(updateDoc(bd(S(), A, 'stockItems', 'full'), { totalQuantity: 7, lastMovementId: 'nope' })))
 await t('delete with stock denied', () => assertFails(deleteDoc(bd(S(), A, 'stockItems', 'full'))))
 await t('staff cannot delete even an empty item', () => assertFails(deleteDoc(bd(S(), A, 'stockItems', 'empty'))))
 await t('admin deletes empty item', () => assertSucceeds(deleteDoc(bd(as(A), A, 'stockItems', 'empty'))))

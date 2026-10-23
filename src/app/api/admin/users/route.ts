@@ -1,66 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminAuth, adminDb, SESSION_COOKIE_NAME } from '@/lib/firebase/admin'
-import type { UserRole } from '@/types'
+import { adminAuth, adminDb } from '@/lib/firebase/admin'
+import { DomainError, errorResponse, parseJsonBody } from '@/lib/api/api-error'
+import { checkRateLimit } from '@/lib/api/rate-limit'
+import { assertSameOrigin } from '@/lib/api/same-origin'
+import { requireApiSession } from '@/lib/api/require-api-session'
+import { adminUserCreateSchema } from '@/lib/schemas/api-schemas'
 
+const WINDOW_MS = 10 * 60 * 1000
+const MAX_CREATES = 20
+
+/** Creates a team member (Auth user + users/{uid} profile) in the caller's clinic. Admin only. */
 export async function POST(request: NextRequest) {
   try {
-    const session = request.cookies.get(SESSION_COOKIE_NAME)?.value
-    if (!session) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+    assertSameOrigin(request)
+    const { uid: actorUid, businessId, profile } = await requireApiSession(request)
+    if (profile.role !== 'super_admin') {
+      throw new DomainError('Forbidden', 403)
     }
-
-    const decoded = await adminAuth.verifySessionCookie(session, true)
-    const inviterSnap = await adminDb.doc(`users/${decoded.uid}`).get()
-    if (!inviterSnap.exists) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
-    }
-
-    const inviter = inviterSnap.data() as { businessId: string; role: UserRole; isActive?: boolean }
-    if (inviter.isActive === false) {
-      return NextResponse.json({ success: false, message: 'Account disabled' }, { status: 403 })
-    }
-    if (inviter.role !== 'super_admin') {
-      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    }
-
-    const body = (await request.json()) as {
-      name?: string
-      email?: string
-      password?: string
-      role?: UserRole
-    }
-
-    if (!body.name?.trim() || !body.email?.trim() || !body.password || !body.role) {
-      return NextResponse.json({ success: false, message: 'Missing fields' }, { status: 400 })
-    }
-
-    const name = body.name.trim().replace(/\s+/g, ' ')
-    const email = body.email.trim().toLowerCase()
-
-    if (body.role !== 'staff' && body.role !== 'super_admin') {
-      return NextResponse.json({ success: false, message: 'Role must be staff or super_admin' }, { status: 400 })
-    }
-
-    if (body.password.length < 8) {
-      return NextResponse.json(
-        { success: false, message: 'Password must be at least 8 characters' },
-        { status: 400 }
-      )
-    }
-
-    const created = await adminAuth.createUser({
-      email,
-      password: body.password,
-      displayName: name,
+    const withinLimit = await checkRateLimit({
+      scope: 'create-user',
+      key: actorUid,
+      max: MAX_CREATES,
+      windowMs: WINDOW_MS,
     })
+    if (!withinLimit) throw new DomainError('Too many attempts. Try again in a few minutes', 429)
+
+    const body = await parseJsonBody(request, adminUserCreateSchema)
+    const name = body.name.replace(/\s+/g, ' ')
+
+    let created
+    try {
+      created = await adminAuth.createUser({ email: body.email, password: body.password, displayName: name })
+    } catch (error) {
+      if ((error as { code?: string }).code === 'auth/email-already-exists') {
+        throw new DomainError('A user with this email already exists', 409)
+      }
+      throw error
+    }
 
     const now = new Date().toISOString()
     try {
       await adminDb.doc(`users/${created.uid}`).set({
         name,
-        email,
+        email: body.email,
         role: body.role,
-        businessId: inviter.businessId,
+        businessId,
         isActive: true,
         createdAt: now,
       })
@@ -75,15 +59,14 @@ export async function POST(request: NextRequest) {
       data: {
         id: created.uid,
         name,
-        email,
+        email: body.email,
         role: body.role,
-        businessId: inviter.businessId,
+        businessId,
         isActive: true,
         createdAt: now,
       },
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create user'
-    return NextResponse.json({ success: false, message }, { status: 400 })
+    return errorResponse(error, 'POST /api/admin/users', 'Failed to create user', 'message')
   }
 }
