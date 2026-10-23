@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppSelector } from '@/redux'
 import type { Patient } from '@/types'
 import type {
@@ -75,7 +75,11 @@ export function usePatientsDirectory() {
     setAvailableYears(years)
   }, [])
 
+  // Latest request wins: a slow response for an old search must not overwrite a newer one.
+  const requestId = useRef(0)
+
   const load = useCallback(async () => {
+    const id = ++requestId.current
     setLoading(true)
     setError(null)
     try {
@@ -85,13 +89,15 @@ export function usePatientsDirectory() {
         search: filters.search.trim() || undefined,
         year: filters.year !== 'all' ? Number(filters.year) : undefined,
       })
+      if (id !== requestId.current) return
       setPatients(res.data)
       if (!filters.search.trim() && filters.year === 'all') updateYearOptions(res.data)
     } catch (err) {
+      if (id !== requestId.current) return
       setPatients([])
       setError(err instanceof Error ? err.message : 'Request failed')
     } finally {
-      setLoading(false)
+      if (id === requestId.current) setLoading(false)
     }
   }, [filters, updateYearOptions])
 

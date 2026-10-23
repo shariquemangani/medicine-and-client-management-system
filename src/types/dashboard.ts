@@ -4,7 +4,6 @@ export interface DashboardStats {
   totalStaffs: number | null
   totalClasses: number
   feesCollectedThisMonth: number
-  attendanceRateToday: number
 }
 
 export interface EnrollmentTrend {

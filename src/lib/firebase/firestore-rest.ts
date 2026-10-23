@@ -73,15 +73,30 @@ function decodeFirestoreDocument(
   return data
 }
 
-async function firestoreFetch(path: string, idToken: string, query = '') {
+const REQUEST_TIMEOUT_MS = 8000
+
+/** Thrown for any non-2xx Firestore REST response, so callers can tell 404/403 from outages. */
+export class FirestoreHttpError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'FirestoreHttpError'
+    this.status = status
+  }
+}
+
+function documentsUrl(path: string, query = '') {
   if (!PROJECT_ID) {
     throw new Error('Firebase project ID is not configured')
   }
+  return `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}${query}`
+}
 
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}${query}`
-  const res = await fetch(url, {
+async function firestoreFetch(path: string, idToken: string, query = '') {
+  const res = await fetch(documentsUrl(path, query), {
     headers: { Authorization: `Bearer ${idToken}` },
     cache: 'no-store',
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
 
   const body = (await res.json().catch(() => ({}))) as {
@@ -93,7 +108,7 @@ async function firestoreFetch(path: string, idToken: string, query = '') {
   }
 
   if (!res.ok) {
-    throw new Error(body.error?.message ?? `Firestore request failed (${res.status})`)
+    throw new FirestoreHttpError(res.status, body.error?.message ?? `Firestore request failed (${res.status})`)
   }
 
   return body
@@ -106,12 +121,7 @@ async function firestoreMutate(
   body: Record<string, unknown>,
   query = ''
 ) {
-  if (!PROJECT_ID) {
-    throw new Error('Firebase project ID is not configured')
-  }
-
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}${query}`
-  const res = await fetch(url, {
+  const res = await fetch(documentsUrl(path, query), {
     method,
     headers: {
       Authorization: `Bearer ${idToken}`,
@@ -119,6 +129,7 @@ async function firestoreMutate(
     },
     body: JSON.stringify(body),
     cache: 'no-store',
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
 
   const responseBody = (await res.json().catch(() => ({}))) as {
@@ -128,34 +139,30 @@ async function firestoreMutate(
   }
 
   if (!res.ok) {
-    throw new Error(responseBody.error?.message ?? `Firestore write failed (${res.status})`)
+    throw new FirestoreHttpError(res.status, responseBody.error?.message ?? `Firestore write failed (${res.status})`)
   }
 
   return responseBody
 }
 
 export async function deleteFirestoreDocument(documentPath: string, idToken: string) {
-  if (!PROJECT_ID) {
-    throw new Error('Firebase project ID is not configured')
-  }
-
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${documentPath}`
-  const res = await fetch(url, {
+  const res = await fetch(documentsUrl(documentPath), {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${idToken}` },
     cache: 'no-store',
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
 
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
-    throw new Error(body.error?.message ?? `Firestore delete failed (${res.status})`)
+    throw new FirestoreHttpError(res.status, body.error?.message ?? `Firestore delete failed (${res.status})`)
   }
 }
 
-export async function createFirestoreDocument(
+export async function createFirestoreDocument<T extends object>(
   documentPath: string,
   idToken: string,
-  data: Record<string, unknown>
+  data: T
 ) {
   const segments = documentPath.split('/')
   const documentId = segments.pop()!
@@ -165,22 +172,35 @@ export async function createFirestoreDocument(
     `${parentPath}?documentId=${encodeURIComponent(documentId)}`,
     idToken,
     'POST',
-    { fields: encodeFirestoreFields(data) }
+    { fields: encodeFirestoreFields(data as Record<string, unknown>) }
   )
 }
 
-export async function patchFirestoreDocument(
+/** Wraps a top-level field name in backticks so characters like `.` or `&` cannot change the mask. */
+function quoteFieldPath(path: string) {
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(path)) return path
+  const escaped = path.replaceAll('\\', '\\\\').replaceAll('`', '\\`')
+  return '`' + escaped + '`'
+}
+
+export async function patchFirestoreDocument<T extends object>(
   documentPath: string,
   idToken: string,
-  data: Record<string, unknown>
+  data: T
 ) {
   const fieldPaths = Object.keys(data)
   const query =
     fieldPaths.length > 0
-      ? `?${fieldPaths.map((path) => `updateMask.fieldPaths=${path}`).join('&')}`
+      ? `?${fieldPaths.map((path) => `updateMask.fieldPaths=${encodeURIComponent(quoteFieldPath(path))}`).join('&')}`
       : ''
 
-  return firestoreMutate(documentPath, idToken, 'PATCH', { fields: encodeFirestoreFields(data) }, query)
+  return firestoreMutate(
+    documentPath,
+    idToken,
+    'PATCH',
+    { fields: encodeFirestoreFields(data as Record<string, unknown>) },
+    query
+  )
 }
 
 export async function fetchFirestoreCollection<T extends { id: string }>(
@@ -200,6 +220,114 @@ export async function fetchFirestoreCollection<T extends { id: string }>(
   return results
 }
 
+/** One bounded page of a collection (newest first by default): reads at most `pageSize` documents. */
+export async function fetchFirestoreCollectionPage<T extends { id: string }>(
+  collectionPath: string,
+  idToken: string,
+  options: { pageSize: number; orderBy?: string }
+): Promise<T[]> {
+  const params = [`pageSize=${Math.min(Math.max(options.pageSize, 1), 300)}`]
+  if (options.orderBy) params.push(`orderBy=${encodeURIComponent(options.orderBy)}`)
+  const body = await firestoreFetch(collectionPath, idToken, `?${params.join('&')}`)
+  return (body.documents ?? []).map((doc) => decodeFirestoreDocument(doc) as T)
+}
+
+function splitCollectionPath(collectionPath: string) {
+  const segments = collectionPath.split('/')
+  const collectionId = segments.pop() as string
+  return { parent: segments.join('/'), collectionId }
+}
+
+async function firestorePost<T>(path: string, idToken: string, body: unknown): Promise<T> {
+  const res = await fetch(documentsUrl(path), {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  })
+  const json = (await res.json().catch(() => null)) as unknown
+  if (!res.ok) {
+    // runQuery reports failures as a one-element array.
+    const errorBody = (Array.isArray(json) ? json[0] : json) as { error?: { message?: string } } | null
+    const message = errorBody?.error?.message
+    throw new FirestoreHttpError(res.status, message ?? `Firestore query failed (${res.status})`)
+  }
+  return json as T
+}
+
+/** Documents of a collection where `field == value` (single-field equality needs no index). */
+export async function queryFirestoreEquals<T extends { id: string }>(
+  collectionPath: string,
+  idToken: string,
+  field: string,
+  value: string
+): Promise<T[]> {
+  const { parent, collectionId } = splitCollectionPath(collectionPath)
+  const rows = await firestorePost<{ document?: { name: string; fields?: Record<string, FirestoreValue> } }[]>(
+    `${parent}:runQuery`,
+    idToken,
+    {
+      structuredQuery: {
+        from: [{ collectionId }],
+        where: { fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value: { stringValue: value } } },
+      },
+    }
+  )
+  return rows.filter((row) => row.document).map((row) => decodeFirestoreDocument(row.document!) as T)
+}
+
+/** Largest string value of `field` that starts with `prefix` (one document read, single-field index). */
+export async function queryLastWithPrefix(
+  collectionPath: string,
+  idToken: string,
+  field: string,
+  prefix: string
+): Promise<string | null> {
+  const { parent, collectionId } = splitCollectionPath(collectionPath)
+  const asValue = (text: string): FirestoreValue => ({ stringValue: text })
+  const rows = await firestorePost<{ document?: { name: string; fields?: Record<string, FirestoreValue> } }[]>(
+    `${parent}:runQuery`,
+    idToken,
+    {
+      structuredQuery: {
+        from: [{ collectionId }],
+        where: {
+          compositeFilter: {
+            op: 'AND',
+            filters: [
+              { fieldFilter: { field: { fieldPath: field }, op: 'GREATER_THAN_OR_EQUAL', value: asValue(prefix) } },
+              { fieldFilter: { field: { fieldPath: field }, op: 'LESS_THAN', value: asValue(prefix + '\uffff') } },
+            ],
+          },
+        },
+        orderBy: [{ field: { fieldPath: field }, direction: 'DESCENDING' }],
+        limit: 1,
+      },
+    }
+  )
+  const doc = rows.find((row) => row.document)?.document
+  if (!doc) return null
+  const value = decodeFirestoreDocument(doc)[field]
+  return typeof value === 'string' ? value : null
+}
+
+/** Server-side document count (billed as one read per 1,000 index entries, not per document). */
+export async function countFirestoreDocuments(collectionPath: string, idToken: string): Promise<number> {
+  const { parent, collectionId } = splitCollectionPath(collectionPath)
+  const rows = await firestorePost<{ result?: { aggregateFields?: { total?: { integerValue?: string } } } }[]>(
+    `${parent}:runAggregationQuery`,
+    idToken,
+    {
+      structuredAggregationQuery: {
+        structuredQuery: { from: [{ collectionId }] },
+        aggregations: [{ alias: 'total', count: {} }],
+      },
+    }
+  )
+  return Number(rows[0]?.result?.aggregateFields?.total?.integerValue ?? 0)
+}
+
 export async function fetchFirestoreDocument<T extends { id: string }>(
   documentPath: string,
   idToken: string
@@ -208,8 +336,10 @@ export async function fetchFirestoreDocument<T extends { id: string }>(
     const body = await firestoreFetch(documentPath, idToken)
     if (!body.name || !body.fields) return null
     return decodeFirestoreDocument({ name: body.name, fields: body.fields }) as T
-  } catch {
-    return null
+  } catch (error) {
+    // Missing or not readable (rules) means "no document"; outages and timeouts must surface.
+    if (error instanceof FirestoreHttpError && (error.status === 404 || error.status === 403)) return null
+    throw error
   }
 }
 

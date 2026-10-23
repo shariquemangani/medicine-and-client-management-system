@@ -10,7 +10,8 @@ import {
   ClipboardCheck,
 } from 'lucide-react'
 import { BentoGrid, BentoCard, CardHeader } from '@/components/shared'
-import { useAppSelector } from '@/redux'
+import { useAppDispatch, useAppSelector } from '@/redux'
+import { loadStockData } from '@/redux/slices/stockSlice'
 import {
   DashboardHero,
   DashboardActivityFeed,
@@ -21,7 +22,6 @@ import {
   Sk,
 } from '@/components/dashboard'
 import { getDashboardStats } from '@/services/pharmacy-api'
-import { fetchStockItems } from '@/services/stock-api'
 import { getStockLevelStatus } from '@/lib/stock-utils'
 import type { DashboardData } from '@/types'
 
@@ -29,10 +29,23 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
-  const { user } = useAppSelector((st) => st.auth)
-  const [stockLoading, setStockLoading] = useState(true)
-  const [stockRate, setStockRate] = useState<number | null>(null)
-  const [stockItemCount, setStockItemCount] = useState(0)
+  const dispatch = useAppDispatch()
+  const { user, isAuthenticated, isLoading: authLoading } = useAppSelector((st) => st.auth)
+  // Stock comes from the shared Redux store (the sidebar already loads it), not a second read.
+  const stockItems = useAppSelector((st) => st.stock.items)
+  const stockStats = useAppSelector((st) => st.stock.stats)
+  const stockError = useAppSelector((st) => st.stock.error)
+  const stockLoading = !stockStats && !stockError
+  const stockItemCount = stockItems.length
+  const stockRate =
+    stockItems.length === 0
+      ? null
+      : Math.round(
+          // Healthy = enough in-date stock (expired batches do not count), same rule as the inventory page.
+          (stockItems.filter((i) => ['healthy', 'overstocked'].includes(getStockLevelStatus(i))).length /
+            stockItems.length) *
+            100
+        )
 
   const load = useCallback(() => {
     setLoading(true)
@@ -51,23 +64,9 @@ export default function DashboardPage() {
   }, [load])
 
   useEffect(() => {
-    fetchStockItems()
-      .then((items) => {
-        setStockItemCount(items.length)
-        // Healthy = enough in-date stock (expired batches do not count), same rule as the inventory page.
-        setStockRate(
-          items.length === 0
-            ? null
-            : Math.round(
-                (items.filter((i) => ['healthy', 'overstocked'].includes(getStockLevelStatus(i))).length /
-                  items.length) *
-                  100
-              )
-        )
-      })
-      .catch(() => setStockRate(null))
-      .finally(() => setStockLoading(false))
-  }, [])
+    if (authLoading || !isAuthenticated) return
+    void dispatch(loadStockData())
+  }, [dispatch, authLoading, isAuthenticated])
 
   if (failed || (!loading && !data)) {
     return (

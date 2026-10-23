@@ -6,6 +6,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  getCount,
   limit,
   orderBy,
   query,
@@ -15,17 +16,12 @@ import {
 import { db } from '@/lib/firebase/app'
 import { requireBusinessId } from '@/lib/firebase/business-context'
 import { filterBySearch, generateId, paginate } from '@/lib/list-utils'
-import { getMedicineCategoryName } from '@/data/medicine-categories'
 import type {
   AdminUser,
-  InventoryBulkInput,
-  InventoryRecord,
-  InventorySummary,
   DashboardData,
   Prescription,
   PrescriptionCreateInput,
   PrescriptionItem,
-  PrescriptionUpdateInput,
   BillingCategory,
   PaginatedResponse,
   Payment,
@@ -34,19 +30,13 @@ import type {
   BusinessProfile,
   AcademicConfig,
   Patient,
-  PatientCreateInput,
   PatientBillingSummary,
-  PatientUpdateInput,
   SubjectMark,
   Staff,
-  StaffCreateInput,
-  StaffUpdateInput,
   AdminUserCreateInput,
   AdminUserUpdateInput,
   MedicineUpdateInput,
 } from '@/types'
-import type { PatientProfileData } from '@/types/patient-profile'
-import { buildPatientProfileDetail } from '@/lib/patients/patient-profile-detail'
 
 function schoolPath(businessId: string, ...segments: string[]) {
   return ['businesses', businessId, ...segments].join('/')
@@ -89,39 +79,6 @@ async function addActivity(businessId: string, type: string, message: string) {
 
 // ── Patients ────────────────────────────────────────────────────────────────
 
-export async function fetchPatients(params?: {
-  search?: string
-  classId?: string
-  status?: string
-  year?: number
-  page?: number
-  limit?: number
-}): Promise<PaginatedResponse<Patient>> {
-  const businessId = requireBusinessId()
-  let result = await listCollection<Patient>(businessId, 'patients')
-
-  if (params?.classId) result = result.filter((s) => s.classId === params.classId)
-  if (params?.status) result = result.filter((s) => s.status === params.status)
-  if (params?.year) result = result.filter((s) => s.year === params.year)
-  result = filterBySearch(result, params?.search, [
-    'firstName',
-    'lastName',
-    'rollNumber',
-    'email',
-  ])
-
-  const paged = paginate(result, params?.page, params?.limit)
-  return {
-    data: paged.data,
-    meta: {
-      total: paged.total,
-      page: paged.page,
-      limit: paged.limit,
-      totalPages: paged.totalPages,
-    },
-  }
-}
-
 export const getPatient = async (id: string): Promise<Patient> => {
   const businessId = requireBusinessId()
   const snap = await getDoc(doc(db, schoolPath(businessId, 'patients', id)))
@@ -129,118 +86,7 @@ export const getPatient = async (id: string): Promise<Patient> => {
   return { id: snap.id, ...snap.data() } as Patient
 }
 
-export async function fetchPatientProfile(id: string): Promise<PatientProfileData> {
-  const businessId = requireBusinessId()
-  const patient = await getPatient(id)
-  const [attendance, examResults, feeSummaries] = await Promise.all([
-    listCollection<InventoryRecord>(businessId, 'inventory'),
-    listCollection<PrescriptionItem>(businessId, 'prescriptionItems'),
-    fetchPatientFeeSummaries(),
-  ])
-
-  const patientAttendance = attendance.filter((a) => a.patientId === id)
-  const summaries = buildInventorySummary(patientAttendance)
-  const feeSummary = feeSummaries.find((f) => f.patientId === id) ?? null
-
-  const patientPrescriptions = examResults.filter((r) => r.patientId === id)
-
-  return buildPatientProfileDetail({
-    patient,
-    attendance: patientAttendance,
-    attendanceSummary: summaries[0] ?? null,
-    feeSummary,
-    examResults: patientPrescriptions,
-  })
-}
-
-export async function createPatient(data: PatientCreateInput): Promise<Patient> {
-  const businessId = requireBusinessId()
-  const id = generateId('cli')
-  const now = new Date().toISOString()
-  const className = getMedicineCategoryName(data.classId) ?? 'Unassigned'
-  const patient: Patient = {
-    ...data,
-    id,
-    className,
-    createdAt: now,
-    updatedAt: now,
-  }
-
-  await setDoc(doc(db, schoolPath(businessId, 'patients', id)), patient)
-
-  await addActivity(
-    businessId,
-    'patient_added',
-    `${patient.firstName} ${patient.lastName} enrolled in ${patient.className}`
-  )
-  return patient
-}
-
-export async function updatePatient(id: string, data: PatientUpdateInput): Promise<Patient> {
-  const businessId = requireBusinessId()
-  const ref = doc(db, schoolPath(businessId, 'patients', id))
-  const existing = await getDoc(ref)
-  if (!existing.exists()) throw new Error('Not found')
-
-  const current = { id, ...existing.data() } as Patient
-  const now = new Date().toISOString()
-  let className = current.className
-
-  if (data.classId && data.classId !== current.classId) {
-    className = getMedicineCategoryName(data.classId) ?? className
-  }
-
-  const updated: Patient = {
-    ...current,
-    ...data,
-    className,
-    updatedAt: now,
-  }
-  await updateDoc(ref, asFirestoreUpdate(updated))
-  return updated
-}
-
-export async function deletePatient(id: string): Promise<{ success: boolean }> {
-  const businessId = requireBusinessId()
-  const patient = await getPatient(id).catch(() => null)
-  if (!patient) throw new Error('Not found')
-
-  await deleteDoc(doc(db, schoolPath(businessId, 'patients', id)))
-  return { success: true }
-}
-
 // ── Staffs ────────────────────────────────────────────────────────────────
-
-export async function fetchStaffs(params?: {
-  search?: string
-  department?: string
-  status?: string
-  page?: number
-  limit?: number
-}): Promise<PaginatedResponse<Staff>> {
-  const businessId = requireBusinessId()
-  let result = await listCollection<Staff>(businessId, 'staff')
-
-  if (params?.department) result = result.filter((t) => t.department === params.department)
-  if (params?.status) result = result.filter((t) => t.status === params.status)
-  result = filterBySearch(result, params?.search, [
-    'firstName',
-    'lastName',
-    'employeeId',
-    'email',
-  ])
-
-  const paged = paginate(result, params?.page, params?.limit)
-  return {
-    data: paged.data,
-    meta: {
-      total: paged.total,
-      page: paged.page,
-      limit: paged.limit,
-      totalPages: paged.totalPages,
-    },
-  }
-}
 
 export const fetchStaff = async (id: string): Promise<Staff> => {
   const businessId = requireBusinessId()
@@ -249,45 +95,29 @@ export const fetchStaff = async (id: string): Promise<Staff> => {
   return { id: snap.id, ...snap.data() } as Staff
 }
 
-export async function createStaff(data: StaffCreateInput): Promise<Staff> {
-  const businessId = requireBusinessId()
-  const id = generateId('tch')
-  const now = new Date().toISOString()
-  const teacher: Staff = { ...data, id, createdAt: now, updatedAt: now }
-  await setDoc(doc(db, schoolPath(businessId, 'staff', id)), teacher)
-  await addActivity(
-    businessId,
-    'staff_added',
-    `${teacher.firstName} ${teacher.lastName} joined as ${teacher.department}`
-  )
-  return teacher
-}
-
-export async function updateStaff(id: string, data: StaffUpdateInput): Promise<Staff> {
-  const businessId = requireBusinessId()
-  const ref = doc(db, schoolPath(businessId, 'staff', id))
-  const snap = await getDoc(ref)
-  if (!snap.exists()) throw new Error('Not found')
-  const updated = {
-    ...(snap.data() as Staff),
-    ...data,
-    id,
-    updatedAt: new Date().toISOString(),
-  }
-  await updateDoc(ref, asFirestoreUpdate(updated))
-  return updated
-}
-
-export async function deleteStaff(id: string): Promise<{ success: boolean }> {
-  const businessId = requireBusinessId()
-  const ref = doc(db, schoolPath(businessId, 'staff', id))
-  const snap = await getDoc(ref)
-  if (!snap.exists()) throw new Error('Not found')
-  await updateDoc(ref, { status: 'archived', updatedAt: new Date().toISOString() })
-  return { success: true }
-}
-
 // ── Classes ─────────────────────────────────────────────────────────────────
+
+// Dropdowns on several screens (new patient, patient detail, prescriptions) need the same list;
+// share one read per clinic for a minute. Medicine writes below clear it.
+const MEDICINES_FRESH_MS = 60_000
+let medicinesCache: { businessId: string; at: number; promise: Promise<Medicine[]> } | null = null
+
+function invalidateMedicinesCache() {
+  medicinesCache = null
+}
+
+function listMedicinesCached(businessId: string): Promise<Medicine[]> {
+  if (medicinesCache && medicinesCache.businessId === businessId && Date.now() - medicinesCache.at < MEDICINES_FRESH_MS) {
+    return medicinesCache.promise
+  }
+  const promise = listCollection<Medicine>(businessId, 'medicines')
+  const entry = { businessId, at: Date.now(), promise }
+  medicinesCache = entry
+  promise.catch(() => {
+    if (medicinesCache === entry) medicinesCache = null
+  })
+  return promise
+}
 
 export async function fetchMedicines(params?: {
   search?: string
@@ -295,7 +125,7 @@ export async function fetchMedicines(params?: {
   limit?: number
 }): Promise<PaginatedResponse<Medicine & { patientCount: number }>> {
   const businessId = requireBusinessId()
-  let result = (await listCollection<Medicine>(businessId, 'medicines')).map((c) => ({
+  let result = (await listMedicinesCached(businessId)).map((c) => ({
     ...c,
     patientCount: c.patientIds?.length ?? 0,
   }))
@@ -369,6 +199,7 @@ export async function createMedicine(data: MedicineCreateInput): Promise<Medicin
   }
 
   await setDoc(doc(db, schoolPath(businessId, 'medicines', id)), medicine)
+  invalidateMedicinesCache()
   await addActivity(businessId, 'medicine_added', `Medicine added: ${medicine.name}`)
   return medicine
 }
@@ -388,83 +219,15 @@ export async function updateMedicine(id: string, data: MedicineUpdateInput): Pro
   }
 
   await updateDoc(ref, asFirestoreUpdate(updated))
+  invalidateMedicinesCache()
   return updated
 }
 
 export async function deleteMedicine(id: string): Promise<{ success: boolean }> {
   const businessId = requireBusinessId()
   await deleteDoc(doc(db, schoolPath(businessId, 'medicines', id)))
+  invalidateMedicinesCache()
   return { success: true }
-}
-
-// ── Attendance ──────────────────────────────────────────────────────────────
-
-function buildInventorySummary(records: InventoryRecord[]): InventorySummary[] {
-  const byPatient = new Map<string, InventorySummary>()
-  for (const r of records) {
-    const existing = byPatient.get(r.patientId) ?? {
-      patientId: r.patientId,
-      patientName: r.patientName,
-      rollNumber: r.rollNumber,
-      present: 0,
-      absent: 0,
-      late: 0,
-      total: 0,
-    }
-    existing.total += 1
-    if (r.status === 'present') existing.present += 1
-    else if (r.status === 'absent') existing.absent += 1
-    else if (r.status === 'late') existing.late += 1
-    byPatient.set(r.patientId, existing)
-  }
-  return Array.from(byPatient.values())
-}
-
-export async function fetchInventory(params?: Record<string, string>) {
-  const businessId = requireBusinessId()
-  let result = await listCollection<InventoryRecord>(businessId, 'inventory')
-  if (params?.date) result = result.filter((r) => r.date === params.date)
-  if (params?.classId) result = result.filter((r) => r.classId === params.classId)
-  if (params?.patientId) result = result.filter((r) => r.patientId === params.patientId)
-  if (params?.from) result = result.filter((r) => r.date >= params.from!)
-  if (params?.to) result = result.filter((r) => r.date <= params.to!)
-  return result
-}
-
-export async function fetchInventorySummary(params?: Record<string, string>) {
-  const records = await fetchInventory(params)
-  return buildInventorySummary(records)
-}
-
-export async function recordInventory(data: InventoryBulkInput): Promise<InventoryRecord[]> {
-  const businessId = requireBusinessId()
-  const classes = await listCollection<Medicine>(businessId, 'medicines')
-  const patients = await listCollection<Patient>(businessId, 'patients')
-  const cls = classes.find((c) => c.id === data.classId)
-  const saved: InventoryRecord[] = []
-  const now = new Date().toISOString()
-
-  for (const rec of data.records) {
-    const patient = patients.find((s) => s.id === rec.patientId)
-    if (!patient) continue
-    const id = generateId('att')
-    const record: InventoryRecord = {
-      id,
-      date: data.date,
-      classId: data.classId,
-      className: cls?.name ?? '',
-      patientId: rec.patientId,
-      patientName: `${patient.firstName} ${patient.lastName}`,
-      rollNumber: patient.rollNumber,
-      status: rec.status,
-      recordedAt: now,
-    }
-    await setDoc(doc(db, schoolPath(businessId, 'inventory', id)), record)
-    saved.push(record)
-  }
-
-  await addActivity(businessId, 'attendance_updated', `Attendance recorded for ${cls?.name ?? 'class'}`)
-  return saved
 }
 
 // ── Prescriptions ───────────────────────────────────────────────────────────────────
@@ -481,32 +244,6 @@ export async function createPrescription(data: PrescriptionCreateInput): Promise
   const exam: Prescription = { ...data, id, createdAt: now }
   await setDoc(doc(db, schoolPath(businessId, 'prescriptions', id)), exam)
   return exam
-}
-
-export async function updatePrescription(id: string, data: PrescriptionUpdateInput): Promise<Prescription> {
-  const businessId = requireBusinessId()
-  const ref = doc(db, schoolPath(businessId, 'prescriptions', id))
-  const snap = await getDoc(ref)
-  if (!snap.exists()) throw new Error('Not found')
-  const updated: Prescription = {
-    ...(snap.data() as Prescription),
-    ...data,
-    id,
-  }
-  await updateDoc(ref, asFirestoreUpdate(updated))
-  return updated
-}
-
-export async function deletePrescription(id: string): Promise<{ success: boolean }> {
-  const businessId = requireBusinessId()
-  await deleteDoc(doc(db, schoolPath(businessId, 'prescriptions', id)))
-  const results = await listCollection<PrescriptionItem>(businessId, 'prescriptionItems')
-  await Promise.all(
-    results
-      .filter((r) => r.examId === id)
-      .map((r) => deleteDoc(doc(db, schoolPath(businessId, 'prescriptionItems', r.id))))
-  )
-  return { success: true }
 }
 
 export async function fetchPrescriptionItems(examId: string, classId?: string) {
@@ -570,11 +307,6 @@ export async function fetchFeeCategories(): Promise<BillingCategory[]> {
   return listCollection<BillingCategory>(businessId, 'billingCategories')
 }
 
-export async function fetchFeeStructures() {
-  const businessId = requireBusinessId()
-  return listCollection<import('@/types').FeeStructure>(businessId, 'feeStructures')
-}
-
 export async function fetchPatientFeeSummaries(overdueOnly?: boolean): Promise<PatientBillingSummary[]> {
   const businessId = requireBusinessId()
   const [patients, structures, payments] = await Promise.all([
@@ -583,22 +315,31 @@ export async function fetchPatientFeeSummaries(overdueOnly?: boolean): Promise<P
     listCollection<Payment>(businessId, 'payments'),
   ])
 
+  // Group once (O(patients + payments)) instead of filtering every list per patient.
+  const dueByPatient = new Map<string, number>()
+  for (const f of structures) if (f.patientId) dueByPatient.set(f.patientId, (dueByPatient.get(f.patientId) ?? 0) + f.amount)
+  const paidByPatient = new Map<string, { total: number; lastDate?: string }>()
+  for (const p of payments) {
+    if (!p.patientId) continue
+    const entry = paidByPatient.get(p.patientId) ?? { total: 0 }
+    entry.total += p.amount
+    if (!entry.lastDate || p.date.localeCompare(entry.lastDate) > 0) entry.lastDate = p.date
+    paidByPatient.set(p.patientId, entry)
+  }
+
   const summaries: PatientBillingSummary[] = patients.map((s) => {
-    const due = structures.filter((f) => f.patientId === s.id).reduce((sum, f) => sum + f.amount, 0)
-    const paid = payments.filter((p) => p.patientId === s.id).reduce((sum, p) => sum + p.amount, 0)
-    const patientPayments = payments
-      .filter((p) => p.patientId === s.id)
-      .sort((a, b) => b.date.localeCompare(a.date))
-    const balance = due - paid
+    const due = dueByPatient.get(s.id) ?? 0
+    const paid = paidByPatient.get(s.id)
+    const balance = due - (paid?.total ?? 0)
     return {
       patientId: s.id,
       patientName: `${s.firstName} ${s.lastName}`,
       rollNumber: s.rollNumber,
       className: s.className,
       totalDue: due,
-      totalPaid: paid,
+      totalPaid: paid?.total ?? 0,
       balance,
-      lastPaymentDate: patientPayments[0]?.date,
+      lastPaymentDate: paid?.lastDate,
       isOverdue: balance > 0,
     }
   })
@@ -635,61 +376,63 @@ async function countTeamMembers(businessId: string): Promise<number | null> {
   }
 }
 
-/** Cumulative active-patient count at the end of each of the last 6 months. */
-function buildPatientTrend(patients: Patient[]): DashboardData['enrollmentTrend'] {
+async function countWhere(businessId: string, name: string, ...constraints: Parameters<typeof where>[]) {
+  const q = constraints.length
+    ? query(colRef(businessId, name), ...constraints.map((c) => where(...c)))
+    : colRef(businessId, name)
+  const snap = await getCount(q)
+  return snap.data().count
+}
+
+/** Patients registered before the end of each of the last 6 months (server-side counts, 6 cheap reads). */
+async function buildPatientTrend(businessId: string, activeNow: number): Promise<DashboardData['enrollmentTrend']> {
   const now = new Date()
-  const joinedAt = patients
-    .map((p) => new Date(p.createdAt ?? p.admissionDate ?? ''))
-    .filter((d) => !Number.isNaN(d.getTime()))
-  return Array.from({ length: 6 }, (_, i) => {
+  const months = Array.from({ length: 6 }, (_, i) => {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 1)
     return {
-      month: new Date(monthEnd.getFullYear(), monthEnd.getMonth() - 1, 1).toLocaleString('en', { month: 'short' }),
-      count: joinedAt.filter((d) => d < monthEnd).length,
+      monthEnd,
+      label: new Date(monthEnd.getFullYear(), monthEnd.getMonth() - 1, 1).toLocaleString('en', { month: 'short' }),
     }
-  }).map((m, i, arr) => (i === arr.length - 1 ? { ...m, count: patients.length } : m))
+  })
+  const counts = await Promise.all(
+    months.map(({ monthEnd }, i) =>
+      i === months.length - 1 ? Promise.resolve(activeNow) : countWhere(businessId, 'patients', ['createdAt', '<', monthEnd.toISOString()])
+    )
+  )
+  return months.map((m, i) => ({ month: m.label, count: counts[i] }))
 }
 
 export async function getDashboardStats(): Promise<DashboardData> {
   const businessId = requireBusinessId()
-  const [patients, teachers, classes, payments, attendance, activities] = await Promise.all([
-    listCollection<Patient>(businessId, 'patients'),
+  const now = new Date()
+  // Compare the YYYY-MM prefix: payment dates are date-only strings (no timezone surprises).
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+  // Counts are computed by Firestore and only this month's payments are read, so the dashboard
+  // costs a handful of reads no matter how many patients or medicines the clinic has.
+  const [activeCount, teachers, medicineCount, feesThisMonth, activities] = await Promise.all([
+    countWhere(businessId, 'patients', ['status', '==', 'active']),
     countTeamMembers(businessId),
-    listCollection<Medicine>(businessId, 'medicines'),
-    listCollection<Payment>(businessId, 'payments'),
-    listCollection<InventoryRecord>(businessId, 'inventory'),
+    countWhere(businessId, 'medicines'),
+    // Only this month's payments are read (a single-field range needs no composite index; a
+    // server-side sum() over a range would).
+    getDocs(
+      query(colRef(businessId, 'payments'), where('date', '>=', monthKey), where('date', '<', `${monthKey}￿`))
+    ).then((snap) => snap.docs.reduce((total, d) => total + (Number(d.data().amount) || 0), 0)),
     getDocs(query(colRef(businessId, 'activities'), orderBy('timestamp', 'desc'), limit(8))).then((snap) =>
       snap.docs.map((d) => ({ id: d.id, ...d.data() }) as { id: string; type: string; message: string; timestamp: string })
     ),
   ])
-
-  const now = new Date()
-  // Compare the YYYY-MM prefix: payment dates are date-only strings (no timezone surprises).
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  const feesThisMonth = payments
-    .filter((p) => typeof p.date === 'string' && p.date.slice(0, 7) === monthKey)
-    .reduce((sum, p) => sum + p.amount, 0)
-
-  const today = now.toISOString().split('T')[0]
-  const todayRecords = attendance.filter((r) => r.date === today)
-  const attendanceRateToday =
-    todayRecords.length > 0
-      ? Math.round(
-          (todayRecords.filter((r) => r.status === 'present').length / todayRecords.length) * 100
-        )
-      : 0
-
-  const activePatients = patients.filter((s) => s.status === 'active')
+  const enrollmentTrend = await buildPatientTrend(businessId, activeCount)
 
   return {
     stats: {
-      totalPatients: activePatients.length,
+      totalPatients: activeCount,
       totalStaffs: teachers,
-      totalClasses: classes.length,
+      totalClasses: medicineCount,
       feesCollectedThisMonth: feesThisMonth,
-      attendanceRateToday,
     },
-    enrollmentTrend: buildPatientTrend(activePatients),
+    enrollmentTrend,
     recentActivities: activities
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
       .slice(0, 8)
