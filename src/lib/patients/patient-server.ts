@@ -179,7 +179,8 @@ export async function updatePatientRecord(
     updatedAt: now,
   }
 
-  const { id: _id, ...patchData } = updated
+  const patchData: Record<string, unknown> = { ...updated }
+  delete patchData.id
   await patchFirestoreDocument(
     `businesses/${businessId}/${PATIENTS_COLLECTION}/${patientId}`,
     idToken,

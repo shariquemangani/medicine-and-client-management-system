@@ -2,7 +2,7 @@
 
 import { Wallet, RefreshCw, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared/page-hero'
+import { PageHero, heroButtonClass } from '@/components/shared/page-hero'
 
 interface BillingHeroProps {
   loading?: boolean

@@ -31,7 +31,6 @@ export const WeightChangeCard: React.FC<WeightChangeCardProps> = ({
   reductionPercentage = '8.3',
   progress = '',
   description = '',
-  onWeightChange,
   onProgressChange,
   onDescriptionChange,
   className,

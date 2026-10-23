@@ -18,6 +18,7 @@ function normalizeStoredUser(raw: AdminUser): AdminUser | null {
 
 /** Persist signed-in profile for the app shell. Session stays until explicit logout. */
 export function persistAuthSession(user: AdminUser, _rememberMe?: boolean) {
+  void _rememberMe
   if (typeof window === 'undefined') return
 
   const normalized = normalizeStoredUser(user)

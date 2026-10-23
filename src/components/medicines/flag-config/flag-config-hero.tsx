@@ -2,7 +2,7 @@
 
 import { Flag, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared/page-hero'
+import { PageHero, heroPrimaryClass } from '@/components/shared/page-hero'
 
 interface FlagConfigHeroProps {
   onAddCategory: () => void

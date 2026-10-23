@@ -78,7 +78,6 @@ export function DateOfBirthPicker({
   setDate,
   className,
   disabled = false,
-  required = false,
 }: DateOfBirthPickerProps) {
   const [month, setMonth] = React.useState<string>(
     date ? (date.getMonth() + 1).toString().padStart(2, '0') : ''
@@ -126,6 +125,7 @@ export function DateOfBirthPicker({
     } else {
       setDate(undefined)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- setDate is intentionally omitted; an unstable parent callback would loop
   }, [month, year, day])
 
   // Reset selections when year changes
@@ -143,6 +143,7 @@ export function DateOfBirthPicker({
       setMonth('')
       setDay('')
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- must run only when year changes
   }, [year])
 
   // Reset day when month changes or becomes invalid

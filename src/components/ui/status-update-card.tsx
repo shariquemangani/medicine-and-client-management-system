@@ -3,8 +3,7 @@
 import React from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { X, ArrowRight, ChevronDown } from 'lucide-react'
+import { X, ArrowRight } from 'lucide-react'
 import {
   Select,
   SelectContent,

@@ -1,0 +1,44 @@
+name: Deploy Firestore rules
+
+# Publishes firestore.rules after a merge: dev -> test project, main -> prod project.
+# Secrets are service-account JSON keys; the script refuses a key from a different project.
+# The `verify` job in ci.yml (including the rules tests) must have passed before the PR was merged.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - firestore.rules
+      - scripts/deploy-firestore-rules.ts
+      - .github/workflows/deploy-rules.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-rules-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Required secret per environment (Settings -> Secrets and variables -> Actions):
+    #   FIREBASE_SERVICE_ACCOUNT_TEST   service-account JSON of mediflow-test-11bbe
+    #   FIREBASE_SERVICE_ACCOUNT_PROD   service-account JSON of mediflow-prod-cc377
+    env:
+      PROJECT_ID: ${{ github.ref_name == 'main' && 'mediflow-prod-cc377' || 'mediflow-test-11bbe' }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ github.ref_name == 'main' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_TEST }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Skip notice
+        if: env.FIREBASE_SERVICE_ACCOUNT == ''
+        run: echo "::warning::No service-account secret for this branch yet; rules were NOT published."
+      - name: Check credentials (dry run)
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        run: npx tsx scripts/deploy-firestore-rules.ts --project "$PROJECT_ID" --dry-run
+      - name: Publish rules
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        run: npx tsx scripts/deploy-firestore-rules.ts --project "$PROJECT_ID"

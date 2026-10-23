@@ -16,7 +16,7 @@ import type { Medicine } from '@/types'
 import { t } from '@/lib/labels'
 import { toast } from 'sonner'
 import { downloadCsv } from '@/lib/download-csv'
-import { BentoGrid, BentoCard } from '@/components/shared'
+import { BentoGrid } from '@/components/shared'
 
 export default function MedicinesListPage() {
   const router = useRouter()

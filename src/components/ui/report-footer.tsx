@@ -17,6 +17,7 @@ export function ReportFooter({ className }: ReportFooterProps) {
     >
       <div className="space-y-4">
         <div className="relative inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static SVG logo; images are unoptimized */}
           <img
             src="/logo/famLogoDark.svg"
             alt="FAMNGX Logo"

@@ -155,7 +155,6 @@ export const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
         typeof dateToUse === 'string' ? new Date(dateToUse) : dateToUse
 
       // If the date is in the past, start from current date instead
-      const now = new Date()
       if (parsedDate < minDateToUse) {
         return minDateToUse
       }

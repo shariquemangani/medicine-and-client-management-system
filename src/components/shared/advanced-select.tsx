@@ -25,7 +25,6 @@ export function AdvancedSelect({
   onChange,
   options,
   placeholder = 'Select option',
-  searchPlaceholder,
   emptyMessage = 'No results found.',
   className,
   disabled = false,
