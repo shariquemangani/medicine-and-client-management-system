@@ -1,6 +1,7 @@
 name: Deploy Firestore rules
 
 # Publishes firestore.rules after a merge: dev -> test project, main -> prod project.
+# Secrets are service-account JSON keys; the script refuses a key from a different project.
 # The `verify` job in ci.yml (including the rules tests) must have passed before the PR was merged.
 on:
   push:
