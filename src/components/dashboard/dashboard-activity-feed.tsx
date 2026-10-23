@@ -4,6 +4,7 @@ import type { RecentActivity } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { Activity, BookOpen, ClipboardCheck, UserMinus, UserPen, UserPlus, Users, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { CardHeader } from '@/components/shared/card-header'
 import { Sk } from './skeleton-bits'
 
 type ActivityVisual = { icon: LucideIcon; accent: string }
@@ -36,15 +37,7 @@ export function DashboardActivityFeed({ activities, loading = false }: Dashboard
 
   return (
     <div className="flex h-full min-h-[240px] flex-col" aria-busy={loading || undefined}>
-      <div className="mb-4 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <Activity className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Recent Activity'}</h3>
-          <p className="text-xs text-muted-foreground">{'Latest clinic events'}</p>
-        </div>
-      </div>
+      <CardHeader title="Recent Activity" description="Latest clinic events" icon={Activity} accent="patients" ornament={false} />
       {loading && (
         <div className="flex-1 space-y-2" aria-hidden>
           {Array.from({ length: 5 }).map((_, i) => (

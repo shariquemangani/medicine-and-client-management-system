@@ -1,4 +1,5 @@
 'use client'
+import { Tags } from 'lucide-react'
 
 import type { BillingCategory } from '@/types'
 import { DataTable, SectionCard, SectionCardHeader, Td, Th, THead, Tr } from '@/components/shared'
@@ -14,7 +15,7 @@ export function BillingCategoriesPanel({ categories, loading }: BillingCategorie
 
   return (
     <SectionCard>
-      <SectionCardHeader title="Categories" description="Fee categories and their default amounts" />
+      <SectionCardHeader title="Categories" description="Fee categories and their default amounts" icon={<Tags className="h-4 w-4" />} accent="fees" />
       <DataTable>
         <THead>
           <tr>

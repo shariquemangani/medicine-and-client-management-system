@@ -2,11 +2,10 @@
 
 import { ROUTES } from '@/lib/routes'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Sparkles } from 'lucide-react'
-import { BentoCard, BentoGrid } from '@/components/shared'
+import { Activity, Sparkles } from 'lucide-react'
+import { BentoGrid, PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
   DiseaseDetailEditHeader,
@@ -139,18 +138,13 @@ export default function DiseaseDetailPage() {
   if (!dataLoading && (notFound || !disease)) {
     return (
       <div className="disease-vault-page dashboard-shell space-y-4">
-        <BentoCard colSpan={12} delay={0}>
-          <div className="space-y-3 py-8 text-center">
-            <h2 className="text-xl font-bold text-foreground">{t('diseases.detail.notFound')}</h2>
-            <p className="text-sm text-muted-foreground">{t('diseases.detail.notFoundHint')}</p>
-            <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={ROUTES.vaultDiseases}>
-                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-                {t('diseases.detail.back')}
-              </Link>
-            </Button>
-          </div>
-        </BentoCard>
+        <PageHero
+          icon={Activity}
+          badge={t('diseases.vaultBadge')}
+          title={t('diseases.detail.notFound')}
+          subtitle={t('diseases.detail.notFoundHint')}
+          back={{ href: ROUTES.vaultDiseases, label: 'Back to diseases' }}
+        />
       </div>
     )
   }
@@ -161,7 +155,7 @@ export default function DiseaseDetailPage() {
     <div className="disease-vault-page dashboard-shell space-y-4">
       {isEditing && formValues ? (
         <BentoGrid>
-          <BentoCard colSpan={12} delay={0} className="!p-0">
+          <div className="col-span-full">
             <DiseaseDetailEditHeader
               name={headerName}
               actions={
@@ -170,7 +164,7 @@ export default function DiseaseDetailPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="diseases-hero-btn"
+                    className={heroButtonClass}
                     disabled={saving}
                     onClick={handleCancelEdit}
                   >
@@ -179,7 +173,7 @@ export default function DiseaseDetailPage() {
                   <Button
                     type="button"
                     size="sm"
-                    className="diseases-hero-primary gap-1.5"
+                    className={`${heroPrimaryClass} gap-1.5`}
                     disabled={saving}
                     onClick={() => void handleSave()}
                   >
@@ -191,8 +185,8 @@ export default function DiseaseDetailPage() {
                 </div>
               }
             />
-          </BentoCard>
-          <BentoCard colSpan={12} delay={80} className="!bg-transparent !border-0 !shadow-none !p-0">
+          </div>
+          <div className="col-span-full">
             <DiseaseVaultForm
               values={formValues}
               onChange={setFormValues}
@@ -203,11 +197,11 @@ export default function DiseaseDetailPage() {
               symptomsCategoryId={symptomsCategoryId}
               onSymptomOptionsRefresh={() => void reloadSymptomOptions()}
             />
-          </BentoCard>
+          </div>
         </BentoGrid>
       ) : (
         <BentoGrid>
-          <BentoCard colSpan={12} delay={0} className="!bg-transparent !border-0 !shadow-none !p-0">
+          <div className="col-span-full">
             <DiseaseDetailView
               disease={dataLoading ? null : disease}
               loading={dataLoading}
@@ -216,7 +210,7 @@ export default function DiseaseDetailPage() {
               onEdit={handleEdit}
               onDelete={() => setDeleteOpen(true)}
             />
-          </BentoCard>
+          </div>
         </BentoGrid>
       )}
 

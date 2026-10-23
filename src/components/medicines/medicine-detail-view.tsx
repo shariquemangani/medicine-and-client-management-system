@@ -1,9 +1,9 @@
 'use client'
 
 import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
+import { PageHero, heroButtonClass } from '@/components/shared/page-hero'
 import { ROUTES } from '@/lib/routes'
 
-import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -14,7 +14,7 @@ import type { MedicineFlagFieldOptions } from '@/data/medicine-flag-fields'
 import { getMedicineSymptoms } from '@/lib/medicines/medicine-form'
 import {
   Activity,
-  ArrowLeft,
+  BookOpen,
   FlaskConical,
   Pencil,
   ShieldAlert,
@@ -47,8 +47,9 @@ function DetailSection({
         title={title}
         description={subtitle}
         icon={<Icon className="h-4 w-4" />}
+        accent="medicines"
       />
-      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+      <div className="space-y-4 p-4 sm:p-5">{children}</div>
     </KitSectionCard>
   )
 }
@@ -97,45 +98,39 @@ interface MedicineDetailHeaderProps {
 
 export function MedicineDetailHeader({ name, commonName, loading, onEdit, actions }: MedicineDetailHeaderProps) {
   return (
-    <div className="medicine-detail-hero">
-      <div className="medicine-detail-hero-orbit" aria-hidden />
-      <div className="medicine-detail-hero-grid" aria-hidden />
-      <div className="relative z-10 flex flex-col gap-5 p-5 sm:p-7">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button asChild variant="ghost" size="sm" className="-ml-2 text-muted-foreground">
-            <Link href={ROUTES.vaultMedicine}>
-              <ArrowLeft className="h-4 w-4" />
-              {t('medicines.detail.back')}
-            </Link>
+    <PageHero
+      icon={BookOpen}
+      badge={t('medicines.vaultBadge')}
+      title={
+        loading ? (
+          <>
+            <span className="sr-only">{t('medicines.detail.title')}</span>
+            <Skel className="h-6 w-48" />
+          </>
+        ) : (
+          name
+        )
+      }
+      subtitle={
+        loading ? (
+          <Skel className="h-4 w-32" />
+        ) : commonName?.trim() ? (
+          <span className="italic">{commonName}</span>
+        ) : (
+          <span className="italic text-muted-foreground/60">{t('medicines.detail.emptyField')}</span>
+        )
+      }
+      back={{ href: ROUTES.vaultMedicine, label: 'Back to medicines' }}
+      actions={
+        actions ??
+        (onEdit ? (
+          <Button size="sm" variant="outline" onClick={onEdit} className={heroButtonClass}>
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            {t('common.edit')}
           </Button>
-          {actions ?? (
-            onEdit ? (
-              <Button size="sm" variant="outline" onClick={onEdit} className="gap-1.5">
-                <Pencil className="h-3.5 w-3.5" />
-                {t('common.edit')}
-              </Button>
-            ) : null
-          )}
-        </div>
-
-        <div className="min-w-0 space-y-1">
-          {loading ? (
-            <div aria-busy="true" className="space-y-2">
-              <h1 className="sr-only">{t('medicines.detail.title')}</h1>
-              <Skel className="h-9 w-64 sm:h-10" />
-              <Skel className="h-5 w-40" />
-            </div>
-          ) : (
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{name}</h1>
-          )}
-          {loading ? null : commonName?.trim() ? (
-            <p className="text-base italic text-muted-foreground">{commonName}</p>
-          ) : (
-            <p className="text-sm italic text-muted-foreground/60">{t('medicines.detail.emptyField')}</p>
-          )}
-        </div>
-      </div>
-    </div>
+        ) : null)
+      }
+    />
   )
 }
 

@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, BookOpen, Package, UserPlus, Wallet } from 'lucide-react'
+import { ArrowRight, Zap, BookOpen, Package, UserPlus, Wallet } from 'lucide-react'
+import { CardHeader } from '@/components/shared/card-header'
 import { t } from '@/lib/labels'
 import { ROUTES } from '@/lib/routes'
 
@@ -35,10 +36,7 @@ const links = [
 export function DashboardQuickActions() {
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Quick Actions'}</h3>
-        <p className="text-xs text-muted-foreground">{'Jump to common tasks'}</p>
-      </div>
+      <CardHeader title="Quick Actions" description="Jump to common tasks" icon={Zap} accent="patients" ornament={false} />
       <div className="grid flex-1 grid-cols-2 gap-2">
         {links.map((link) => (
           <Link

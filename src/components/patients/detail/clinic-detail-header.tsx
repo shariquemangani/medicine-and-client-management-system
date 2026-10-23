@@ -1,11 +1,11 @@
 'use client'
 
-import { ChevronLeft, Pencil, X, Check, CalendarPlus } from 'lucide-react'
+import { Pencil, X, Check, CalendarPlus, User } from 'lucide-react'
 import type { Patient } from '@/types'
-import { BentoCard } from '@/components/shared'
-import { StatusBadge } from '@/components/shared'
+import { PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared/page-hero'
+import { ROUTES } from '@/lib/routes'
 import { Button } from '@/components/ui/button'
-import { getPatientDisplayName, getPatientDisplayInitials } from '@/lib/patient-display'
+import { getPatientDisplayName } from '@/lib/patient-display'
 import { format } from 'date-fns'
 import { Sk } from '@/components/patients/skeleton-bits'
 
@@ -15,7 +15,6 @@ interface PatientDetailHeaderProps {
   isEditing: boolean
   isNewVisit?: boolean
   saving?: boolean
-  onBack: () => void
   onEdit: () => void
   onNewVisit: () => void
   onSave: () => void
@@ -34,7 +33,6 @@ export function PatientDetailHeader({
   isEditing,
   isNewVisit,
   saving,
-  onBack,
   onEdit,
   onNewVisit,
   onSave,
@@ -42,107 +40,59 @@ export function PatientDetailHeader({
 }: PatientDetailHeaderProps) {
   const loading = !patient
   const displayName = patient ? getPatientDisplayName(patient) : ''
-  const initials = patient ? getPatientDisplayInitials(patient) : ''
   const visitCount = (patient?.visitHistory?.length ?? 0) + 1
 
-  return (
-    <BentoCard colSpan={12} delay={0} className="!p-0">
-      <div className="clinic-create-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
-        <div className="clinic-hero-mesh pointer-events-none" aria-hidden />
-        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="clinic-hero-btn shrink-0"
-              onClick={onBack}
-              aria-label="Back"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            {patient ? (
-              <div className="clinic-avatar flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold">
-                {initials}
-              </div>
-            ) : (
-              <Sk className="h-14 w-14 shrink-0 rounded-2xl" />
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                {patient ? <StatusBadge status={patient.status} /> : <Sk className="h-5 w-16 rounded-full" />}
-                <span className="clinic-accent-pill clinic-accent-pill-patients">Patient profile</span>
-                {isEditing && isNewVisit ? (
-                  <span className="clinic-accent-pill clinic-accent-pill-patients">New visit</span>
-                ) : null}
-              </div>
-              {patient ? (
-                <>
-                  <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                    {displayName}
-                  </h1>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    ID {patient.rollNumber} · {patient.className} · Last visit{' '}
-                    {formatVisitDate(patient.admissionDate)} · {visitCount} visit
-                    {visitCount === 1 ? '' : 's'}
-                  </p>
-                </>
-              ) : (
-                <div aria-busy="true">
-                  <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Patient profile</h1>
-                  <Sk className="mt-2 h-4 w-72 max-w-full" />
-                </div>
-              )}
-            </div>
-          </div>
+  const buttonProps = { type: 'button' as const, variant: 'outline' as const, className: heroButtonClass }
 
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            {isEditing ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="clinic-hero-btn"
-                  onClick={onCancel}
-                  disabled={saving}
-                >
-                  <X className="mr-1.5 h-4 w-4" />
-                  Cancel
-                </Button>
-                <Button type="button" className="clinic-hero-primary" onClick={onSave} disabled={saving}>
-                  {saving ? (
-                    <>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="mr-1.5 h-4 w-4" />
-                      {isNewVisit ? 'Save visit' : 'Save'}
-                    </>
-                  )}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="clinic-hero-btn"
-                  onClick={onNewVisit}
-                  disabled={loading}
-                >
-                  <CalendarPlus className="mr-1.5 h-4 w-4" />
-                  New visit
-                </Button>
-                <Button type="button" variant="outline" className="clinic-hero-btn" onClick={onEdit} disabled={loading}>
-                  <Pencil className="mr-1.5 h-4 w-4" />
-                  Edit
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </BentoCard>
+  const actions = isEditing ? (
+    <>
+      <Button {...buttonProps} onClick={onCancel} disabled={saving}>
+        <X className="mr-1.5 h-3.5 w-3.5" />
+        Cancel
+      </Button>
+      <Button type="button" className={heroPrimaryClass} onClick={onSave} disabled={saving}>
+        {saving ? (
+          'Saving...'
+        ) : (
+          <>
+            <Check className="mr-1.5 h-3.5 w-3.5" />
+            {isNewVisit ? 'Save visit' : 'Save'}
+          </>
+        )}
+      </Button>
+    </>
+  ) : (
+    <>
+      <Button {...buttonProps} onClick={onNewVisit} disabled={loading}>
+        <CalendarPlus className="mr-1.5 h-3.5 w-3.5" />
+        New visit
+      </Button>
+      <Button {...buttonProps} onClick={onEdit} disabled={loading}>
+        <Pencil className="mr-1.5 h-3.5 w-3.5" />
+        Edit
+      </Button>
+    </>
+  )
+
+  const subtitle = patient ? (
+    <>
+      ID {patient.rollNumber} · {patient.className} · Last visit {formatVisitDate(patient.admissionDate)} ·{' '}
+      {visitCount} visit{visitCount === 1 ? '' : 's'}
+    </>
+  ) : (
+    <Sk className="h-4 w-64 max-w-full" />
+  )
+
+  return (
+    <div className="col-span-full" aria-busy={loading || undefined}>
+      <PageHero
+        icon={User}
+        badge={isEditing && isNewVisit ? 'New visit' : 'Patient profile'}
+        title={patient ? displayName : 'Patient profile'}
+        subtitle={subtitle}
+        back={{ href: ROUTES.patients, label: 'Back to patients' }}
+        actions={actions}
+      />
+    </div>
   )
 }

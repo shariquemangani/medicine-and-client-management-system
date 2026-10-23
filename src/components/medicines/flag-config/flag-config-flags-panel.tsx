@@ -2,7 +2,7 @@
 
 import { SectionCard, SectionCardHeader } from '@/components/shared/section-card'
 import { DataTable, THead, Th, Tr, Td } from '@/components/shared/data-table'
-import { ArrowLeft, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, Search, Tag, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -66,6 +66,8 @@ export function FlagConfigFlagsPanel({
         <SectionCardHeader
           title={category?.name ?? ''}
           description={`${total} items available`}
+          icon={<Tag className="h-4 w-4" />}
+          accent="medicines"
           actions={
             showBack && onBack ? (
               <Button

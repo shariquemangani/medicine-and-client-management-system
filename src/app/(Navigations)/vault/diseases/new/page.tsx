@@ -5,8 +5,8 @@ import { ROUTES } from '@/lib/routes'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Activity, ArrowLeft, Sparkles } from 'lucide-react'
-import { BentoCard, BentoGrid } from '@/components/shared'
+import { Activity, Sparkles } from 'lucide-react'
+import { BentoCard, BentoGrid, CardHeader, PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -68,41 +68,17 @@ export default function NewDiseasePage() {
   return (
     <div className="disease-vault-page dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
-          <div className="disease-create-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
-            <div className="disease-create-hero-mesh pointer-events-none" aria-hidden />
-            <div className="disease-create-hero-scan" aria-hidden />
-            <div className="relative z-10 flex items-center justify-between gap-4">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="diseases-hero-btn shrink-0"
-                  asChild
-                >
-                  <Link href={ROUTES.vaultDiseases} aria-label={t('diseases.detail.back')}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <div className="min-w-0">
-                  <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                    {t('diseases.addDisease')}
-                  </h1>
-                  <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                    {t('diseases.createSubtitle')}
-                  </p>
-                </div>
-              </div>
-              <div className="hidden shrink-0 items-center gap-1.5 self-center rounded-full border border-[hsl(var(--metric-exams)/0.3)] bg-[hsl(var(--metric-exams)/0.12)] px-2.5 py-1 text-[12px] font-medium text-[hsl(var(--metric-exams))] sm:inline-flex">
-                <Activity className="h-3 w-3" />
-                {t('diseases.createBadge')}
-              </div>
-            </div>
-          </div>
-        </BentoCard>
+        <div className="col-span-full">
+          <PageHero
+            icon={Activity}
+            badge={t('diseases.createBadge')}
+            title={t('diseases.addDisease')}
+            subtitle={t('diseases.createSubtitle')}
+            back={{ href: ROUTES.vaultDiseases, label: 'Back to diseases' }}
+          />
+        </div>
 
-        <BentoCard colSpan={12} delay={80} className="!bg-transparent !border-0 !shadow-none !p-0">
+        <div className="col-span-full">
           <DiseaseVaultForm
             values={values}
             onChange={setValues}
@@ -113,47 +89,33 @@ export default function NewDiseasePage() {
             symptomsCategoryId={symptomsCategoryId}
             onSymptomOptionsRefresh={() => void reloadSymptomOptions()}
           />
-        </BentoCard>
+        </div>
 
         <BentoCard colSpan={12} accent="prescriptions" delay={220}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {t('diseases.form.readyToSave')}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('diseases.form.readyToSaveHint')}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button
-                type="button"
-                className="diseases-hero-primary sm:min-w-[10rem]"
-                disabled={saving}
-                onClick={handleSaveClick}
-              >
-                {saving ? (
-                  <>
-                    {t('common.saving')}
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-1.5 h-4 w-4" />
-                    {t('diseases.saveDisease')}
-                  </>
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="diseases-hero-btn sm:min-w-[10rem]"
-                disabled={saving}
-                asChild
-              >
-                <Link href={ROUTES.vaultDiseases}>{t('common.cancel')}</Link>
-              </Button>
-            </div>
-          </div>
+          <CardHeader
+            className="mb-0"
+            ornament={false}
+            icon={Sparkles}
+            accent="prescriptions"
+            title={t('diseases.form.readyToSave')}
+            description={t('diseases.form.readyToSaveHint')}
+            actions={
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={heroButtonClass}
+                  disabled={saving}
+                  asChild
+                >
+                  <Link href={ROUTES.vaultDiseases}>{t('common.cancel')}</Link>
+                </Button>
+                <Button type="button" className={heroPrimaryClass} disabled={saving} onClick={handleSaveClick}>
+                  {saving ? t('common.saving') : t('diseases.saveDisease')}
+                </Button>
+              </>
+            }
+          />
         </BentoCard>
       </BentoGrid>
 

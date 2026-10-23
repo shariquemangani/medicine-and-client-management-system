@@ -1,6 +1,6 @@
 'use client'
 
-import { Search } from 'lucide-react'
+import { Search, Wallet } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -83,7 +83,7 @@ export function BillingBalancesPanel({
       </FilterToolbar>
 
       <SectionCard>
-        <SectionCardHeader title="Balances" description="Patient fee balances" />
+        <SectionCardHeader title="Balances" description="Patient fee balances" icon={<Wallet className="h-4 w-4" />} accent="fees" />
         <DataTable>
           <THead>
             <tr>
