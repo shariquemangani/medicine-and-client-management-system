@@ -1,4 +1,5 @@
 'use client'
+import { Building2, CalendarDays } from 'lucide-react'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -61,7 +62,7 @@ export function SettingsTabs({
       {activeTab === 'profile' && (
         <TabsContent value="profile" className="settings-tabs-panel mt-4">
           <SectionCard className="max-w-xl">
-          <SectionCardHeader title="Clinic profile" description="Name and contact details shown on bills and reports." />
+          <SectionCardHeader title="Clinic profile" description="Name and contact details shown on bills and reports." icon={<Building2 className="h-4 w-4" />} accent="staff" />
           <div className="grid gap-4 p-5 sm:p-6">
             <div>
               <Label htmlFor="clinic-name">{'Clinic Name'}</Label>
@@ -129,7 +130,7 @@ export function SettingsTabs({
       {activeTab === 'academic' && (
         <TabsContent value="academic" className="settings-tabs-panel mt-4">
           <SectionCard className="max-w-xl">
-          <SectionCardHeader title="Operations" description="Operating year and current term for the clinic." />
+          <SectionCardHeader title="Operations" description="Operating year and current term for the clinic." icon={<CalendarDays className="h-4 w-4" />} accent="staff" />
           <div className="grid gap-4 p-5 sm:p-6">
             <div>
               <Label htmlFor="academic-year">{'Operations Year'}</Label>

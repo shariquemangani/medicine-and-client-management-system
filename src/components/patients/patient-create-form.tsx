@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/routes'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, GraduationCap, UserPlus } from 'lucide-react'
+import { GraduationCap, UserPlus } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
+import { PageHero } from '@/components/shared/page-hero'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import {
@@ -70,38 +71,15 @@ export function PatientCreateForm() {
   return (
     <div className="dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
-          <div className="clinic-create-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
-            <div className="clinic-hero-mesh pointer-events-none" aria-hidden />
-            <div className="relative z-10 flex items-center justify-between gap-4">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="clinic-hero-btn shrink-0"
-                  asChild
-                >
-                  <Link href={ROUTES.patients} aria-label={'Back to patients'}>
-                    <ChevronLeft className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <div className="min-w-0">
-                  <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                    {'Create Patient'}
-                  </h2>
-                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                    {'Fill in the enrollment form with patient, school, and parent details from the registry.'}
-                  </p>
-                </div>
-              </div>
-              <div className="clinic-hero-badge flex shrink-0 items-center gap-1.5 self-center rounded-full px-2.5 py-1 text-[12px] font-medium">
-                <GraduationCap className="h-3 w-3" />
-                {'New enrollment'}
-              </div>
-            </div>
-          </div>
-        </BentoCard>
+        <div className="col-span-full">
+          <PageHero
+            icon={GraduationCap}
+            badge="New enrollment"
+            title="Create Patient"
+            subtitle="Fill in the enrollment form with patient, school, and parent details from the registry."
+            back={{ href: ROUTES.patients, label: 'Back to patients' }}
+          />
+        </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="contents">

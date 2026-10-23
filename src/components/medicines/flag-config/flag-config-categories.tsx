@@ -30,6 +30,7 @@ export function FlagConfigCategories({
         title={'Categories'}
         description={'Select a category to manage.'}
         icon={<Settings2 className="h-4 w-4" />}
+        accent="medicines"
       />
 
       <ScrollArea className="min-h-0 flex-1">

@@ -4,9 +4,8 @@ import { ROUTES } from '@/lib/routes'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Sparkles } from 'lucide-react'
-import { BentoCard, BentoGrid } from '@/components/shared'
+import { BookOpen, Sparkles } from 'lucide-react'
+import { BentoGrid, PageHero, heroButtonClass, heroPrimaryClass } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
   MedicineDetailHeader,
@@ -121,20 +120,13 @@ export default function MedicineDetailPage() {
   if (!dataLoading && (notFound || !medicine)) {
     return (
       <div className="medicine-vault-page dashboard-shell space-y-4">
-        <BentoCard colSpan={12} delay={0}>
-          <div className="flex flex-col items-start gap-4 p-2 sm:p-4">
-            <h1 className="text-xl font-semibold text-foreground">
-              {t('medicines.detail.notFound')}
-            </h1>
-            <p className="text-sm text-muted-foreground">{t('medicines.detail.notFoundHint')}</p>
-            <Button asChild variant="outline" size="sm">
-              <Link href={ROUTES.vaultMedicine}>
-                <ArrowLeft className="mr-1.5 h-4 w-4" />
-                {t('medicines.detail.back')}
-              </Link>
-            </Button>
-          </div>
-        </BentoCard>
+        <PageHero
+          icon={BookOpen}
+          badge={t('medicines.vaultBadge')}
+          title={t('medicines.detail.notFound')}
+          subtitle={t('medicines.detail.notFoundHint')}
+          back={{ href: ROUTES.vaultMedicine, label: 'Back to medicines' }}
+        />
       </div>
     )
   }
@@ -148,7 +140,7 @@ export default function MedicineDetailPage() {
     <div className="medicine-vault-page dashboard-shell space-y-4">
       {isEditing && formValues ? (
         <BentoGrid>
-          <BentoCard colSpan={12} delay={0} className="!p-0">
+          <div className="col-span-full">
             <MedicineDetailHeader
               name={headerName}
               commonName={headerCommonName}
@@ -158,7 +150,7 @@ export default function MedicineDetailPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="classes-hero-btn"
+                    className={heroButtonClass}
                     disabled={saving}
                     onClick={handleCancelEdit}
                   >
@@ -167,7 +159,7 @@ export default function MedicineDetailPage() {
                   <Button
                     type="button"
                     size="sm"
-                    className="classes-hero-primary gap-1.5"
+                    className={`${heroPrimaryClass} gap-1.5`}
                     disabled={saving}
                     onClick={handleSave}
                   >
@@ -179,8 +171,8 @@ export default function MedicineDetailPage() {
                 </div>
               }
             />
-          </BentoCard>
-          <BentoCard colSpan={12} delay={80} className="!bg-transparent !border-0 !shadow-none !p-0">
+          </div>
+          <div className="col-span-full">
             <MedicineVaultForm
               values={formValues}
               onChange={setFormValues}
@@ -191,11 +183,11 @@ export default function MedicineDetailPage() {
               symptomsCategoryId={symptomsCategoryId}
               onFlagOptionsRefresh={() => void reloadFlagOptions()}
             />
-          </BentoCard>
+          </div>
         </BentoGrid>
       ) : (
         <BentoGrid>
-          <BentoCard colSpan={12} delay={0} className="!bg-transparent !border-0 !shadow-none !p-0">
+          <div className="col-span-full">
             <MedicineDetailView
               medicine={dataLoading ? null : medicine}
               loading={dataLoading}
@@ -203,7 +195,7 @@ export default function MedicineDetailPage() {
               flagOptions={flagOptions}
               onEdit={handleEdit}
             />
-          </BentoCard>
+          </div>
         </BentoGrid>
       )}
     </div>

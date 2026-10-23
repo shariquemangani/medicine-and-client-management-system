@@ -498,6 +498,13 @@
   }
 
 
+  .metric-stat-compact {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
   .metric-stat-icon {
     background: hsl(var(--stat-accent) / 0.12);
     color: hsl(var(--stat-accent));
@@ -3471,15 +3478,35 @@
     --section-accent: var(--metric-exams);
   }
 
+  .clinic-form-section-header[data-accent='staff'] {
+    --section-accent: var(--metric-staff);
+  }
+
+  .clinic-form-section-header[data-accent='medicines'] {
+    --section-accent: var(--metric-medicines);
+  }
+
+  .clinic-form-section-header[data-accent='fees'] {
+    --section-accent: var(--metric-fees);
+  }
+
+  .clinic-form-section-header[data-accent='inventory'] {
+    --section-accent: var(--metric-inventory);
+  }
+
+  .clinic-form-section-header[data-accent='prescriptions'] {
+    --section-accent: var(--metric-prescriptions);
+  }
+
   .clinic-form-section-header-icon {
     position: relative;
     display: flex;
-    height: 2.625rem;
-    width: 2.625rem;
-    shrink: 0;
+    height: 2.25rem;
+    width: 2.25rem;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     border: 1px solid hsl(var(--section-accent) / 0.35);
     background:
       radial-gradient(circle at 30% 25%, hsl(var(--section-accent) / 0.22), transparent 55%),

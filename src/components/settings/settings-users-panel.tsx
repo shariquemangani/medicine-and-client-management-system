@@ -1,6 +1,6 @@
 'use client'
 
-import { Users } from 'lucide-react'
+import { UserPlus, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -57,7 +57,7 @@ export function SettingsUsersPanel({
       />
 
       <SectionCard>
-        <SectionCardHeader title="Team members" description="People who can sign in to this clinic." />
+        <SectionCardHeader title="Team members" description="People who can sign in to this clinic." icon={<Users className="h-4 w-4" />} accent="staff" />
         <DataTable>
           <THead>
             <tr>
@@ -113,7 +113,7 @@ export function SettingsUsersPanel({
       </SectionCard>
 
       <SectionCard className="max-w-xl">
-        <SectionCardHeader title="Add Team Member" description="Create a login for staff or another administrator." />
+        <SectionCardHeader title="Add Team Member" description="Create a login for staff or another administrator." icon={<UserPlus className="h-4 w-4" />} accent="staff" />
         <div className="grid gap-3 p-5 sm:p-6">
           <Input
             placeholder={'Name'}

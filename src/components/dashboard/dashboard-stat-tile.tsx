@@ -20,32 +20,30 @@ export function DashboardStatTile({ title, value, icon: Icon, accent, badge, cur
   const tag = badge ?? meta.label
   return (
     <div
-      className="metric-stat flex h-full flex-col gap-2.5"
+      className="metric-stat metric-stat-compact"
       style={{ '--stat-accent': `var(${meta.cssVar})` } as React.CSSProperties}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="metric-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-          <Icon className="h-5 w-5" />
-        </div>
-        {tag !== '' && (
-          <span className="metric-stat-badge rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-            {tag}
-          </span>
-        )}
+      <div className="metric-stat-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+        <Icon className="h-[18px] w-[18px]" />
       </div>
-      <div className="mt-auto">
-        <p className="text-xs font-medium text-muted-foreground">{title}</p>
-        <div className="mt-1" aria-busy={value === null || undefined}>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium text-muted-foreground">{title}</p>
+        <div aria-busy={value === null || undefined}>
           {value === null ? (
-            <Sk className="h-8 w-16 sm:h-9" />
+            <Sk className="h-6 w-14" />
           ) : (
-            <p className="metric-stat-value text-2xl font-bold tabular-nums tracking-tight sm:text-3xl">
+            <p className="metric-stat-value text-xl font-bold leading-tight tabular-nums tracking-tight">
               {currency ? CLINIC_CURRENCY_SYMBOL : ''}
               {value.toLocaleString('en-IN')}
             </p>
           )}
         </div>
       </div>
+      {tag !== '' && (
+        <span className="metric-stat-badge hidden self-start rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider 2xl:inline-flex">
+          {tag}
+        </span>
+      )}
     </div>
   )
 }

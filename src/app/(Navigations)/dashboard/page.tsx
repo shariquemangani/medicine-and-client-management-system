@@ -9,7 +9,7 @@ import {
   FileText,
   ClipboardCheck,
 } from 'lucide-react'
-import { BentoGrid, BentoCard } from '@/components/shared'
+import { BentoGrid, BentoCard, CardHeader } from '@/components/shared'
 import { useAppSelector } from '@/redux'
 import {
   DashboardHero,
@@ -130,22 +130,14 @@ export default function DashboardPage() {
         </BentoCard>
         <BentoCard colSpan={4} accent="prescriptions" delay={420}>
           <div className="flex h-full flex-col justify-between" aria-busy={!dataReady || undefined}>
-            <div className="flex items-start gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{
-                  background: 'hsl(var(--metric-prescriptions) / 0.12)',
-                  color: 'hsl(var(--metric-prescriptions))',
-                }}
-              >
-                <FileText className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Clinic Snapshot'}</h3>
-                <p className="text-xs text-muted-foreground">{'Key counts at a glance'}</p>
-              </div>
-            </div>
-            <dl className="mt-4 space-y-2">
+            <CardHeader
+              title="Clinic Snapshot"
+              description="Key counts at a glance"
+              icon={FileText}
+              accent="prescriptions"
+              ornament={false}
+            />
+            <dl className="space-y-2">
               {[
                 ['Active patients', stats?.totalPatients ?? null],
                 ['Medicines in vault', stats?.totalClasses ?? null],
@@ -170,18 +162,9 @@ export default function DashboardPage() {
           <DashboardQuickActions />
         </BentoCard>
         <BentoCard colSpan={5} accent="inventory" delay={600}>
-          <div className="flex h-full items-center gap-4" aria-busy={!dataReady || undefined}>
-            <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              style={{
-                background: 'hsl(var(--metric-inventory) / 0.12)',
-                color: 'hsl(var(--metric-inventory))',
-              }}
-            >
-              <ClipboardCheck className="h-6 w-6" />
-            </div>
+          <div className="flex h-full flex-col justify-between" aria-busy={!dataReady || undefined}>
+            <CardHeader title="Clinic Status" description="Overall readiness" icon={ClipboardCheck} accent="inventory" ornament={false} />
             <div>
-              <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Clinic Status'}</h3>
               {stats ? (
                 <>
                   <p className="text-lg font-semibold text-foreground">

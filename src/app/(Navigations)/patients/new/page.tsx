@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { BentoCard, BentoGrid } from '@/components/shared'
+import { PageHero } from '@/components/shared/page-hero'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import {
@@ -79,38 +80,15 @@ export default function NewPatientPage() {
   return (
     <div className="dashboard-shell space-y-4">
       <BentoGrid>
-        <BentoCard colSpan={12} delay={0} className="!p-0">
-          <div className="clinic-create-hero relative -m-4 overflow-hidden rounded-[calc(1rem-1px)] p-4 sm:-m-5 sm:p-5">
-            <div className="clinic-hero-mesh pointer-events-none" aria-hidden />
-            <div className="relative z-10 flex items-center justify-between gap-4">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="clinic-hero-btn shrink-0"
-                  asChild
-                >
-                  <Link href={ROUTES.patients} aria-label="Back to patients">
-                    <ChevronLeft className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <div className="min-w-0">
-                  <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                    New Patient Visit
-                  </h1>
-                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                    Record consultation details, prescribed medicines, diet plan, notes, and visit fees.
-                  </p>
-                </div>
-              </div>
-              <div className="clinic-hero-badge flex shrink-0 items-center gap-1.5 self-center rounded-full px-2.5 py-1 text-[12px] font-medium">
-                <UserPlus className="h-3 w-3" />
-                Patient registration
-              </div>
-            </div>
-          </div>
-        </BentoCard>
+        <div className="col-span-full">
+          <PageHero
+            icon={UserPlus}
+            badge="Patient registration"
+            title="New Patient Visit"
+            subtitle="Record consultation details, prescribed medicines, diet plan, notes, and visit fees."
+            back={{ href: ROUTES.patients, label: 'Back to patients' }}
+          />
+        </div>
 
         <Form {...form}>
           <form onSubmit={(e) => e.preventDefault()} className="contents">

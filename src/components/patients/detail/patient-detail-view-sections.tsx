@@ -220,9 +220,9 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
         )}
       </BentoCard>
 
-      <BentoCard colSpan={12} accent="prescriptions" delay={300}>
+      <BentoCard colSpan={12} accent="staff" delay={300}>
         <PatientFormSectionHeader
-          accent="prescriptions"
+          accent="staff"
           title="Additional notes"
           subtitle="Remarks for this visit"
           icon={ClipboardList}

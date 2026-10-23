@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import type { MetricAccentKey } from '@/utils/theme'
 
 /**
  * Standard surface for every block on a page (summary strips, toolbars, tables, forms).
@@ -21,22 +22,28 @@ export function SectionCard({ className, ...props }: React.HTMLAttributes<HTMLDi
 interface SectionCardHeaderProps {
   title: string
   description?: string
-  icon?: React.ReactNode
+  icon?: React.ReactElement
+  /** Colour of the icon tile (defaults to the blue "patients" accent). */
+  accent?: MetricAccentKey
   actions?: React.ReactNode
   className?: string
 }
 
-/** Card header: icon + small bold title + muted description, optional actions, bottom border. */
-export function SectionCardHeader({ title, description, icon, actions, className }: SectionCardHeaderProps) {
+/** Card header for table/panel cards: the shared accent icon tile + title + description, with a bottom border. */
+export function SectionCardHeader({ title, description, icon, accent = 'patients', actions, className }: SectionCardHeaderProps) {
   return (
     <header
-      className={cn('flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6', className)}
+      className={cn('flex items-center justify-between gap-4 border-b border-border px-5 py-3', className)}
     >
-      <div className="flex min-w-0 items-start gap-3">
-        {icon ? <span className="mt-0.5 shrink-0 text-muted-foreground">{icon}</span> : null}
-        <div className="min-w-0 space-y-0.5">
-          <h2 className="text-sm font-semibold tracking-tight text-foreground">{title}</h2>
-          {description ? <p className="text-sm leading-5 text-muted-foreground">{description}</p> : null}
+      <div className="clinic-form-section-header flex min-w-0 items-center gap-3" data-accent={accent}>
+        {icon ? (
+          <span className="clinic-form-section-header-icon" aria-hidden>
+            {icon}
+          </span>
+        ) : null}
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold leading-tight tracking-tight text-foreground">{title}</h2>
+          {description ? <p className="mt-0.5 text-xs leading-4 text-muted-foreground">{description}</p> : null}
         </div>
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}

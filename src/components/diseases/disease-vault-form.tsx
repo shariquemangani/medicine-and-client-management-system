@@ -1,6 +1,8 @@
 'use client'
 
-import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
+import { SectionCard as KitSectionCard } from '@/components/shared/section-card'
+import { CardHeader } from '@/components/shared/card-header'
+import type { LucideIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -68,18 +70,16 @@ function SectionCard({
 }: {
   title: string
   subtitle: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: LucideIcon
   children: React.ReactNode
   delay?: number
 }) {
   return (
     <KitSectionCard>
-      <SectionCardHeader
-        title={title}
-        description={subtitle}
-        icon={<Icon className="h-4 w-4" />}
-      />
-      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+      <div className="space-y-4 p-4 sm:p-5">
+        <CardHeader title={title} description={subtitle} icon={Icon} accent="prescriptions" className="mb-0" />
+        {children}
+      </div>
     </KitSectionCard>
   )
 }

@@ -212,7 +212,6 @@ export default function PatientDetailPage() {
           isEditing={isEditing}
           isNewVisit={isNewVisit}
           saving={saving}
-          onBack={() => router.push(ROUTES.patients)}
           onEdit={handleEdit}
           onNewVisit={handleNewVisit}
           onSave={handleSaveClick}

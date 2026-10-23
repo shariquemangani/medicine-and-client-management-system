@@ -1,10 +1,10 @@
 'use client'
 
 import { SectionCard as KitSectionCard, SectionCardHeader } from '@/components/shared/section-card'
+import { PageHero, heroButtonClass } from '@/components/shared/page-hero'
 import { ROUTES } from '@/lib/routes'
 
-import Link from 'next/link'
-import { Activity, ArrowLeft, FileText, HeartPulse, Pencil } from 'lucide-react'
+import { Activity, FileText, HeartPulse, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DiseaseSymptomBadges } from '@/components/diseases/disease-symptom-badges'
 import type { MedicineFlagOption } from '@/data/medicine-flag-fields'
@@ -31,8 +31,9 @@ function DetailSection({
         title={title}
         description={subtitle}
         icon={<Icon className="h-4 w-4" />}
+        accent="prescriptions"
       />
-      <div className="space-y-4 p-5 sm:p-6">{children}</div>
+      <div className="space-y-4 p-4 sm:p-5">{children}</div>
     </KitSectionCard>
   )
 }
@@ -93,43 +94,24 @@ export function DiseaseDetailView({
   const symptomsPending = dataLoading || !!optionsLoading
   return (
     <div className="space-y-4">
-      <div className="disease-create-hero relative overflow-hidden rounded-2xl border p-4 sm:p-5">
-        <div className="disease-create-hero-mesh pointer-events-none" aria-hidden />
-        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="diseases-hero-btn shrink-0"
-              asChild
-            >
-              <Link href={ROUTES.vaultDiseases} aria-label={t('diseases.detail.back')}>
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-            </Button>
-            <div className="diseases-avatar flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
-              <Activity className="h-5 w-5" />
-            </div>
-            <div className="min-w-0 space-y-1">
-              <div className="diseases-hero-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium">
-                {t('diseases.vaultBadge')}
-              </div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                {dataLoading ? (
-                  <>
-                    <span className="sr-only">{t('diseases.detail.title')}</span>
-                    <Skel className="h-7 w-56" />
-                  </>
-                ) : (
-                  disease.name
-                )}
-              </h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+      <PageHero
+        icon={Activity}
+        badge={t('diseases.vaultBadge')}
+        title={
+          dataLoading ? (
+            <>
+              <span className="sr-only">{t('diseases.detail.title')}</span>
+              <Skel className="h-6 w-48" />
+            </>
+          ) : (
+            disease.name
+          )
+        }
+        back={{ href: ROUTES.vaultDiseases, label: 'Back to diseases' }}
+        actions={
+          <>
             {onEdit && !dataLoading ? (
-              <Button type="button" variant="outline" size="sm" className="diseases-hero-btn" onClick={onEdit}>
+              <Button type="button" variant="outline" size="sm" className={heroButtonClass} onClick={onEdit}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" />
                 {t('common.edit')}
               </Button>
@@ -139,15 +121,15 @@ export function DiseaseDetailView({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="clinic-table-action-delete"
+                className="clinic-table-action-delete h-8 rounded-xl px-3 text-xs"
                 onClick={onDelete}
               >
                 {t('common.delete')}
               </Button>
             ) : null}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <DetailSection
         title={t('diseases.form.symptomsTitle')}
@@ -196,34 +178,13 @@ export function DiseaseDetailEditHeader({
   actions: React.ReactNode
 }) {
   return (
-    <div className="disease-create-hero relative overflow-hidden rounded-2xl border p-4 sm:p-5">
-      <div className="disease-create-hero-mesh pointer-events-none" aria-hidden />
-      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="diseases-hero-btn shrink-0"
-            asChild
-          >
-            <Link href={ROUTES.vaultDiseases} aria-label={t('diseases.detail.back')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <div className="diseases-hero-badge mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium">
-              <FileText className="h-3 w-3" />
-              {t('diseases.form.editBadge')}
-            </div>
-            <h1 className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-              {name}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('diseases.form.editSubtitle')}</p>
-          </div>
-        </div>
-        {actions}
-      </div>
-    </div>
+    <PageHero
+      icon={FileText}
+      badge={t('diseases.form.editBadge')}
+      title={name}
+      subtitle={t('diseases.form.editSubtitle')}
+      back={{ href: ROUTES.vaultDiseases, label: 'Back to diseases' }}
+      actions={actions}
+    />
   )
 }

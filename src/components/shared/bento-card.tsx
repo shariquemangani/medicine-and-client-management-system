@@ -87,7 +87,7 @@ export function BentoCard({
       }
     >
       {accentVar && <div className="bento-card-accent-orb" aria-hidden />}
-      <div className="bento-card-premium-inner relative z-10 h-full p-4 sm:p-5">
+      <div className="bento-card-premium-inner relative z-10 h-full p-4">
         {children}
       </div>
     </div>

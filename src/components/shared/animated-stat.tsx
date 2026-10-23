@@ -33,7 +33,6 @@ export function AnimatedStat({
   suffix = '',
   currency = false,
   trend,
-  compact = false,
 }: AnimatedStatProps) {
   const display = value
   const accentMeta = metricAccents[accent]
@@ -42,25 +41,17 @@ export function AnimatedStat({
 
   return (
     <div
-      className={cn('metric-stat flex h-full flex-col', compact ? 'gap-2.5' : 'gap-3')}
+      className="metric-stat metric-stat-compact"
       style={{ '--stat-accent': `var(${accentMeta.cssVar})` } as React.CSSProperties}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="metric-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-          <Icon className="h-5 w-5" />
-        </div>
-        {(badge ?? accentMeta.label) !== '' && (
-          <span className="metric-stat-badge rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-            {badge ?? accentMeta.label}
-          </span>
-        )}
+      <div className="metric-stat-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+        <Icon className="h-[18px] w-[18px]" />
       </div>
-
-      <div className="mt-auto">
-        <p className="text-xs font-medium text-muted-foreground">{title}</p>
-        {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground/70">{subtitle}</p>}
-        <div className="mt-1 flex items-end justify-between gap-2">
-          <p className="metric-stat-value text-2xl font-bold tabular-nums tracking-tight sm:text-3xl">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium text-muted-foreground">{title}</p>
+        {subtitle && <p className="truncate text-[11px] text-muted-foreground/70">{subtitle}</p>}
+        <div className="flex items-end gap-2">
+          <p className="metric-stat-value text-xl font-bold leading-tight tabular-nums tracking-tight">
             {resolvedPrefix}
             {display.toLocaleString('en-IN')}
             {suffix}
@@ -68,7 +59,7 @@ export function AnimatedStat({
           {trend !== undefined && (
             <span
               className={cn(
-                'mb-1 flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold',
+                'flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold',
                 trend >= 0
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                   : 'bg-red-500/15 text-red-600 dark:text-red-400'
@@ -80,6 +71,11 @@ export function AnimatedStat({
           )}
         </div>
       </div>
+      {(badge ?? accentMeta.label) !== '' && (
+        <span className="metric-stat-badge hidden self-start rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider 2xl:inline-flex">
+          {badge ?? accentMeta.label}
+        </span>
+      )}
     </div>
   )
 }

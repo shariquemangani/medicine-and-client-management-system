@@ -1,5 +1,7 @@
 'use client'
 
+import { Activity } from 'lucide-react'
+import { CardHeader } from '@/components/shared/card-header'
 import { Sk } from './skeleton-bits'
 
 interface DashboardAttendanceGaugeProps {
@@ -19,10 +21,14 @@ export function DashboardAttendanceGauge({ rate, loading = false }: DashboardAtt
 
   return (
     <div className="flex h-full flex-col items-center justify-center text-center" aria-busy={loading || undefined}>
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold tracking-tight text-foreground">{'Stock Health'}</h3>
-        <p className="text-xs text-muted-foreground">{'Items above reorder level'}</p>
-      </div>
+      <CardHeader
+        className="w-full text-left"
+        title="Stock Health"
+        description="Items above reorder level"
+        icon={Activity}
+        accent="patients"
+        ornament={false}
+      />
       <div className="relative">
         <svg width="140" height="140" className="-rotate-90">
           <circle
