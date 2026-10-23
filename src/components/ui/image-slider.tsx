@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Upload, X, RotateCcw, ZoomIn, ZoomOut, Move, ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/context';
 
 interface ImageSliderProps {
   images: string[];
@@ -34,7 +33,6 @@ export function ImageSlider({
   const [currentUrlIndex, setCurrentUrlIndex] = useState<Record<number, number>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { showToast } = useToast();
 
   const nextImage = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -185,7 +183,7 @@ export function ImageSlider({
       setImageErrors(prev => new Set(prev).add(index));
       // showToast(`Failed to load image.`, 'error');
     }
-  }, [images, currentUrlIndex, alternativeUrls, generateAlternativeUrls, showToast]);
+  }, [images, currentUrlIndex, alternativeUrls, generateAlternativeUrls]);
 
   const handleImageLoad = useCallback((index: number) => {
     setImageErrors(prev => {
@@ -300,6 +298,7 @@ export function ImageSlider({
               </Button>
             </div>
           ) : (
+            // eslint-disable-next-line @next/next/no-img-element -- dynamic/blob URLs; images are unoptimized
             <img
               src={getCurrentImageUrl(currentIndex)}
               alt={`Product image ${currentIndex + 1}`}
@@ -408,6 +407,7 @@ export function ImageSlider({
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
               </div>
             ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- dynamic/blob URLs; images are unoptimized
               <img
                 src={getCurrentImageUrl(index)}
                 alt={`Thumbnail ${index + 1}`}

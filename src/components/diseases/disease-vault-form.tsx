@@ -65,7 +65,6 @@ function SectionCard({
   subtitle,
   icon: Icon,
   children,
-  delay = 0,
 }: {
   title: string
   subtitle: string

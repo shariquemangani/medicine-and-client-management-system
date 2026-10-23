@@ -1,7 +1,5 @@
 import React from 'react'
-import { Card } from '@/components/ui/card'
 import { X } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -10,7 +8,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 export interface LabImprovementCardProps {
   isEditing?: boolean

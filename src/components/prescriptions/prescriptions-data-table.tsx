@@ -49,11 +49,9 @@ function handleRowKeyDown(event: React.KeyboardEvent, onActivate: () => void) {
 function PrescriptionRowActions({
   exam,
   onEnterMarks,
-  t,
 }: {
   exam: Prescription
   onEnterMarks: (exam: Prescription) => void
-  t: (key: string, params?: Record<string, string | number>) => string
 }) {
   return (
     <div
@@ -265,7 +263,7 @@ export function PrescriptionsDataTable({
                   <span className="tabular-nums text-xs text-muted-foreground">{exam.maxScore}</span>
                 </td>
                 <td>
-                  <PrescriptionRowActions exam={exam} onEnterMarks={onEnterMarks} t={t} />
+                  <PrescriptionRowActions exam={exam} onEnterMarks={onEnterMarks} />
                 </td>
               </tr>
             ))

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { BentoGrid, BentoCard } from '@/components/shared'
+import { BentoGrid } from '@/components/shared'
 import {
   InventoryHero,
   InventoryStatSkeleton,

@@ -565,16 +565,10 @@ export function parsePatientUpdateBody(body: PatientProfileUpdateBody): PatientU
     update = { ...update, ...extractFromProfileDetail(body as Partial<PatientProfileData>) }
   }
 
-  const {
-    data: _data,
-    header: _header,
-    Overview: _overview,
-    Academic: _academic,
-    Attendance: _attendance,
-    Prescriptions: _exams,
-    Fees: _fees,
-    ...flatFields
-  } = record
+  const flatFields: Record<string, unknown> = { ...record }
+  for (const key of ['data', 'header', 'Overview', 'Academic', 'Attendance', 'Prescriptions', 'Fees']) {
+    delete flatFields[key]
+  }
 
   if (Object.keys(flatFields).length > 0) {
     update = { ...update, ...(flatFields as PatientUpdateInput) }

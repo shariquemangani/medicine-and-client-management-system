@@ -66,9 +66,6 @@ export function PerformanceChart({
     }
   })
 
-  // Generate gradient IDs
-  const gradientIds = data.map((_, index) => `grad${index}`)
-
   const chartEl = (
     <div className="flex flex-col items-center flex-shrink-0">
       <div className={`relative ${chartOnly ? '' : 'mb-4'}`} style={{ width: size, height: size }}>

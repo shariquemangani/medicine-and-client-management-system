@@ -14,7 +14,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  LogOut,
   Sparkles,
   Package,
 } from 'lucide-react'
@@ -162,7 +161,7 @@ export function AdminSidebar({ mobile }: AdminSidebarProps) {
             })),
         }))
         .filter((group) => group.items.length > 0),
-    [user?.isActive, effectiveRole]
+    [effectiveRole]
   )
 
 

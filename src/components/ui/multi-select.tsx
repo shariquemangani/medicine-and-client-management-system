@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { X, Check, ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -50,10 +50,6 @@ export function MultiSelect({
     } else {
       onChange([...selected, value])
     }
-  }
-
-  const handleRemove = (value: string) => {
-    onChange(selected.filter(item => item !== value))
   }
 
   const selectedLabels = selected.map(value => {

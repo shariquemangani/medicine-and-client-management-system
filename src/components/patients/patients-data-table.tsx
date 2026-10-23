@@ -355,8 +355,6 @@ function PatientsPagination({
   totalFiltered: number
   onPageChange: (page: number) => void
 }) {
-  const { hasPermission } = usePermission()
-  const canDelete = hasPermission('patients', 'delete')
   return (
     <div className="clinic-pagination flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">

@@ -12,7 +12,7 @@
     "create-env:dev": "./scripts/create-env-development.sh",
     "migrate:flags": "tsx --env-file=.env.local scripts/migrate-flag-categories-to-global.ts",
     "migrate:flags:apply": "tsx --env-file=.env.local scripts/migrate-flag-categories-to-global.ts --apply",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "verify": "npm run typecheck && npm run lint && npm run test:rules && npm run build",
     "test:e2e": "playwright test",
     "firebase:deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes"
@@ -56,7 +56,7 @@
     "firebase-admin": "^14.1.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.539.0",
-    "next": "15.4.8",
+    "next": "15.5.28",
     "next-themes": "^0.4.6",
     "react": "19.1.2",
     "react-day-picker": "^9.9.0",
@@ -83,7 +83,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
-    "eslint-config-next": "15.4.8",
+    "eslint-config-next": "15.5.28",
     "firebase-tools": "^15.34.0",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
@@ -95,6 +95,8 @@
     "node": ">=22 <25"
   },
   "overrides": {
-    "jwks-rsa": "3.2.2"
+    "jwks-rsa": "3.2.2",
+    "@grpc/grpc-js": "^1.14.6",
+    "postcss": "$postcss"
   }
 }
