@@ -54,7 +54,7 @@ export function PatientDetailTabs({
               <Icon className="h-4 w-4 shrink-0" aria-hidden />
               <span>{tab.label}</span>
               {tab.id === 'history' && historyCount > 0 ? (
-                <span className="rounded-full bg-[hsl(var(--metric-patients)/0.15)] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-[hsl(var(--metric-patients))]">
+                <span className="rounded-full bg-[hsl(var(--metric-patients)/0.15)] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-[hsl(var(--metric-patients-text))]">
                   {historyCount}
                 </span>
               ) : null}

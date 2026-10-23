@@ -4,27 +4,33 @@ import {
   normalizePatientCreateInput,
   validatePatientCreateInput,
 } from '@/lib/patients/patient-create-input'
-import { ApiAuthError, requireApiIdToken } from '@/lib/api/require-api-id-token'
+import { DomainError, errorResponse } from '@/lib/api/api-error'
+import { requireApiIdToken } from '@/lib/api/require-api-id-token'
 import type { ApiResponse, PatientCreateInput } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
     const { idToken, businessId } = await requireApiIdToken(request, { resource: 'patients', action: 'create' })
-    const body = normalizePatientCreateInput((await request.json()) as PatientCreateInput)
+    const raw = (await request.json().catch(() => null)) as PatientCreateInput | null
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new DomainError('Request body must be a JSON object')
+    }
+
+    let body: PatientCreateInput
+    try {
+      body = normalizePatientCreateInput(raw)
+    } catch {
+      // Wrong field types (a string where a list is expected, ...) are the caller's mistake, not ours.
+      throw new DomainError('Invalid patient data')
+    }
 
     const validationError = validatePatientCreateInput(body)
-    if (validationError) {
-      return NextResponse.json({ error: validationError }, { status: 400 })
-    }
+    if (validationError) throw new DomainError(validationError)
 
     const patient = await createPatientRecord(idToken, businessId, body)
     const response: ApiResponse<typeof patient> = { data: patient }
     return NextResponse.json(response, { status: 201 })
   } catch (error) {
-    if (error instanceof ApiAuthError) {
-      return NextResponse.json({ error: error.message }, { status: error.status })
-    }
-    console.error('[POST /api/v1/patients]', error)
-    return NextResponse.json({ error: 'Failed to create patient' }, { status: 400 })
+    return errorResponse(error, 'POST /api/v1/patients', 'Failed to create patient')
   }
 }

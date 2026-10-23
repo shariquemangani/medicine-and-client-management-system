@@ -96,7 +96,7 @@ export function useStockDirectory() {
   const reload = useCallback(async () => {
     setRefreshing(true)
     try {
-      await dispatch(loadStockData()).unwrap()
+      await dispatch(loadStockData({ force: true })).unwrap()
     } finally {
       setRefreshing(false)
     }

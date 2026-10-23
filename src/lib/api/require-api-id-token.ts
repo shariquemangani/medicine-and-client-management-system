@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { ApiAuthError } from '@/lib/api/api-auth-error'
 import { adminAuth } from '@/lib/firebase/admin'
 import { fetchApiUserProfile, type ApiUserProfile } from '@/lib/firebase/firestore-rest'
 import {
@@ -8,15 +9,7 @@ import {
   type PermissionResource,
 } from '@/lib/permissions'
 
-export class ApiAuthError extends Error {
-  status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.status = status
-  }
-}
-
+export { ApiAuthError }
 /** Role requirement for an endpoint; omit for "any signed-in, active user". */
 export interface ApiPermission {
   resource: PermissionResource

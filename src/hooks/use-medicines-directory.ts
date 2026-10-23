@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppSelector } from '@/redux'
 import type { Medicine } from '@/types'
 import type {
@@ -54,7 +54,11 @@ export function useMedicinesDirectory() {
   const [page, setPage] = useState(1)
   const [libraryStats, setLibraryStats] = useState<ReturnType<typeof computeMedicinePageStats> | null>(null)
 
+  // Latest request wins: a slow response for an old filter must not overwrite a newer one.
+  const requestId = useRef(0)
+
   const load = useCallback(async () => {
+    const id = ++requestId.current
     setLoading(true)
     setError(null)
     try {
@@ -65,14 +69,16 @@ export function useMedicinesDirectory() {
         status: filters.status !== 'all' ? filters.status : undefined,
         formType: filters.formType !== 'all' ? filters.formType : undefined,
       })
+      if (id !== requestId.current) return
       setMedicines(res.data)
       const unfiltered = !filters.search.trim() && filters.status === 'all' && filters.formType === 'all'
       if (unfiltered) setLibraryStats(computeMedicinePageStats(res.data))
     } catch (err) {
+      if (id !== requestId.current) return
       // Keep what is on screen: a failed refresh must not look like an empty vault.
       setError(err instanceof Error ? err.message : 'Failed to load medicines')
     } finally {
-      setLoading(false)
+      if (id === requestId.current) setLoading(false)
     }
   }, [filters])
 

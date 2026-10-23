@@ -273,6 +273,7 @@ export async function receiveStock(input: StockReceiveInput): Promise<StockItem>
       supplier: input.supplier?.trim() || current.supplier,
       location: input.location?.trim() || current.location,
       lastMovementAt: now,
+      lastMovementId: movementId,
       updatedAt: now,
     })
 
@@ -367,6 +368,7 @@ export async function adjustStock(input: StockAdjustInput): Promise<StockItem> {
       batches,
       totalQuantity: current.totalQuantity + signedQty,
       lastMovementAt: now,
+      lastMovementId: movementId,
       updatedAt: now,
     })
 

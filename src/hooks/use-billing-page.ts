@@ -20,10 +20,11 @@ export function useBillingPage() {
   const [activeTab, setActiveTab] = useState('balances')
 
   const loadSummaries = useCallback(async () => {
-    const data = await fetchPatientFeeSummaries(overdueOnly)
+    // Always the full list: the overdue toggle is a client-side filter (no re-read of three collections).
+    const data = await fetchPatientFeeSummaries()
     setSummaries(data)
     return data
-  }, [overdueOnly])
+  }, [])
 
   const loadCategories = useCallback(async () => {
     if (categoriesLoaded) return
@@ -53,14 +54,15 @@ export function useBillingPage() {
 
   const filteredSummaries = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return summaries
-    return summaries.filter(
+    const base = overdueOnly ? summaries.filter((s) => s.isOverdue && s.balance > 0) : summaries
+    if (!q) return base
+    return base.filter(
       (s) =>
         s.patientName.toLowerCase().includes(q) ||
         s.rollNumber.toLowerCase().includes(q) ||
         s.className.toLowerCase().includes(q)
     )
-  }, [summaries, search])
+  }, [summaries, search, overdueOnly])
 
   const totalFiltered = filteredSummaries.length
   const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE))

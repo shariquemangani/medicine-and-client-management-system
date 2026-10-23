@@ -1,5 +1,3 @@
-'use client'
-
 import type { MedicineFlagOption } from '@/data/medicine-flag-fields'
 import { resolveSymptomLabels } from '@/lib/diseases/disease-symptoms'
 import { cn } from '@/lib/utils'

@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { ArrowRight, Zap, BookOpen, Package, UserPlus, Wallet } from 'lucide-react'
 import { CardHeader } from '@/components/shared/card-header'

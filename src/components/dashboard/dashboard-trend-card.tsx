@@ -26,7 +26,7 @@ export function DashboardTrendCard({ data }: { data: EnrollmentTrend[] | null })
           data === null ? (
             <Sk className="h-5 w-16 rounded-full" />
           ) : (
-            <span className="rounded-full bg-[hsl(var(--metric-patients)/0.12)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--metric-patients))]">
+            <span className="rounded-full bg-[hsl(var(--metric-patients)/0.12)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--metric-patients-text))]">
               {`${added >= 0 ? '+' : ''}${added} in 6 mo`}
             </span>
           )

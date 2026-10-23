@@ -92,7 +92,7 @@ npx vercel login          # choose "Continue with Email" and use shariquecode@gm
 npx vercel link           # create/link the project (framework: Next.js)
 ```
 
-or import the Git repository in the Vercel dashboard (**Add New → Project**). `vercel.json` already sets the framework, `npm ci --legacy-peer-deps`, the build command, a Mumbai (`bom1`) function region and a 30 s API timeout. **For speed, set `regions` to the Vercel region closest to your Firestore database** (Firestore → Data shows the location; `bom1` is Mumbai, `sin1` Singapore, `iad1` US-East). A server in a different continent from Firestore adds 200-400 ms to every API call. The repository uses **npm** (`package-lock.json`); there is no pnpm lockfile.
+or import the Git repository in the Vercel dashboard (**Add New → Project**). `vercel.json` already sets the framework, `npm ci`, the build command, a Mumbai (`bom1`) function region and a 30 s API timeout. **For speed, set `regions` to the Vercel region closest to your Firestore database** (Firestore → Data shows the location; `bom1` is Mumbai, `sin1` Singapore, `iad1` US-East). A server in a different continent from Firestore adds 200-400 ms to every API call. The repository uses **npm** (`package-lock.json`); there is no pnpm lockfile.
 
 ### 2.2 Environment variables
 
@@ -109,7 +109,8 @@ Vercel → Project → **Settings → Environment Variables**. Add each variable
 | `FIREBASE_ADMIN_PROJECT_ID` | service-account JSON `project_id` | yes |
 | `FIREBASE_ADMIN_CLIENT_EMAIL` | service-account JSON `client_email` | yes |
 | `FIREBASE_ADMIN_PRIVATE_KEY` | service-account JSON `private_key` | **yes** |
-| `NEXT_PUBLIC_ALLOW_REGISTRATION` | `true` for the first deploy, then `false` | no |
+| `ALLOW_REGISTRATION` | `true` to allow new clinic sign-ups; anything else (or unset) closes registration. Server-only, read at request time | yes (Secret or plain) |
+| `NEXT_PUBLIC_ALLOW_REGISTRATION` | `true` to show the "Create account" link (build-time; still honoured by the server if `ALLOW_REGISTRATION` is unset) | no |
 
 `FIREBASE_ADMIN_PRIVATE_KEY`: paste the value on **one line with the literal `\n` sequences** (the code converts them), e.g. `-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n`. Mark it **Sensitive**.
 
@@ -123,7 +124,7 @@ npx vercel --prod
 (or push to the production branch).
 
 1. Open the production URL, go to **/register** and create the **owner** account. The server route `/api/auth/register` creates the Auth user, the `super_admin` profile and the clinic document with the Admin SDK (the Firestore rules do not allow browsers to create these documents).
-2. Back in Vercel set `NEXT_PUBLIC_ALLOW_REGISTRATION=false` and **redeploy**. `/register` redirects to the login page, the "Create account" links disappear, and the `/api/auth/register` route answers 403, so nobody else can open a clinic. Add staff users from **Settings → Users** instead.
+2. Back in Vercel set `ALLOW_REGISTRATION=false` (and `NEXT_PUBLIC_ALLOW_REGISTRATION=false`) and **redeploy**. `/register` redirects to the login page, the "Create account" links disappear, and the `/api/auth/register` route answers 403, so nobody else can open a clinic. Add staff users from **Settings → Users** instead.
 3. Add the Vercel URL to Firebase **Authorized domains** if you have not already.
 
 ### 2.4 Post-deploy verification
@@ -172,7 +173,7 @@ Then sign in manually and walk through: dashboard → vault (add a medicine) →
 
 ```bash
 cp .env.example .env.local      # fill in the TEST project's values
-npm ci --legacy-peer-deps
+npm ci
 npm run dev                     # http://localhost:3000
 npm run verify                  # types + lint + rules tests + build
 npx playwright install chromium # once

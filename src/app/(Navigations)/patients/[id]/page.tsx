@@ -59,7 +59,7 @@ export default function PatientDetailPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
-  const id = params.id as string
+  const id = (Array.isArray(params.id) ? params.id[0] : params.id) ?? ''
   const { isAuthenticated, isLoading: authLoading } = useAppSelector((s) => s.auth)
   const { profile, loadingProfile, saving, error: profileError, profileId } = useAppSelector((s) => s.patients)
 

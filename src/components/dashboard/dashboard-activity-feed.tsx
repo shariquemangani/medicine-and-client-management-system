@@ -1,5 +1,3 @@
-'use client'
-
 import type { RecentActivity } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { Activity, BookOpen, ClipboardCheck, UserMinus, UserPen, UserPlus, Users, Wallet } from 'lucide-react'

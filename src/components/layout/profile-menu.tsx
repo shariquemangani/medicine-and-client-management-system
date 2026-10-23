@@ -93,7 +93,8 @@ export function ProfileMenu({ collapsed = false, onSignOut, onNavigate }: Profil
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`${name}${roleLabel ? ` · ${roleLabel}` : ''}. Account menu`}
+          // Expanded: the visible text names the button (WCAG 2.5.3); collapsed: icon only, so label it.
+          aria-label={collapsed ? `${name}${roleLabel ? `, ${roleLabel}` : ''}. Account menu` : undefined}
           className={cn(
             'flex w-full items-center gap-2.5 rounded-xl border border-border/50 bg-muted/40 p-1 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             collapsed && 'mx-auto h-10 w-10 justify-center p-0'
@@ -116,6 +117,7 @@ export function ProfileMenu({ collapsed = false, onSignOut, onNavigate }: Profil
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13px] font-semibold leading-snug text-foreground">{name}</span>
                 <span className="block truncate text-xs leading-snug text-muted-foreground">{roleLabel}</span>
+                <span className="sr-only">Account menu</span>
               </span>
               <ChevronsUpDown className="mr-1.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
             </>

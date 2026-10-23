@@ -1,5 +1,3 @@
-'use client'
-
 export function DiseasesTableSkeleton({ rows = 8 }: { rows?: number }) {
   return (
     <>

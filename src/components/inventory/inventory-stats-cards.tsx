@@ -1,5 +1,3 @@
-'use client'
-
 import { AlertTriangle, Boxes, IndianRupee, PackageX, Timer } from 'lucide-react'
 import { BentoCard, AnimatedStat } from '@/components/shared'
 import type { InventoryStats } from '@/lib/stock-stats'

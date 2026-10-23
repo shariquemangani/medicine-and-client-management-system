@@ -376,7 +376,7 @@ export function MedicineVaultForm({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FieldShell label={t('medicines.form.antidotes')}>
             <div className="relative">
-              <Beaker className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[hsl(var(--metric-classes))]" />
+              <Beaker className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[hsl(var(--metric-classes-text))]" />
               <Textarea
                 value={values.antidotes}
                 disabled={disabled}

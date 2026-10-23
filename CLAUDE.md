@@ -5,7 +5,7 @@
 **MediFlow** (`liganexus-web-app`) is a multi-tenant clinic **stock management** and pharmacy portal for homeopathy clinics. Core: Firestore-backed stock & inventory (batches, expiry, immutable movement ledger), medicine vault, patients, billing, role-based access. Deployed on Vercel with Firebase Auth + Firestore.
 
 - **Framework**: Next.js 15.4.8 (App Router)
-- **UI & Styling**: React 19.1.2, Tailwind CSS 3.3.3, shadcn/ui (Radix primitives), Recharts 2.15.4, ECharts 6.0.0
+- **UI & Styling**: React 19.1.2, Tailwind CSS 3.3.3, shadcn/ui (Radix primitives), Recharts 2.15.4, (ECharts is not installed)
 - **State Management**: Redux Toolkit 2.8.2 (`auth`, `ui`, `patients`, `stock` slices)
 - **Form Handling & Validation**: React Hook Form 7.62 + Zod 4.0.17
 - **Backend & Database**: Firebase Auth + Cloud Firestore (Client SDK & Firebase Admin SDK 14.1.0)
@@ -19,7 +19,7 @@
 ### Installation
 ```bash
 # npm is the single package manager (package-lock.json). pnpm lockfile was removed.
-npm ci --legacy-peer-deps        # or: npm.cmd ci --legacy-peer-deps on Windows PowerShell
+npm ci        # or: npm.cmd ci on Windows PowerShell (no --legacy-peer-deps needed)
 ```
 
 ### Development, build, quality gates
@@ -27,9 +27,10 @@ npm ci --legacy-peer-deps        # or: npm.cmd ci --legacy-peer-deps on Windows 
 npm run dev                      # http://localhost:3000 (falls back to 3001 if busy)
 npm run typecheck                # tsc --noEmit, must be 0 errors
 npm run lint                     # ESLint, 0 errors required (build fails on errors)
-npm run test:rules               # 100+ Firestore security-rule tests in the emulator (needs Java)
+npm test                         # Vitest unit tests (stock logic, permissions, API layer, helpers)
+npm run test:rules               # 160 Firestore security-rule tests in the emulator (needs Java)
 npm run build                    # production build; needs NO secrets; type/lint errors fail it
-npm run verify                   # typecheck + lint + rules tests + build
+npm run verify                   # typecheck (app + tests) + lint + unit + rules tests + build
 ```
 **Never build into the same folder a `next dev` is using**: they share `.next`, the dev server's assets start returning 400 and the build can fail with "Failed to collect page data". Build and serve production into its own folder instead: `NEXT_DIST_DIR=.next-prod npm run build` then `NEXT_DIST_DIR=.next-prod npx next start -p 4001` (PowerShell: `$env:NEXT_DIST_DIR='.next-prod'`). Vercel uses the default `.next`.
 
@@ -45,7 +46,6 @@ PLAYWRIGHT_BASE_URL=https://<domain> E2E_PROD=1 npx playwright test --project=pu
 ```bash
 npx tsx scripts/verify-patient-roll-number.ts
 npx tsx scripts/verify-registration-payload.ts
-npx tsx scripts/verify-auth-token.ts
 npx tsx --env-file=.env.local scripts/migrate-flag-categories-to-global.ts [--apply]
 ```
 
@@ -211,7 +211,7 @@ TEST_USER_EMAIL= / TEST_USER_PASSWORD=   # Playwright, TEST project only
 ## Known Issues, Gaps & Technical Debt
 
 - **/prescriptions** is school-exam logic with renamed labels; Enter Marks/Results cannot work (reads a `patientIds` field medicines do not have). Rebuild as a prescription register or remove (plan section 2.3).
-- **Flag taxonomy is global** (`flagCategories`), shared by all tenants; only `super_admin` can write but they can affect other clinics. Needs per-tenant migration (plan S3).
+- **Flag taxonomy** is per clinic (`businesses/{b}/flagCategories`), seeded on first use from the read-only global template `flagCategories` (only the Admin SDK / migration script can change the template).
 - **Billing** has no UI for fee structures/categories or due dates, so Due is always 0 until data is seeded.
 - **Client-SDK writes**: billing/settings/medicine writes go straight from the browser; Firestore rules are the guard. API routes (`/api/v1/*`) check roles server-side.
 - **Middleware** only checks that the `__session` cookie exists; real verification happens in API routes and the protected layout.
@@ -249,6 +249,19 @@ Full findings and roadmap: `docs/IMPROVEMENT-PLAN.md`. Deployment: `docs/DEPLOYM
 - Verified on a production build: `npm run verify` exit 0; Playwright 46/46 (public + 12 pages x desktop/mobile + stock journey), 0 console errors.
 - Connectivity audit (this session): static trace of every page/CRUD path plus live tests under the strict rules: owner CRUD for patients, vault, flags, stock, billing, settings, dashboard; staff, disabled-user and cross-tenant isolation checks. Fixed: patient profile read of non-existent school collections (view/edit 500), self-service owner creation, API role gaps, disable-user not disabling Auth, false failures when the activity feed write failed, dashboard staff count, overpayment, flag value stability.
 - Not done by the assistant (needs the account owner): signing in to Firebase/Vercel (shariquecode@gmail.com) and running the deploy commands in `docs/DEPLOYMENT.md`.
+
+## Hardening log (2026-10-23)
+
+Full audit: `docs/NEXTJS-CODE-REVIEW.md`; plan and status: `docs/FIX-PLAN.md`.
+
+- **Firestore cost**: lists read one bounded page + a server-side count (`fetchFirestoreCollectionPage`, `countFirestoreDocuments` in `firestore-rest.ts`); filtered/search requests still scan. Dashboard uses count queries and this month's payments only. Stock loads once per minute (`loadStockData` has a freshness `condition`, `{ force: true }` to refresh). Flags, medicines list and billing sums are cached/grouped. Patient roll numbers come from one indexed read (`queryLastWithPrefix`), not a full list.
+- **API layer** (`src/lib/api/`): `api-error.ts` (`DomainError`, `errorResponse`, `parseJsonBody`), `api-auth-error.ts`, `path-segment.ts` (`safeSegment` for route params), `same-origin.ts`, `rate-limit.ts` (Firestore-backed counters in `rateLimits/*`, Admin SDK only; enable a TTL policy on `expiresAt` to auto-clean). Zod schemas for bodies live in `src/lib/schemas/api-schemas.ts`. Patient updates are whitelisted (`sanitizePatientUpdate`); the patient ID is immutable. Patient list responses carry list columns only (no Aadhaar, parents, notes).
+- **Registration** is closed unless `ALLOW_REGISTRATION=true` (server, read at request time) or the legacy `NEXT_PUBLIC_ALLOW_REGISTRATION=true`; see `src/lib/registration.ts`.
+- **CSP** is built per request in `middleware.ts` (`src/lib/csp.ts`): nonce + `strict-dynamic`, so the root layout is `force-dynamic` and passes the nonce to next-themes. Do not add a route-level `loading.tsx` under `(Navigations)`: its Suspense boundary delays hydration of the page until after `initAuth` has changed Redux state and causes hydration mismatches (#418).
+- **Rules** validate patients, payments (amount range, patient must exist) and tie every stock quantity change to a ledger entry written in the same transaction (`lastMovementId`). Legacy `inventory`, `staff`, `classes` collections are denied.
+- **Accessibility**: axe (WCAG 2.1 A/AA, serious+critical) runs in `tests/e2e/a11y.spec.ts`; brand-coloured buttons use darker shades for white text and text accents use `--metric-*-text` tokens. Comboboxes need an `aria-label` (they are not named by content).
+- **Cleanup**: unused UI wrappers, test routes, mock notifications, legacy service functions, orphan packages and about half of `globals.css` were removed; pages were verified pixel-identical (24 screenshots, light/dark).
+- **Install** no longer needs `--legacy-peer-deps` (override for `@firebase/rules-unit-testing`).
 
 ## Page headers & cards
 - **Every page header, including inner pages (new / detail / edit), is `PageHero`** (`src/components/shared/page-hero.tsx`): two lines (icon + h1 + badge, then muted subtitle), actions on the right (`heroButtonClass` / `heroPrimaryClass`). Inner pages pass `back={{ href, label }}` for a round back button. Place it in a `<div className="col-span-full">`, never inside a BentoCard. Each page renders exactly one `<h1>` in every state (loading, loaded, edit, not-found).

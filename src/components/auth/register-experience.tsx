@@ -1,5 +1,3 @@
-'use client'
-
 import { RegisterForm } from '@/components/forms'
 import { RegisterCard } from './register-card'
 import { ModeToggle } from '@/components/mode-toggle'

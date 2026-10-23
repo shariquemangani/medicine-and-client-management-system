@@ -106,7 +106,7 @@ export function PatientsFilters({
             onClick={onSearchSubmit}
             className={cn(
               'mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors',
-              searchHighlight ? 'text-[hsl(var(--metric-patients))]' : 'text-muted-foreground hover:text-foreground'
+              searchHighlight ? 'text-[hsl(var(--metric-patients-text))]' : 'text-muted-foreground hover:text-foreground'
             )}
             aria-label="Search patients"
           >

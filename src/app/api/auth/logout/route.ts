@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { adminAuth, SESSION_COOKIE_NAME } from '@/lib/firebase/admin'
 import { SESSION_FLAG_COOKIE_NAME } from '@/lib/firebase/session'
+import { assertSameOrigin } from '@/lib/api/same-origin'
 
 const cookieClearOptions = {
   httpOnly: true,
@@ -12,7 +13,13 @@ const cookieClearOptions = {
   expires: new Date(0),
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  try {
+    assertSameOrigin(request)
+  } catch {
+    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
+  }
+
   const cookieStore = await cookies()
   const session = cookieStore.get(SESSION_COOKIE_NAME)?.value
 

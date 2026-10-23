@@ -248,7 +248,7 @@ Result: every push to `dev` becomes the test project's production deployment; ev
 
 ### 7.3 Build settings and Node
 
-The repo's `vercel.json` already sets `npm ci --legacy-peer-deps`, `npm run build`, a function region and a 30 s API timeout (Appendix D).
+The repo's `vercel.json` already sets `npm ci`, `npm run build`, a function region and a 30 s API timeout (Appendix D).
 Remove `--legacy-peer-deps` if your own dependency tree resolves without it.
 Settings, Build and Deployment, **Node.js Version**: choose 22.x or 24.x.
 
@@ -683,7 +683,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - run: npm ci --legacy-peer-deps       # drop the flag if your tree installs without it
+      - run: npm ci       # drop the flag if your tree installs without it
       - name: Type check
         run: npm run typecheck
       - name: Lint
@@ -734,7 +734,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
       - name: Skip notice
         if: env.FIREBASE_SERVICE_ACCOUNT == ''
         run: echo "::warning::No service-account secret for this branch yet; rules were NOT published."
@@ -827,7 +827,7 @@ main().catch((error) => {
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "npm ci --legacy-peer-deps",
+  "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "regions": ["<region-nearest-your-firestore>"],
   "functions": {
@@ -1030,7 +1030,7 @@ Server smoke test (expect `200` then `401`):
 
 ```bash
 # Local verification (same as CI)
-npm ci --legacy-peer-deps && npm run typecheck && npm run lint && npm run test:rules && npm run build
+npm ci && npm run typecheck && npm run lint && npm run test:rules && npm run build
 
 # Branches
 git checkout dev && git pull

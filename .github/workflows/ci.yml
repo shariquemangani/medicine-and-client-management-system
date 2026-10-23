@@ -30,16 +30,20 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
       - name: Type check
         run: npm run typecheck
       - name: Lint
         run: npm run lint
       - name: Firestore rules tests (emulator)
         run: npm run test:rules
+      - name: Unit tests
+        run: npm run test
       - name: Unit verification scripts
         run: |
           npx tsx scripts/verify-patient-roll-number.ts
           npx tsx scripts/verify-registration-payload.ts
+          npx tsx scripts/verify-rate-limit.ts
+          npx tsx scripts/verify-security-helpers.ts
       - name: Production build
         run: npm run build

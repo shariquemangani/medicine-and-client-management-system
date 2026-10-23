@@ -33,6 +33,8 @@ interface CreatableMultiSelectProps {
   disabled?: boolean
   /** When set, truncates visible badges and shows "+N more". Omit to show all selected. */
   maxDisplay?: number
+  /** Accessible name; defaults to the placeholder (a combobox is not named by its content). */
+  ariaLabel?: string
 }
 
 export function CreatableMultiSelect({
@@ -47,6 +49,7 @@ export function CreatableMultiSelect({
   className,
   disabled = false,
   maxDisplay,
+  ariaLabel,
 }: CreatableMultiSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
@@ -103,6 +106,7 @@ export function CreatableMultiSelect({
           type="button"
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel ?? placeholder}
           aria-expanded={open}
           disabled={disabled}
           className={cn(

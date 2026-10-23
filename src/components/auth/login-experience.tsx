@@ -1,5 +1,3 @@
-'use client'
-
 import { LoginForm } from '@/components/forms'
 import { LoginCard } from './login-card'
 import { ModeToggle } from '@/components/mode-toggle'

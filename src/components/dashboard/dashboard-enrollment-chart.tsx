@@ -59,7 +59,7 @@ function ChartTooltip({
   return (
     <div className="dashboard-chart-tooltip rounded-xl px-3 py-2 text-xs shadow-lg">
       <p className="font-medium text-foreground">{label}</p>
-      <p className="mt-0.5 text-[hsl(var(--metric-patients))]">
+      <p className="mt-0.5 text-[hsl(var(--metric-patients-text))]">
         {payload[0].value} patients
       </p>
     </div>

@@ -1,5 +1,3 @@
-'use client'
-
 import { bentoGridClass } from '@/utils/theme'
 
 const statCol = 'lg:col-span-3 rounded-2xl border border-border/40 p-4 sm:p-5'

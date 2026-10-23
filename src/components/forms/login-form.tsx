@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAppDispatch, useAppSelector } from '@/redux'
 import { login, clearError } from '@/redux/slices'
+import { safeRedirectTarget } from '@/lib/safe-redirect'
 import { ROUTES } from '@/lib/routes'
 import { authService } from '@/services/auth-services'
 import { toast } from 'sonner'
@@ -44,7 +45,7 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
   const { error } = useAppSelector((s) => s.auth)
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const allowRegistration = process.env.NEXT_PUBLIC_ALLOW_REGISTRATION !== 'false'
+  const allowRegistration = process.env.NEXT_PUBLIC_ALLOW_REGISTRATION === 'true'
 
   const schema = useMemo(
     () =>
@@ -76,9 +77,8 @@ export function LoginForm({ variant = 'default' }: LoginFormProps) {
     )
     if (login.fulfilled.match(result)) {
       const requested = new URLSearchParams(window.location.search).get('redirect')
-      // Only follow same-origin relative paths (blocks open redirects like //evil.com).
-      const safeRedirect =
-        requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : null
+      // Only same-origin paths are followed (blocks //evil.com and backslash open redirects).
+      const safeRedirect = safeRedirectTarget(requested, window.location.origin)
       window.location.assign(safeRedirect ?? ROUTES.dashboard)
       return
     }

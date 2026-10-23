@@ -1,16 +1,9 @@
 import { NextRequest } from 'next/server'
+import { ApiAuthError } from '@/lib/api/api-auth-error'
 import { adminAuth, adminDb, SESSION_COOKIE_NAME } from '@/lib/firebase/admin'
 import type { AdminUser } from '@/types'
 
-export class ApiAuthError extends Error {
-  status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.status = status
-  }
-}
-
+export { ApiAuthError }
 function isFirebaseAuthError(error: unknown): error is { codePrefix?: string } {
   return (
     typeof error === 'object' &&

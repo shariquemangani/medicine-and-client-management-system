@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "mediflow-test-11bbe"
+    "default": "mediflow-test-11bbe",
+    "prod": "mediflow-prod-cc377"
   }
 }

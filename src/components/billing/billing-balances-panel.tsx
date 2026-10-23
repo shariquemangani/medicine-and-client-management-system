@@ -122,7 +122,7 @@ export function BillingBalancesPanel({
                   <Td
                     className={cn(
                       'tabular-nums font-semibold',
-                      s.balance > 0 ? 'text-[hsl(var(--metric-billing))]' : 'text-foreground'
+                      s.balance > 0 ? 'text-[hsl(var(--metric-billing-text))]' : 'text-foreground'
                     )}
                   >
                     {formatAmount(s.balance)}

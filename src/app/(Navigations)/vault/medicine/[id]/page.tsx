@@ -29,7 +29,7 @@ import { clearBreadcrumbOverrides, setBreadcrumbOverrides } from '@/redux/slices
 export default function MedicineDetailPage() {
   const params = useParams()
   const dispatch = useAppDispatch()
-  const id = params.id as string
+  const id = (Array.isArray(params.id) ? params.id[0] : params.id) ?? ''
   const { isAuthenticated, isLoading: authLoading } = useAppSelector((s) => s.auth)
   const {
     options: flagOptions,

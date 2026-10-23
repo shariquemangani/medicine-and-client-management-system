@@ -2,7 +2,7 @@ name: Deploy Firestore rules
 
 # Publishes firestore.rules after a merge: dev -> test project, main -> prod project.
 # Secrets are service-account JSON keys; the script refuses a key from a different project.
-# The `verify` job in ci.yml (including the rules tests) must have passed before the PR was merged.
+# The rules tests run here too, so a broken rules file is never published even if branch protection is relaxed.
 on:
   push:
     branches: [main, dev]
@@ -32,7 +32,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - name: Rules tests (gate the publish)
+        run: npm run test:rules
       - name: Skip notice
         if: env.FIREBASE_SERVICE_ACCOUNT == ''
         run: echo "::warning::No service-account secret for this branch yet; rules were NOT published."

@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/utils'
 
 /** Placeholder block for data that is still loading. Size it like the final content. */

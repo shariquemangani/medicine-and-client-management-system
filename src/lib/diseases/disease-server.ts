@@ -1,3 +1,4 @@
+import { DomainError } from '@/lib/api/api-error'
 import {
   createFirestoreDocument,
   deleteFirestoreDocument,
@@ -47,13 +48,13 @@ export async function createDisease(
 ): Promise<Disease> {
   const trimmed = input.name.trim()
   if (!trimmed) {
-    throw new Error('Disease name is required')
+    throw new DomainError('Disease name is required')
   }
-  if (trimmed.length > 120) throw new Error('Disease name must be 120 characters or fewer')
+  if (trimmed.length > 120) throw new DomainError('Disease name must be 120 characters or fewer')
 
   const existing = await fetchDiseases(idToken, businessId)
   const found = existing.find((d) => d.name.toLowerCase() === trimmed.toLowerCase())
-  if (found) throw new Error('A disease with this name already exists')
+  if (found) throw new DomainError('A disease with this name already exists', 409)
 
   const id = generateId(slugify(trimmed) || 'disease')
   const now = new Date().toISOString()
@@ -70,7 +71,7 @@ export async function createDisease(
   await createFirestoreDocument(
     `businesses/${businessId}/diseases/${id}`,
     idToken,
-    disease as unknown as Record<string, unknown>
+    disease
   )
   return disease
 }
@@ -83,12 +84,12 @@ export async function updateDisease(
 ): Promise<Disease> {
   const trimmed = input.name.trim()
   if (!trimmed) {
-    throw new Error('Disease name is required')
+    throw new DomainError('Disease name is required')
   }
 
   const existing = await fetchDiseaseById(idToken, businessId, id)
   if (!existing) {
-    throw new Error('Disease not found')
+    throw new DomainError('Disease not found', 404)
   }
 
   const disease: Disease = {
@@ -103,7 +104,7 @@ export async function updateDisease(
   await patchFirestoreDocument(
     `businesses/${businessId}/diseases/${id}`,
     idToken,
-    disease as unknown as Record<string, unknown>
+    disease
   )
   return disease
 }

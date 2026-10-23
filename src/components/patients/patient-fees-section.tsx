@@ -45,12 +45,12 @@ export function PatientFeesSection({ form }: PatientFeesSectionProps) {
         <div className="patient-fees-mesh pointer-events-none absolute inset-0" aria-hidden />
         <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_minmax(0,22rem)] lg:items-center">
           <div className="space-y-3">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[hsl(var(--metric-fees))]">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[hsl(var(--metric-fees-text))]">
               Visit billing
             </p>
             <div className="flex items-end gap-2">
               <IndianRupee
-                className="mb-1 h-6 w-6 shrink-0 text-[hsl(var(--metric-fees))]"
+                className="mb-1 h-6 w-6 shrink-0 text-[hsl(var(--metric-fees-text))]"
                 aria-hidden
               />
               <p className="text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-4xl">
@@ -70,7 +70,7 @@ export function PatientFeesSection({ form }: PatientFeesSectionProps) {
               <FormItem className={cn(clinicFormFieldItemClass, 'space-y-3')}>
                 <FormControl>
                   <div className="patient-fees-input-wrap flex h-12 items-center overflow-hidden rounded-xl border border-[hsl(var(--metric-fees)/0.35)] bg-background/90 shadow-sm backdrop-blur-sm">
-                    <span className="flex h-full items-center border-r border-[hsl(var(--metric-fees)/0.2)] bg-[hsl(var(--metric-fees)/0.08)] px-3 text-sm font-semibold text-[hsl(var(--metric-fees))]">
+                    <span className="flex h-full items-center border-r border-[hsl(var(--metric-fees)/0.2)] bg-[hsl(var(--metric-fees)/0.08)] px-3 text-sm font-semibold text-[hsl(var(--metric-fees-text))]">
                       ₹
                     </span>
                     <Input

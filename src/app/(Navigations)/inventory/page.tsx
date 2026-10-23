@@ -10,13 +10,11 @@ import {
   InventoryStockTable,
   InventoryMovementsPanel,
   InventoryAlertsPanel,
-  InventoryReceiveDialog,
-  InventoryAdjustDialog,
-  InventoryItemFormDialog,
   InventoryDeleteDialog,
   InventoryDetailSheet,
   findStockItemById,
 } from '@/components/inventory'
+import dynamic from 'next/dynamic'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MOVEMENT_LOAD_LIMIT, useStockDirectory } from '@/hooks/use-stock-directory'
 import type { StockItem } from '@/types/stock'
@@ -24,6 +22,17 @@ import { downloadCsv } from '@/lib/download-csv'
 import { buildLedgerCsvRows, buildMovementsCsvRows } from '@/lib/stock-export'
 import { t } from '@/lib/labels'
 import { toast } from 'sonner'
+
+// Form dialogs are only needed once opened, so keep them out of the page's first load.
+const InventoryReceiveDialog = dynamic(() =>
+  import('@/components/inventory/inventory-receive-dialog').then((m) => m.InventoryReceiveDialog)
+)
+const InventoryAdjustDialog = dynamic(() =>
+  import('@/components/inventory/inventory-adjust-dialog').then((m) => m.InventoryAdjustDialog)
+)
+const InventoryItemFormDialog = dynamic(() =>
+  import('@/components/inventory/inventory-item-form-dialog').then((m) => m.InventoryItemFormDialog)
+)
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback
@@ -326,32 +335,38 @@ export default function InventoryPage() {
         </div>
       </BentoGrid>
 
-      <InventoryReceiveDialog
-        open={receiveOpen}
-        onOpenChange={setReceiveOpen}
-        items={items}
-        selectedItem={selectedItem}
-        onConfirm={handleReceive}
-        onAddItem={openAdd}
-        loading={saving}
-      />
+      {receiveOpen && (
+        <InventoryReceiveDialog
+          open={receiveOpen}
+          onOpenChange={setReceiveOpen}
+          items={items}
+          selectedItem={selectedItem}
+          onConfirm={handleReceive}
+          onAddItem={openAdd}
+          loading={saving}
+        />
+      )}
 
-      <InventoryAdjustDialog
-        open={adjustOpen}
-        onOpenChange={setAdjustOpen}
-        item={selectedItem}
-        onConfirm={handleAdjust}
-        loading={saving}
-      />
+      {adjustOpen && (
+        <InventoryAdjustDialog
+          open={adjustOpen}
+          onOpenChange={setAdjustOpen}
+          item={selectedItem}
+          onConfirm={handleAdjust}
+          loading={saving}
+        />
+      )}
 
-      <InventoryItemFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        item={editing}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-        loading={saving}
-      />
+      {formOpen && (
+        <InventoryItemFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          item={editing}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          loading={saving}
+        />
+      )}
 
       <InventoryDeleteDialog
         item={selectedItem}

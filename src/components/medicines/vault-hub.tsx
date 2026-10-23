@@ -1,5 +1,3 @@
-'use client'
-
 import { ROUTES } from '@/lib/routes'
 
 import { Pill, Activity, Flag } from 'lucide-react'

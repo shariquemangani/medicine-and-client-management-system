@@ -10,6 +10,8 @@ export interface ThemeProviderProps {
   children: React.ReactNode
   defaultTheme?: string
   storageKey?: string
+  /** CSP nonce for next-themes' inline script. */
+  nonce?: string
 }
 
 /**

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase/admin'
-import { ApiAuthError, requireApiSession } from '@/lib/api/require-api-session'
+import { errorResponse } from '@/lib/api/api-error'
+import { safeSegment } from '@/lib/api/path-segment'
+import { assertSameOrigin } from '@/lib/api/same-origin'
+import { requireApiSession } from '@/lib/api/require-api-session'
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -13,12 +16,13 @@ interface RouteContext {
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
+    assertSameOrigin(request)
     const { uid: actorUid, businessId, profile } = await requireApiSession(request)
     if (profile.role !== 'super_admin') {
       return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
     }
 
-    const { id } = await context.params
+    const id = safeSegment((await context.params).id)
     const ref = adminDb.doc(`users/${id}`)
     const snap = await ref.get()
     if (!snap.exists || (snap.data() as { businessId?: string }).businessId !== businessId) {
@@ -26,7 +30,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
     }
 
-    const body = (await request.json()) as { name?: unknown; isActive?: unknown }
+    const body = ((await request.json().catch(() => null)) ?? {}) as { name?: unknown; isActive?: unknown }
     const changes: { name?: string; isActive?: boolean } = {}
 
     if (body.name !== undefined) {
@@ -63,10 +67,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const updated = { ...(snap.data() as Record<string, unknown>), ...changes, id }
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
-    if (error instanceof ApiAuthError) {
-      return NextResponse.json({ success: false, message: error.message }, { status: error.status })
-    }
-    console.error('[PATCH /api/admin/users/:id]', error)
-    return NextResponse.json({ success: false, message: 'Failed to update user' }, { status: 500 })
+    return errorResponse(error, 'PATCH /api/admin/users/:id', 'Failed to update user', 'message')
   }
 }

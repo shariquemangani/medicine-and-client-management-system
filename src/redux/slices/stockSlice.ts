@@ -27,6 +27,8 @@ interface StockState {
   alerts: StockAlert[]
   stats: ReturnType<typeof computeStockStats> | null
   loading: boolean
+  /** Epoch ms of the last successful load; lets screens reuse fresh data instead of re-reading Firestore. */
+  lastLoadedAt: number
   saving: boolean
   /** Load failures only. Mutation errors are returned to the caller so they can toast the real message. */
   error: string | null
@@ -38,6 +40,7 @@ const initialState: StockState = {
   alerts: [],
   stats: null,
   loading: false,
+  lastLoadedAt: 0,
   saving: false,
   error: null,
 }
@@ -51,13 +54,35 @@ async function loadAll() {
   return { items, movements }
 }
 
-export const loadStockData = createAsyncThunk('stock/load', async (_, { rejectWithValue }) => {
-  try {
-    return await loadAll()
-  } catch (error) {
-    return rejectWithValue(messageOf(error, 'Failed to load stock'))
+/** Stock data younger than this is reused (the sidebar badge, dashboard and inventory share one load). */
+const STOCK_FRESH_MS = 60_000
+
+/**
+ * Loads items + recent movements. Skipped while a load is running or the data is fresh, unless
+ * `{ force: true }` (the Refresh button).
+ */
+export const loadStockData = createAsyncThunk<
+  Awaited<ReturnType<typeof loadAll>>,
+  { force?: boolean } | undefined,
+  { rejectValue: string }
+>(
+  'stock/load',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await loadAll()
+    } catch (error) {
+      return rejectWithValue(messageOf(error, 'Failed to load stock'))
+    }
+  },
+  {
+    condition: (arg, { getState }) => {
+      if (arg?.force) return true
+      const { stock } = getState() as { stock: StockState }
+      if (stock.loading) return false
+      return Date.now() - stock.lastLoadedAt > STOCK_FRESH_MS
+    },
   }
-})
+)
 
 /** Builds a thunk that runs a mutation, then reloads items and movements. */
 function mutationThunk<Arg>(type: string, fallback: string, run: (arg: Arg) => Promise<unknown>) {
@@ -141,6 +166,7 @@ const stockSlice = createSlice({
       })
       .addCase(loadStockData.fulfilled, (state, action) => {
         state.loading = false
+        state.lastLoadedAt = Date.now()
         applyStockData(state, action.payload.items, action.payload.movements)
       })
       .addCase(loadStockData.rejected, (state, action) => {
@@ -155,6 +181,7 @@ const stockSlice = createSlice({
         })
         .addCase(thunk.fulfilled, (state, action) => {
           state.saving = false
+          state.lastLoadedAt = Date.now()
           applyStockData(state, action.payload.items, action.payload.movements)
         })
         .addCase(thunk.rejected, (state) => {

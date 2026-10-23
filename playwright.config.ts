@@ -28,7 +28,7 @@ export default defineConfig({
     },
     {
       name: 'desktop',
-      testMatch: /(app|stock)\.spec\.ts/,
+      testMatch: /(app|stock|a11y)\.spec\.ts/,
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: 'tests/.auth/state.json' },
     },
