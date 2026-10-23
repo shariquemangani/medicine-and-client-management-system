@@ -7,7 +7,7 @@ export function NotFoundContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-panel rounded-3xl p-10 text-center max-w-md">
+      <div className="glass-panel rounded-2xl p-10 text-center max-w-md">
         <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Stethoscope className="h-8 w-8 text-primary" />
         </div>

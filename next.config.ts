@@ -40,6 +40,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/vault', destination: '/vault/medicine', permanent: false },
+      // The old exam-style prescriptions page was retired; prescriptions live on each patient.
+      { source: '/prescriptions', destination: '/patients', permanent: false },
       { source: '/medicines', destination: '/vault/medicine', permanent: false },
       { source: '/medicines/:path*', destination: '/vault/:path*', permanent: false },
     ]

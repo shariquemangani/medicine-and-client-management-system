@@ -70,6 +70,10 @@ export default function PatientsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Patient | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [viewMode, setViewMode] = useState<'table' | 'compact'>('table')
+  // Phones get the card layout by default (a wide table would need sideways scrolling).
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 767px)').matches) setViewMode('compact')
+  }, [])
 
   useEffect(() => {
     if (error) toast.error(error)

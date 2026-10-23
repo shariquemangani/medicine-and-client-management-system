@@ -129,7 +129,7 @@ export function ProfileMenu({ collapsed = false, onSignOut, onNavigate }: Profil
         side="right"
         align="end"
         sideOffset={12}
-        className="flex w-[min(18rem,calc(100vw-1rem))] flex-col gap-0.5 rounded-[20px] border border-border bg-popover p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+        className="flex w-[min(18rem,calc(100vw-1rem))] flex-col gap-0.5 rounded-2xl border border-border bg-popover p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
       >
         {email && <p className="truncate px-2.5 pb-0.5 pt-1.5 text-xs text-muted-foreground">{email}</p>}
 

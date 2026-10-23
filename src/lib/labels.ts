@@ -692,7 +692,7 @@ const en = {
     title: 'Stock & Inventory',
     description: 'Track medicine stock levels, batches, and movements',
     badge: 'Live stock control',
-    heroTitle: 'Stock & Inventory Command',
+    heroTitle: 'Stock & inventory',
     heroSubtitle: '{{total}} SKUs · ₹{{value}} on hand · {{alerts}} active alerts',
     receiveStock: 'Receive stock',
     adjustStock: 'Adjust stock',

@@ -12,10 +12,14 @@ import {
 import { computeStockStats } from '@/lib/stock-stats'
 import type { StockItem } from '@/types/stock'
 
+// Local calendar date (the app compares local dates; toISOString would be UTC and shift by a day
+// for part of every day in time zones ahead of UTC).
 const day = (offset: number) => {
   const d = new Date()
   d.setDate(d.getDate() + offset)
-  return d.toISOString().slice(0, 10)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${mm}-${dd}`
 }
 
 const batch = (quantity: number, expiryOffsetDays: number, unitCost = 10) => ({

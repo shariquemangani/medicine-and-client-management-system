@@ -175,7 +175,7 @@ export function MedicinesDataTable({
             ))
           )}
         </div>
-        <div className="clinic-table-shell overflow-hidden rounded-[20px] border">
+        <div className="clinic-table-shell overflow-hidden rounded-2xl border">
           <MedicinesPagination
             page={page}
             totalPages={totalPages}
@@ -193,7 +193,7 @@ export function MedicinesDataTable({
   return (
     <div
       className={cn(
-        'clinic-table-shell overflow-hidden rounded-[20px] border',
+        'clinic-table-shell overflow-hidden rounded-2xl border',
         refreshing && 'pointer-events-none opacity-60'
       )}
       aria-busy={loading || undefined}

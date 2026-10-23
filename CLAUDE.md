@@ -210,7 +210,7 @@ TEST_USER_EMAIL= / TEST_USER_PASSWORD=   # Playwright, TEST project only
 
 ## Known Issues, Gaps & Technical Debt
 
-- **/prescriptions** is school-exam logic with renamed labels; Enter Marks/Results cannot work (reads a `patientIds` field medicines do not have). Rebuild as a prescription register or remove (plan section 2.3).
+- **/prescriptions** (school-exam logic) was retired: removed from the sidebar, the page and its components deleted, `/prescriptions` redirects to `/patients`. Prescriptions live on each patient. A real prescription register is still a possible feature.
 - **Flag taxonomy** is per clinic (`businesses/{b}/flagCategories`), seeded on first use from the read-only global template `flagCategories` (only the Admin SDK / migration script can change the template).
 - **Billing** has no UI for fee structures/categories or due dates, so Due is always 0 until data is seeded.
 - **Client-SDK writes**: billing/settings/medicine writes go straight from the browser; Firestore rules are the guard. API routes (`/api/v1/*`) check roles server-side.
@@ -263,8 +263,18 @@ Full audit: `docs/NEXTJS-CODE-REVIEW.md`; plan and status: `docs/FIX-PLAN.md`.
 - **Cleanup**: unused UI wrappers, test routes, mock notifications, legacy service functions, orphan packages and about half of `globals.css` were removed; pages were verified pixel-identical (24 screenshots, light/dark).
 - **Install** no longer needs `--legacy-peer-deps` (override for `@firebase/rules-unit-testing`).
 
+## Control standard (modelled on the LigaX organisation screens)
+
+- **Buttons** (`ui/button.tsx` + the `UI standard` block at the end of `globals.css`): 36px default (32px `sm`), 8px radius, 14px/500, 6px icon gap, flat (no glow, no lift on hover), 150 ms transitions on colour/border/shadow only, one 2px focus ring.
+- **Inputs, textareas, select triggers**: share the `ui-field` class: 8px radius, `muted/30` fill, 1px border, faint inset top highlight, blue focus border + 2px ring, hover `muted/50`.
+- **Dropdowns** (select, dropdown menu, popover, command list): `rounded-xl` panel with border and soft large shadow, 4px padding, 32px items at 13px/500 with 8px radius, hover `muted`, selected item in brand colour with a check on the right.
+- **Tabs**: muted track (`rounded-xl`, 4px padding) with 28px triggers; active trigger is raised on the page background.
+- **Tables**: 11px/700 uppercase headers on a muted band, 14px cells, hairline row borders, 12px shell radius.
+- Tailwind 3.3 has no `min-h-10`; use `min-h-[2.5rem]`.
+
 ## Page headers & cards
 - **Every page header, including inner pages (new / detail / edit), is `PageHero`** (`src/components/shared/page-hero.tsx`): two lines (icon + h1 + badge, then muted subtitle), actions on the right (`heroButtonClass` / `heroPrimaryClass`). Inner pages pass `back={{ href, label }}` for a round back button. Place it in a `<div className="col-span-full">`, never inside a BentoCard. Each page renders exactly one `<h1>` in every state (loading, loaded, edit, not-found).
 - **Every card header is one of two components, both with the same accent icon tile:** `CardHeader` (`src/components/shared/card-header.tsx`, form-style, optional ornament line) or `SectionCardHeader` (table/panel cards, bottom border). Pass `accent`: patients, staff, medicines, fees, inventory, prescriptions (all defined in `globals.css` under `.clinic-form-section-header[data-accent]`; a new accent needs a rule there or the tile loses its colour). `PatientFormSectionHeader` is a thin wrapper kept for old call sites.
 - Stat tiles are one compact row (`metric-stat metric-stat-compact`: 36px icon tile, title over value). BentoCard padding is `p-4`. Do not wrap a form in an invisible BentoCard (the inner glass panel still draws); use a plain `div`.
 - Cards have no hover effect; only table rows and buttons keep hover states.
+- **Radius scale** (`tailwind.config.js`): `rounded-2xl` = 12px for cards, panels and tables; `xl` 10px, `lg` 8px for controls. Do not use arbitrary `rounded-[20px]`-style values. Patient detail opens with a summary strip (ID, phone, last visit, visits, fees); section headers use a plain hairline, not an ornament.

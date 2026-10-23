@@ -68,7 +68,7 @@ export function FilterChip({
           <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[260px] rounded-[20px] p-0">
+      <PopoverContent align="start" className="w-[260px] rounded-2xl p-0">
         <div className="max-h-[280px] overflow-y-auto p-1">
           {options.map((option) => {
             const checked = selected.includes(option.value)

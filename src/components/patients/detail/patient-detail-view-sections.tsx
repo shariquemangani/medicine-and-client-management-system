@@ -55,6 +55,51 @@ function DetailField({
   )
 }
 
+function SummaryStat({
+  label,
+  value,
+  loading,
+  mono = false,
+}: {
+  label: string
+  value: ReactNode
+  loading: boolean
+  mono?: boolean
+}) {
+  return (
+    <div className="bg-card px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+      <div className={cn('mt-1 truncate text-sm font-semibold text-foreground', mono && 'font-mono')}>
+        {loading ? <Sk className="h-5 w-24" /> : value}
+      </div>
+    </div>
+  )
+}
+
+/** One-glance facts about the patient, shown above the detail cards. */
+function PatientSummaryStrip({ patient }: { patient: Patient | null }) {
+  const loading = !patient
+  const lastVisit = patient?.admissionDate?.trim()
+    ? format(new Date(patient.admissionDate.includes('T') ? patient.admissionDate : `${patient.admissionDate}T12:00:00`), 'MMM d, yyyy')
+    : '—'
+  const visits = (patient?.visitHistory?.length ?? 0) + 1
+  return (
+    <div className="col-span-full" aria-busy={loading || undefined}>
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3 lg:grid-cols-5">
+        <SummaryStat label="Patient ID" value={patient?.rollNumber} loading={loading} mono />
+        <SummaryStat
+          label="Phone"
+          value={formatPhoneForDisplay(patient?.phone ?? '') || patient?.phone || '—'}
+          loading={loading}
+        />
+        <SummaryStat label="Last visit" value={lastVisit} loading={loading} />
+        <SummaryStat label="Visits" value={visits} loading={loading} />
+        <SummaryStat label="Fees" value={formatPatientAmount(patient?.fees)} loading={loading} />
+      </div>
+    </div>
+  )
+}
+
 export function PatientDetailViewSections({ patient }: PatientDetailViewSectionsProps) {
   const loading = !patient
   const diseaseLabels = patient ? getPatientDiseaseLabels(patient) : []
@@ -63,6 +108,7 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
 
   return (
     <>
+      <PatientSummaryStrip patient={patient} />
       <BentoCard colSpan={6} accent="patients" delay={60}>
         <PatientFormSectionHeader
           accent="patients"
@@ -87,11 +133,6 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
                 {formatPhoneForDisplay(patient?.phone ?? '') || patient?.phone || '—'}
               </span>
             }
-          />
-          <DetailField
-            loading={loading}
-            label="Patient ID"
-            value={<span className="font-mono text-xs sm:text-sm">{patient?.rollNumber}</span>}
           />
           <DetailField
             loading={loading}
