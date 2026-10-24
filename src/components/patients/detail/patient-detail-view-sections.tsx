@@ -222,7 +222,7 @@ export function PatientDetailViewSections({ patient }: PatientDetailViewSections
                     {medicine.medicineNames?.join(', ') || 'Medicine'}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {formatPrescribedMedicineDisplay(medicine)}
+                    {formatPrescribedMedicineDisplay(medicine, { withNames: false })}
                   </p>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Eye,
   Trash2,
+  UserPlus,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Patient } from '@/types'
@@ -36,6 +37,9 @@ interface PatientsDataTableProps {
   pageSize: number
   onPageChange: (page: number) => void
   viewMode: 'table' | 'compact'
+  /** True while a search or filter is applied (changes what an empty list means). */
+  isFiltered?: boolean
+  onAddPatient?: () => void
 }
 
 const primarySortableColumns: { field: PatientSortField; label: string; className?: string }[] = [
@@ -160,6 +164,8 @@ export function PatientsDataTable({
   pageSize,
   onPageChange,
   viewMode,
+  isFiltered = false,
+  onAddPatient,
 }: PatientsDataTableProps) {
   const start = totalFiltered === 0 ? 0 : (page - 1) * pageSize + 1
   const end = Math.min(page * pageSize, totalFiltered)
@@ -181,7 +187,7 @@ export function PatientsDataTable({
               <PatientsCompactSkeleton rows={pageSize} />
             </div>
           ) : patients.length === 0 ? (
-            <div role="status" className="clinic-table-empty col-span-full">No patients match your filters</div>
+            <div className="col-span-full"><PatientsEmpty isFiltered={isFiltered} onAddPatient={onAddPatient} /></div>
           ) : (
             patients.map((patient, index) => (
               <div
@@ -260,8 +266,8 @@ export function PatientsDataTable({
             <PatientsTableSkeleton rows={pageSize} />
           ) : patients.length === 0 ? (
             <tr>
-              <td colSpan={columnCount} role="status" className="clinic-table-empty">
-                No patients match your filters
+              <td colSpan={columnCount}>
+                <PatientsEmpty isFiltered={isFiltered} onAddPatient={onAddPatient} />
               </td>
             </tr>
           ) : (
@@ -317,6 +323,32 @@ export function PatientsDataTable({
         totalFiltered={totalFiltered}
         onPageChange={onPageChange}
       />
+    </div>
+  )
+}
+
+function PatientsEmpty({ isFiltered, onAddPatient }: { isFiltered: boolean; onAddPatient?: () => void }) {
+  return (
+    <div role="status" className="flex flex-col items-center gap-3 px-4 py-12 text-center">
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
+        <UserPlus className="h-5 w-5" aria-hidden />
+      </span>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-foreground">
+          {isFiltered ? 'No patients match your filters' : 'No patients yet'}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {isFiltered
+            ? 'Try a different search or clear the filters.'
+            : 'Register your first patient to start building the clinic record.'}
+        </p>
+      </div>
+      {!isFiltered && onAddPatient ? (
+        <Button type="button" size="sm" onClick={onAddPatient}>
+          <UserPlus className="h-4 w-4" aria-hidden />
+          Add patient
+        </Button>
+      ) : null}
     </div>
   )
 }

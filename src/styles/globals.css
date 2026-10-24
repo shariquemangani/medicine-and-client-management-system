@@ -2209,11 +2209,20 @@
 
   .clinic-accent-pill {
     border-radius: 9999px;
-    padding: 0.125rem 0.5rem;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    padding: 0.125rem 0.625rem;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .clinic-accent-pill-prescriptions {
+    border: 1px solid hsl(350 89% 60% / 0.25);
+    background: hsl(350 89% 60% / 0.1);
+    color: hsl(350 75% 40%);
+  }
+
+  .dark .clinic-accent-pill-prescriptions {
+    color: hsl(350 89% 68%);
   }
 
   .patient-detail-tabs {

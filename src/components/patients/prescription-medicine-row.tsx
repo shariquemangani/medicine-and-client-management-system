@@ -69,13 +69,13 @@ export function PrescriptionMedicineRow({
 
   return (
     <div className="space-y-3 rounded-xl border border-border/60 bg-[hsl(var(--muted)/0.12)] p-3">
-      <div className="flex items-end gap-2">
+      <div className="flex items-start gap-2">
         <FormField
           control={form.control}
           name={`medicines.${index}.medicineIds`}
           render={({ field }) => (
             <FormItem className={cn(clinicFormFieldItemClass, 'min-w-0 flex-1')}>
-              <RequiredFormLabel className={labelClass}>Medicine name</RequiredFormLabel>
+              <RequiredFormLabel className={cn('h-5', labelClass)}>Medicine name</RequiredFormLabel>
               <FormControl>
                 <CreatableMultiSelect
                   options={vaultSelectOptions}
@@ -99,7 +99,7 @@ export function PrescriptionMedicineRow({
           )}
         />
         <div className={cn(clinicFormFieldItemClass, 'flex w-[15rem] shrink-0 flex-col sm:w-[16rem]')}>
-          <FormLabel className={labelClass}>Medicine quantity</FormLabel>
+          <FormLabel className={cn('flex h-5 items-center', labelClass)}>Medicine quantity</FormLabel>
           <div className="flex h-10 items-center gap-2">
             <FormField
               control={form.control}
@@ -158,12 +158,12 @@ export function PrescriptionMedicineRow({
         </Button>
       </div>
 
-      <div className="flex items-start gap-2 overflow-x-auto pb-1">
+      <div className="flex flex-wrap items-start gap-3">
         <FormField
           control={form.control}
           name={`medicines.${index}.formType`}
           render={({ field }) => (
-            <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[7.5rem] shrink-0')}>
+            <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[7.5rem] flex-1')}>
               <FormLabel className={labelClass}>Form type</FormLabel>
               <Select
                 value={field.value}
@@ -196,7 +196,7 @@ export function PrescriptionMedicineRow({
             control={form.control}
             name={`medicines.${index}.quantity`}
             render={({ field }) => (
-              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[6.5rem] shrink-0')}>
+              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[6.5rem] flex-1')}>
                 <FormLabel className={labelClass}>Quantity</FormLabel>
                 <FormControl>
                   <Input
@@ -216,7 +216,7 @@ export function PrescriptionMedicineRow({
             control={form.control}
             name={`medicines.${index}.quantityOther`}
             render={({ field }) => (
-              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[6.5rem] shrink-0')}>
+              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[6.5rem] flex-1')}>
                 <FormLabel className={labelClass}>Quantity</FormLabel>
                 <FormControl>
                   <Input
@@ -235,7 +235,7 @@ export function PrescriptionMedicineRow({
           control={form.control}
           name={`medicines.${index}.frequency`}
           render={({ field }) => (
-            <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[9rem] shrink-0')}>
+            <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[9rem] flex-1')}>
               <FormLabel className={labelClass}>Frequency (optional)</FormLabel>
               <FormControl>
                 <AdvancedSelect
@@ -256,7 +256,7 @@ export function PrescriptionMedicineRow({
             control={form.control}
             name={`medicines.${index}.frequencyOther`}
             render={({ field }) => (
-              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[7rem] shrink-0')}>
+              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[7rem] flex-1')}>
                 <FormLabel className={labelClass}>Frequency (other)</FormLabel>
                 <FormControl>
                   <Input
@@ -275,7 +275,7 @@ export function PrescriptionMedicineRow({
           control={form.control}
           name={`medicines.${index}.timing`}
           render={({ field }) => (
-            <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[9rem] shrink-0')}>
+            <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[9rem] flex-1')}>
               <FormLabel className={labelClass}>Timing (optional)</FormLabel>
               <FormControl>
                 <AdvancedSelect
@@ -296,7 +296,7 @@ export function PrescriptionMedicineRow({
             control={form.control}
             name={`medicines.${index}.timingOther`}
             render={({ field }) => (
-              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[7rem] shrink-0')}>
+              <FormItem className={cn(clinicFormFieldItemClass, 'min-w-[7rem] flex-1')}>
                 <FormLabel className={labelClass}>Timing (other)</FormLabel>
                 <FormControl>
                   <Input

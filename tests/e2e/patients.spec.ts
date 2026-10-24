@@ -31,8 +31,13 @@ async function deletePatientIfPresent(page: Page) {
 
 test.describe.configure({ mode: 'serial' })
 
-test('patient journey: register, find, edit, bill, delete', async ({ page }) => {
+test('patient journey: register, find, edit, follow-up visit, bill, delete', async ({ page }) => {
   test.setTimeout(180_000)
+  const errors: string[] = []
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text())
+  })
+  page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
   try {
     // --- register ---
     await page.goto('/patients/new')
@@ -70,6 +75,19 @@ test('patient journey: register, find, edit, bill, delete', async ({ page }) => 
     await page.getByRole('button', { name: /Confirm & save/i }).click()
     await expect(page.getByText('2 Edited Road').first()).toBeVisible({ timeout: 20_000 })
 
+    // --- follow-up visit: archives the current visit into history ---
+    await page.getByRole('button', { name: /^New visit$/ }).click()
+    await page.getByPlaceholder(/Follow-up instructions/).fill('Journey follow-up note')
+    await page.locator('form').getByRole('button', { name: /^Save visit$/ }).click()
+    await page.getByRole('button', { name: /Confirm & save/i }).click()
+    await expect(page).toHaveURL(/tab=history/, { timeout: 30_000 })
+    await expect(page.getByText('Total Visits')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByText('Past visit')).toBeVisible()
+    await expect(page.getByText('Current visit')).toBeVisible()
+    await page.getByRole('button', { name: /View details/i }).last().click()
+    await expect(page.getByText('Archived visit', { exact: false }).first()).toBeVisible()
+    await page.keyboard.press('Escape')
+
     // --- billing: record a payment ---
     await page.goto('/billing')
     await waitIdle(page)
@@ -77,6 +95,7 @@ test('patient journey: register, find, edit, bill, delete', async ({ page }) => 
     await expect(billingRow).toHaveCount(1, { timeout: 20_000 })
     // a patient with no fees has nothing due, so the Pay button stays disabled
     await expect(billingRow.getByRole('button', { name: 'Pay' })).toBeDisabled()
+    expect(errors, 'console errors during the journey').toEqual([])
   } finally {
     await deletePatientIfPresent(page)
   }

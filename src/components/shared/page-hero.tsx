@@ -60,7 +60,7 @@ export function PageHero({ icon: Icon, badge, title, subtitle, actions, back, cl
               ) : null}
             </div>
             {subtitle ? (
-              <p className={cn('mt-0.5 min-h-[1.25rem] text-sm leading-5 text-muted-foreground', actions ? 'max-w-md' : 'max-w-3xl')}>{subtitle}</p>
+              <div className={cn('mt-0.5 min-h-[1.25rem] text-sm leading-5 text-muted-foreground', actions ? 'max-w-md' : 'max-w-3xl')}>{subtitle}</div>
             ) : null}
           </div>
         </div>

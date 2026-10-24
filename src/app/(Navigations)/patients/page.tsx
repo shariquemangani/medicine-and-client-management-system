@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ROUTES } from '@/lib/routes'
 import { useRouter } from 'next/navigation'
 import { Users, Wallet } from 'lucide-react'
 import { BentoGrid, BentoCard } from '@/components/shared'
@@ -159,6 +160,8 @@ export default function PatientsPage() {
               pageSize={pageSize}
               onPageChange={setPage}
               viewMode={viewMode}
+              isFiltered={activeFilterCount > 0}
+              onAddPatient={() => router.push(ROUTES.patientsNew)}
             />
           </div>
       </div>

@@ -119,7 +119,7 @@ export function CreatableMultiSelect({
               <span className="text-muted-foreground">{placeholder}</span>
             ) : (
               (maxDisplay != null ? selected.slice(0, maxDisplay) : selected).map((value) => (
-                <Badge key={value} variant="secondary" className="font-normal">
+                <Badge key={value} variant="secondary" className="border border-border/60 bg-muted font-normal text-foreground hover:bg-muted">
                   {optionMap.get(value) ?? value}
                 </Badge>
               ))

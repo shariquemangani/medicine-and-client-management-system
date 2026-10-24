@@ -145,9 +145,20 @@ export function registrationValuesToPatientUpdate(
   return update
 }
 
-export function formatPrescribedMedicineDisplay(medicine: PatientPrescribedMedicine): string {
-  if (medicine.dosage?.trim()) return medicine.dosage.trim()
-  const names = medicine.medicineNames?.join(', ') ?? ''
+export function formatPrescribedMedicineDisplay(
+  medicine: PatientPrescribedMedicine,
+  options: { withNames?: boolean } = {}
+): string {
+  if (medicine.dosage?.trim()) {
+    const dosage = medicine.dosage.trim()
+    const names = medicine.medicineNames?.join(', ') ?? ''
+    // Stored dosage text starts with the medicine name; callers that already show the name drop it.
+    if (options.withNames === false && names && dosage.startsWith(names)) {
+      return dosage.slice(names.length).replace(/^[\s·,-]+/, '') || dosage
+    }
+    return dosage
+  }
+  const names = options.withNames === false ? '' : (medicine.medicineNames?.join(', ') ?? '')
   const form = medicine.formType ? getFormTypeLabel(medicine.formType) : ''
   const qty = medicine.formType
     ? usesNumericQuantity(medicine.formType)
